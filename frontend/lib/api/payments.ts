@@ -574,7 +574,6 @@ export async function sendDomesticTransfer(data: {
     recipient: data.recipient,
     payment_method: typeof data.payment_method_id === 'string' ? parseInt(data.payment_method_id, 10) : data.payment_method_id
   }
-  )
   try {
     const response = await api.post('/api/v1/payments/domestic-transfers/', requestData)
     return response.data

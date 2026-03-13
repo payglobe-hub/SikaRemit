@@ -1,7 +1,7 @@
 # Shared utilities package
 
 from .logger import AppLogger
-from .middleware import RequestIDMiddleware, SecurityHeadersMiddleware
+from .middleware import RequestIDMiddleware
 from .helpers import (
     JSONResponse,
     parse_date,
@@ -13,7 +13,6 @@ from .helpers import (
 __all__ = [
     'AppLogger',
     'RequestIDMiddleware',
-    'SecurityHeadersMiddleware',
     'JSONResponse',
     'parse_date',
     'validate_email',

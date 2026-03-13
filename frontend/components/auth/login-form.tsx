@@ -37,9 +37,6 @@ export function LoginForm({ userType = 'customer' }: { userType?: 'customer' | '
     try {
       
       const role = await login(email, password)
-      
-      
-      )
 
       toast({
         title: 'Login Successful',
