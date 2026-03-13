@@ -148,22 +148,43 @@ def process_global_payment(request):
         )
         
         if result['success']:
-            # Create payment record
-            payment = Payment.objects.create(
-                customer=customer,
-                merchant=merchant,
-                amount=amount,
-                currency=currency,
-                payment_method=payment_method_str,
-                transaction_id=result.get('transaction_id', ''),
-                status='pending',
-                metadata={
-                    **metadata,
-                    'payment_method_type': payment_method_str,
-                    'redirect_url': result.get('redirect_url'),
-                    'client_secret': result.get('client_secret')
-                }
-            )
+            # Create payment record atomically; refund if DB fails
+            try:
+                from django.db import transaction as db_transaction
+                with db_transaction.atomic():
+                    payment = Payment.objects.create(
+                        customer=customer,
+                        merchant=merchant,
+                        amount=amount,
+                        currency=currency,
+                        payment_method=payment_method_str,
+                        transaction_id=result.get('transaction_id', ''),
+                        status='pending',
+                        metadata={
+                            **metadata,
+                            'payment_method_type': payment_method_str,
+                            'redirect_url': result.get('redirect_url'),
+                            'client_secret': result.get('client_secret')
+                        }
+                    )
+            except Exception as db_err:
+                logger.error(f"DB save failed after global payment charge, issuing refund: {db_err}")
+                try:
+                    processor.refund_payment(
+                        transaction_id=result.get('transaction_id'),
+                        amount=float(amount),
+                        reason='DB save failed after charge'
+                    )
+                except Exception as refund_err:
+                    logger.critical(
+                        f"REFUND ALSO FAILED for global payment, "
+                        f"gateway_tx={result.get('transaction_id')}, "
+                        f"amount={amount}: {refund_err}"
+                    )
+                return Response({
+                    'success': False,
+                    'error': 'Payment charged but recording failed. A refund has been initiated.'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
             return Response({
                 'success': True,

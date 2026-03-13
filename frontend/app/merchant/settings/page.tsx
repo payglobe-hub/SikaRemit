@@ -36,6 +36,7 @@ import { ExchangeRateChart } from '@/components/currency/exchange-rate-chart'
 import { useSession } from '@/lib/auth'
 import api from '@/lib/api/axios'
 import { useRouter } from 'next/navigation'
+import { cookieUtils } from '@/lib/utils/cookie-auth'
 
 interface MerchantSettings {
   businessName: string
@@ -109,10 +110,21 @@ export default function MerchantSettingsPage() {
 
   // Load saved currency rates and settings on mount
   useEffect(() => {
-    const savedRates = localStorage.getItem('merchant-currency-rates')
+    const savedRates = cookieUtils.getCookie('merchant-currency-rates')
     if (savedRates) {
       try {
-        const rates = JSON.parse(savedRates)
+        let rates: Record<string, number>
+        
+        // Handle both string (JSON) and object formats
+        if (typeof savedRates === 'string') {
+          rates = JSON.parse(savedRates)
+        } else if (typeof savedRates === 'object' && savedRates !== null) {
+          rates = savedRates as Record<string, number>
+        } else {
+          console.warn('Invalid currency rates format:', savedRates)
+          return
+        }
+        
         setSettings(prev => ({
           ...prev,
           currencyRates: { ...prev.currencyRates, ...rates }
@@ -122,10 +134,21 @@ export default function MerchantSettingsPage() {
       }
     }
 
-    const savedSettings = localStorage.getItem('merchant-currency-settings')
+    const savedSettings = cookieUtils.getCookie('merchant-currency-settings')
     if (savedSettings) {
       try {
-        const settingsData = JSON.parse(savedSettings)
+        let settingsData: any
+        
+        // Handle both string (JSON) and object formats
+        if (typeof savedSettings === 'string') {
+          settingsData = JSON.parse(savedSettings)
+        } else if (typeof savedSettings === 'object' && savedSettings !== null) {
+          settingsData = savedSettings
+        } else {
+          console.warn('Invalid currency settings format:', savedSettings)
+          return
+        }
+        
         setSettings(prev => ({
           ...prev,
           currencySettings: { ...prev.currencySettings, ...settingsData }
@@ -169,10 +192,10 @@ export default function MerchantSettingsPage() {
       })
       
       // Save custom currency rates to localStorage
-      localStorage.setItem('merchant-currency-rates', JSON.stringify(newSettings.currencyRates))
+      cookieUtils.setCookie('merchant-currency-rates', JSON.stringify(newSettings.currencyRates))
       
       // Save currency settings to localStorage
-      localStorage.setItem('merchant-currency-settings', JSON.stringify(newSettings.currencySettings))
+      cookieUtils.setCookie('merchant-currency-settings', JSON.stringify(newSettings.currencySettings))
       
       return newSettings
     },
@@ -218,37 +241,37 @@ export default function MerchantSettingsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       {/* Hero Section */}
-      <div className="relative py-16 lg:py-24 overflow-hidden bg-gradient-to-br from-purple-50/30 via-blue-50/20 to-pink-50/30">
+      <div className="relative py-16 lg:py-24 overflow-hidden bg-gradient-to-br from-blue-50/30 via-blue-50/20 to-blue-50/30">
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-blue-400/15 to-purple-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-conic from-purple-500/5 via-transparent to-blue-500/5 rounded-full blur-2xl animate-spin" style={{animationDuration: '20s'}}></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-blue-400/20 to-blue-300/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-blue-400/15 to-indigo-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-conic from-blue-500/5 via-transparent to-blue-400/5 rounded-full blur-2xl animate-spin" style={{animationDuration: '20s'}}></div>
         </div>
 
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
           <div className="text-center max-w-4xl mx-auto animate-in slide-in-from-bottom duration-1000">
-            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-purple-500/5 text-slate-700 text-sm font-semibold mb-8 animate-in zoom-in-50 duration-700 delay-300 hover:bg-white/50 hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 group">
-              <SettingsIcon className="w-5 h-5 mr-3 text-purple-600 group-hover:rotate-12 transition-transform duration-300" />
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-blue-500/5 text-slate-700 text-sm font-semibold mb-8 animate-in zoom-in-50 duration-700 delay-300 hover:bg-white/50 hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 group">
+              <SettingsIcon className="w-5 h-5 mr-3 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
               Settings & Preferences
             </div>
             <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-6 leading-tight animate-in slide-in-from-bottom duration-1000 delay-500">
               Account Management
-              <span className="block bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-sm">Customize your merchant experience</span>
+              <span className="block bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent drop-shadow-sm">Customize your merchant experience</span>
             </h1>
             <p className="text-lg text-slate-600/90 mb-8 max-w-2xl mx-auto leading-relaxed animate-in slide-in-from-bottom duration-1000 delay-700 font-medium">
               Manage your business information, security settings, notification preferences, and payment configurations all in one place.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center animate-in slide-in-from-bottom duration-1000 delay-900">
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <User className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <User className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">Business profile</span>
               </div>
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <Shield className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <Shield className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">Security settings</span>
               </div>
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <Bell className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <Bell className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">Notifications</span>
               </div>
             </div>
@@ -259,22 +282,22 @@ export default function MerchantSettingsPage() {
       <div className="max-w-7xl mx-auto px-6 py-8 lg:px-8 space-y-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
         <TabsList className="grid w-full grid-cols-5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-1 shadow-lg">
-          <TabsTrigger value="business" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-500 data-[state=active]:text-white transition-all duration-300">Business</TabsTrigger>
-          <TabsTrigger value="notifications" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-500 data-[state=active]:text-white transition-all duration-300">Notifications</TabsTrigger>
-          <TabsTrigger value="payouts" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-500 data-[state=active]:text-white transition-all duration-300">Payouts</TabsTrigger>
-          <TabsTrigger value="currency" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-500 data-[state=active]:text-white transition-all duration-300">Currency</TabsTrigger>
-          <TabsTrigger value="security" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-500 data-[state=active]:text-white transition-all duration-300">Security</TabsTrigger>
+          <TabsTrigger value="business" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-500 data-[state=active]:text-white transition-all duration-300">Business</TabsTrigger>
+          <TabsTrigger value="notifications" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-500 data-[state=active]:text-white transition-all duration-300">Notifications</TabsTrigger>
+          <TabsTrigger value="payouts" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-500 data-[state=active]:text-white transition-all duration-300">Payouts</TabsTrigger>
+          <TabsTrigger value="currency" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-500 data-[state=active]:text-white transition-all duration-300">Currency</TabsTrigger>
+          <TabsTrigger value="security" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-500 data-[state=active]:text-white transition-all duration-300">Security</TabsTrigger>
         </TabsList>
 
         {/* Business Settings */}
         <TabsContent value="business" className="space-y-6">
-          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden">
-            <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 relative overflow-hidden">
+            <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10"></div>
 
             <CardHeader className="relative z-10 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center space-x-3">
-                <div className="p-3 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl shadow-lg">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg">
                   <Building className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -375,13 +398,13 @@ export default function MerchantSettingsPage() {
 
         {/* Notification Settings */}
         <TabsContent value="notifications" className="space-y-6">
-          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden">
-            <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 relative overflow-hidden">
+            <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10"></div>
 
             <CardHeader className="relative z-10 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center space-x-3">
-                <div className="p-3 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl shadow-lg">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg">
                   <Bell className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -481,13 +504,13 @@ export default function MerchantSettingsPage() {
 
         {/* Payout Settings */}
         <TabsContent value="payouts" className="space-y-6">
-          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden">
-            <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 relative overflow-hidden">
+            <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10"></div>
 
             <CardHeader className="relative z-10 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center space-x-3">
-                <div className="p-3 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl shadow-lg">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg">
                   <CreditCard className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -541,13 +564,13 @@ export default function MerchantSettingsPage() {
 
         {/* Currency Settings */}
         <TabsContent value="currency" className="space-y-6">
-          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden">
-            <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-600/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
+          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 relative overflow-hidden">
+            <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-blue-300/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
 
             <CardHeader className="relative z-10 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center space-x-3">
-                <div className="p-3 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl shadow-lg">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg">
                   <DollarSign className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -568,7 +591,7 @@ export default function MerchantSettingsPage() {
                     <CurrencySelector showPreferences={false} />
                   </div>
 
-                  <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium text-blue-900 dark:text-blue-100">Live Exchange Rates</h4>
@@ -640,13 +663,13 @@ export default function MerchantSettingsPage() {
 
         {/* Security Settings */}
         <TabsContent value="security" className="space-y-6">
-          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden">
-            <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 relative overflow-hidden">
+            <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10"></div>
 
             <CardHeader className="relative z-10 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center space-x-3">
-                <div className="p-3 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl shadow-lg">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg">
                   <Shield className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -698,7 +721,7 @@ export default function MerchantSettingsPage() {
         <Button
           onClick={handleSaveSettings}
           disabled={updateSettingsMutation.isPending}
-          className="bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:shadow-xl hover:shadow-purple-500/25 transition-all duration-300 hover:scale-105 px-8 py-3"
+          className="bg-gradient-to-r from-blue-500 to-blue-700 text-white hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 px-8 py-3"
         >
           {updateSettingsMutation.isPending ? (
             <>

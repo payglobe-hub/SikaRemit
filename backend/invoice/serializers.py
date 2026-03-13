@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Invoice, InvoiceItem
 from django.contrib.auth import get_user_model
+from shared.constants import USER_TYPE_MERCHANT
 
 User = get_user_model()
 
@@ -25,6 +26,13 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'sent_at', 'paid_at', 'items'
         ]
         read_only_fields = ['id', 'invoice_number', 'created_at', 'updated_at', 'sent_at', 'paid_at']
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Handle items serialization separately to avoid RelatedManager issues
+        if hasattr(instance, 'items'):
+            data['items'] = InvoiceItemSerializer(instance.items.all(), many=True).data
+        return data
 
 class CreateInvoiceSerializer(serializers.Serializer):
     customer_name = serializers.CharField()
@@ -40,8 +48,13 @@ class CreateInvoiceSerializer(serializers.Serializer):
             child=serializers.CharField(),
             allow_empty=False
         ),
-        allow_empty=False
+        allow_empty=False,
+        write_only=True  # Only for input, not for output
     )
+
+    def to_representation(self, instance):
+        # Use the InvoiceSerializer for output representation
+        return InvoiceSerializer(instance).data
 
     def create(self, validated_data):
         request = self.context.get('request')
@@ -49,7 +62,7 @@ class CreateInvoiceSerializer(serializers.Serializer):
             raise serializers.ValidationError("User authentication required")
         
         invoice_type = 'customer'  # Default to customer invoice
-        if hasattr(request.user, 'user_type') and request.user.user_type == 3:  # merchant
+        if hasattr(request.user, 'user_type') and request.user.user_type == USER_TYPE_MERCHANT:  # merchant
             invoice_type = 'merchant'
         
         invoice_data = {

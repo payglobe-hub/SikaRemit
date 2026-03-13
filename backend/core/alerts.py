@@ -23,10 +23,11 @@ ALERT_THRESHOLDS = {
     }
 }
 
+# Notification channels from environment variables
 NOTIFICATION_CHANNELS = [
-    'admin@SikaRemit.com',
-    'devops@SikaRemit.com'  # Added secondary channel
-]
+    email.strip() for email in os.getenv('NOTIFICATION_EMAILS', '').split(',') 
+    if email.strip()
+] if os.getenv('NOTIFICATION_EMAILS') else []
 
 ALERT_COOLDOWN = 300  # 5 minutes between repeat alerts
 

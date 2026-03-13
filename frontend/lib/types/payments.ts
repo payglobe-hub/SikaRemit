@@ -1,4 +1,4 @@
-export type ExternalPaymentMethodType = 'card' | 'mobile_money' | 'bank_account' | 'bank' | 'mtn_momo' | 'telecel' | 'airtel_tigo' | 'qr'
+export type ExternalPaymentMethodType = 'card' | 'bank' | 'mtn_momo' | 'telecel' | 'airtel_tigo' | 'g_money' | 'qr'
 export type PaymentMethodType = ExternalPaymentMethodType | 'sikaremit_balance'
 
 export interface CreatePaymentMethod {
@@ -12,20 +12,18 @@ export function getPaymentMethodDisplay(method: any): string {
   if (method.method_type === 'card' || method.type === 'card') {
     return `Card ending in ${method.last4 || method.details?.last4}`
   }
-  if (method.method_type === 'mtn_momo' || method.method_type === 'telecel' || method.method_type === 'airtel_tigo') {
+  if (method.method_type === 'mtn_momo' || method.method_type === 'telecel' || method.method_type === 'airtel_tigo' || method.method_type === 'g_money') {
     const providerNames: { [key: string]: string } = {
       'mtn_momo': 'MTN Momo',
       'telecel': 'Telecel',
-      'airtel_tigo': 'AirtelTigo'
+      'airtel_tigo': 'AirtelTigo',
+      'g_money': 'G-Money'
     }
     const provider = providerNames[method.method_type] || method.details?.provider || method.provider
     const phone = method.phone || method.details?.phone_number
     return `Mobile Money - ${provider}${phone ? ` ${phone}` : ''}`
   }
-  if (method.method_type === 'mobile_money' || method.type === 'mobile_money') {
-    return `${method.provider || method.details?.provider} - ${method.phone || method.details?.phone_number}`
-  }
-  if (method.method_type === 'bank' || method.type === 'bank_account' || method.type === 'bank') {
+  if (method.method_type === 'bank' || method.type === 'bank') {
     const details = method.details || method
     const bankName = details.bank_name
     const bankBranch = details.bank_branch
@@ -92,7 +90,7 @@ export interface TransactionContext {
     // SikaRemit wallet transfer
     sikaremit_identifier?: string
     // Delivery method for international remittances (inbound)
-    deliveryMethod?: 'mobile_money' | 'bank_account'
+    deliveryMethod?: 'mtn_momo' | 'telecel' | 'airtel_tigo' | 'g_money' | 'bank'
     deliveryPhone?: string
     deliveryAccountNumber?: string
     deliveryBankName?: string

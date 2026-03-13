@@ -32,6 +32,8 @@ ENV/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+test_db.sqlite3
+test_db.sqlite3-journal
 /media
 /staticfiles
 /static
@@ -56,6 +58,12 @@ htmlcov/
 .env.local
 .env.production
 .env.*.local
+
+# GCP service account keys (NEVER commit these)
+*-sa-key.json
+*-credentials.json
+service-account*.json
+github-sa-key.json
 
 # Node
 node_modules/

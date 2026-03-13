@@ -12,10 +12,42 @@ const nextConfig = {
   compress: true,
   trailingSlash: true,
   
-  // Exclude specific routes from static generation
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+  
+  // Strip console.log/debug/warn in production builds
+  compiler: {
+    removeConsole: isExport ? { exclude: ['error'] } : false,
+  },
+  
+  // Webpack configuration to polyfill localStorage for SSR
+  webpack: (config, { isServer, webpack }) => {
+    if (isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        localStorage: false,
+      };
+      
+      // Add a plugin to polyfill localStorage for SSR
+      config.plugins.push(
+        new webpack.DefinePlugin({
+          'typeof localStorage': JSON.stringify('object'),
+          'localStorage': JSON.stringify({
+            getItem: () => null,
+            setItem: () => {},
+            removeItem: () => {},
+            clear: () => {},
+          }),
+        })
+      );
+    }
+    
+    return config;
+  },
+  
   experimental: {
     optimizeCss: true,
-    missingSuspenseCSSToken: true,
   },
   
   // Rewrites only in development (not compatible with static export)
@@ -28,7 +60,6 @@ const nextConfig = {
         },
       ];
     },
-    // Security headers (only in dev, use hosting provider headers in production)
     async headers() {
       return [
         {
@@ -51,13 +82,18 @@ const nextConfig = {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
   
-  experimental: {
-    optimizeCss: true,
-  },
-  
   // Image optimization
   images: {
-    domains: ['sikaremit-api.onrender.com', 'localhost'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.sikaremit.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+      },
+    ],
     formats: ['image/avif', 'image/webp'],
   },
   

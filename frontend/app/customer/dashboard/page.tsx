@@ -67,9 +67,8 @@ export default function CustomerDashboard() {
 
 
   useEffect(() => {
-    if (session && (session?.user as any)?.token) {
-      localStorage.setItem('access_token', (session.user as any).token)
-    }
+    // Token storage disabled - using cookie-based auth system instead
+    // No localStorage access needed
   }, [session])
 
   if (status === 'loading' || loading) {
@@ -121,19 +120,20 @@ export default function CustomerDashboard() {
       iconColor: 'bg-red-500/10 text-red-500'
     },
     {
-      title: 'Send Domestic',
+      title: 'Transfer',
       description: 'Transfer money within the same country',
       icon: Send,
       href: '/customer/payments/domestic',
       iconColor: 'bg-blue-500/10 text-blue-500'
     },
-    {
-      title: 'Send International',
-      description: 'Transfer money across borders',
-      icon: Globe,
-      href: '/customer/payments/cross-border',
-      iconColor: 'bg-green-500/10 text-green-500'
-    },
+    // Temporarily hidden - no permission for international transfers
+    // {
+    //   title: 'Send International',
+    //   description: 'Transfer money across borders',
+    //   icon: Globe,
+    //   href: '/customer/payments/cross-border',
+    //   iconColor: 'bg-green-500/10 text-green-500'
+    // },
     {
       title: 'Buy Airtime',
       description: 'Purchase airtime for any network',
@@ -153,18 +153,18 @@ export default function CustomerDashboard() {
       description: 'Pay utilities, taxes, loans, and other bills',
       icon: Receipt,
       href: '/customer/payments/bills',
-      iconColor: 'bg-purple-500/10 text-purple-500'
+      iconColor: 'bg-indigo-500/10 text-indigo-500'
     }
   ]
 
   return (
-    <div className="revolut-container py-3 sm:py-4 md:py-6 lg:py-8">
-          {/* Header - Revolut Style */}
+    <div className="container mx-auto px-6 py-8 max-w-7xl">
+          {/* Header */}
           <div className="mb-6 sm:mb-8 lg:mb-10">
             <div className="mb-4 sm:mb-6">
               <div className="space-y-2">
                 <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-2">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-2xl flex items-center justify-center shadow-revolut">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-2xl flex items-center justify-center shadow-soft">
                     <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -176,7 +176,7 @@ export default function CustomerDashboard() {
                     </p>
                     {userTypeInfo && (
                       <div className="mt-3">
-                        <span className="revolut-badge">
+                        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
                           <span>{userTypeInfo.icon}</span>
                           {userTypeInfo.label}
                         </span>
@@ -186,7 +186,7 @@ export default function CustomerDashboard() {
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-sm">
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-card rounded-full border border-border/50">
-                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div>
                     <span className="text-muted-foreground">System Online</span>
                   </div>
                   <div className="text-muted-foreground text-xs sm:text-sm">
@@ -197,9 +197,9 @@ export default function CustomerDashboard() {
             </div>
           </div>
 
-          {/* Balance Card - Revolut Style */}
+          {/* Balance Card */}
           <div className="mb-6 sm:mb-10">
-            <div className="revolut-balance-card">
+            <div className="relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-primary to-accent text-white shadow-xl">
               <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-12 translate-x-12"></div>
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
               <div className="relative">
@@ -249,22 +249,22 @@ export default function CustomerDashboard() {
             </div>
           </div>
 
-          {/* Quick Actions - Revolut Style */}
+          {/* Quick Actions */}
           <div className="mb-6 sm:mb-10">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
               <div>
                 <h2 className="text-lg sm:text-xl font-bold text-foreground mb-1">Quick Actions</h2>
                 <p className="text-muted-foreground text-sm">Everything you need, just one click away</p>
               </div>
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-500/10 rounded-full">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs font-medium text-green-600">All Systems Operational</span>
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-success/10 rounded-full">
+                <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+                <span className="text-xs font-medium text-success">All Systems Operational</span>
               </div>
             </div>
             <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {quickActions.map((action) => (
                 <Link key={action.title} href={action.href} className="block">
-                  <div className="revolut-quick-action h-full">
+                  <div className="bg-card rounded-xl border border-border/50 p-4 cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg h-full">
                     <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${action.iconColor} flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-200`}>
                       <action.icon className="h-6 w-6" />
                     </div>
@@ -280,7 +280,7 @@ export default function CustomerDashboard() {
             </div>
           </div>
 
-          {/* Activity Section - Revolut Style */}
+          {/* Activity Section */}
           <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 xl:grid-cols-3">
             {/* Recent Transactions */}
             <div className="lg:col-span-2">
@@ -313,14 +313,14 @@ export default function CustomerDashboard() {
                   ) : (
                     <div key="payments-list" className="space-y-2 sm:space-y-3">
                       {recentPayments.map((payment, index) => (
-                        <div key={payment.id || `payment-${index}`} className="revolut-transaction flex-col sm:flex-row gap-2 sm:gap-0">
+                        <div key={payment.id || `payment-${index}`} className="flex items-center justify-between p-4 rounded-xl bg-muted/50 transition-colors hover:bg-muted">
                           <div className="flex items-center gap-3 sm:gap-4">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                               payment.status === 'completed'
-                                ? 'bg-green-500/10 text-green-500'
+                                ? 'bg-success/10 text-success'
                                 : payment.status === 'pending'
-                                ? 'bg-yellow-500/10 text-yellow-500'
-                                : 'bg-red-500/10 text-red-500'
+                                ? 'bg-warning/10 text-warning'
+                                : 'bg-error/10 text-error'
                             }`}>
                               <DollarSign className="h-5 w-5" />
                             </div>
@@ -331,12 +331,12 @@ export default function CustomerDashboard() {
                               </p>
                             </div>
                           </div>
-                          <span className={`revolut-status ${
+                          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                             payment.status === 'completed'
-                              ? 'revolut-status-success'
+                              ? 'bg-success/10 text-success'
                               : payment.status === 'pending'
-                              ? 'revolut-status-pending'
-                              : 'revolut-status-error'
+                              ? 'bg-warning/10 text-warning'
+                              : 'bg-error/10 text-error'
                           }`}>
                             {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
                           </span>
@@ -353,8 +353,8 @@ export default function CustomerDashboard() {
               <Card>
                 <CardHeader className="border-b border-border p-4 sm:p-6">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center">
-                      <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500" />
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-secondary/10 rounded-xl flex items-center justify-center">
+                      <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-secondary" />
                     </div>
                     <div>
                       <CardTitle className="text-foreground text-base sm:text-lg">Recent Receipts</CardTitle>
@@ -370,7 +370,7 @@ export default function CustomerDashboard() {
                       {recentReceipts.map((receipt, index) => (
                         <div key={receipt.id || `receipt-${index}`} className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
                           <span className="font-medium text-foreground">{formatAmountFromBase(receipt.amount, 'GHS')}</span>
-                          <Button variant="ghost" size="sm" asChild className="text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10">
+                          <Button variant="ghost" size="sm" asChild className="text-secondary hover:text-secondary hover:bg-secondary/10">
                             <a href={receipt.download_url} download className="flex items-center gap-1">
                               <Download className="h-3 w-3" />
                               Download

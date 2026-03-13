@@ -6,6 +6,9 @@ import { CreditCard, TrendingUp, Shield, Users, Receipt, Smartphone, Building2, 
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { getAvailablePaymentMethods } from '@/lib/api/payments'
+import { PaymentCheckoutModal } from '@/components/payments/payment-checkout-modal'
+import { useState } from 'react'
+import { TransactionContext, TransactionType } from '@/lib/types/payments'
 
 export default function PaymentsPage() {
   // Fetch available payment methods to display category overview
@@ -14,18 +17,35 @@ export default function PaymentsPage() {
     queryFn: getAvailablePaymentMethods,
   })
 
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
+  const [checkoutTransaction, setCheckoutTransaction] = useState<TransactionContext | null>(null)
+
   const availableMethods = availableMethodsResponse?.success ? availableMethodsResponse.data : {}
+
+  const handlePaymentTypeClick = (type: TransactionType) => {
+    // Create transaction context for checkout modal
+    const transactionContext: TransactionContext = {
+      type: type,
+      amount: 100, // Default amount - user will modify in modal
+      currency: 'GHS',
+      description: `${type.replace('_', ' ').toUpperCase()} Payment`,
+    }
+
+    setCheckoutTransaction(transactionContext)
+    setIsCheckoutModalOpen(true)
+  }
 
   // Create dynamic payment categories from available methods
   const paymentCategories = Object.keys(availableMethods || {}).map(categoryId => {
     const methods = (availableMethods as any)?.[categoryId] || []
-    const categoryConfig = {
-      sikaremit_balance: { icon: <Receipt className="h-6 w-6 text-emerald-600" />, title: 'sikaremit Balance', description: 'Pay with your account balance' },
+    const categoryConfig: Record<string, { icon: React.ReactNode, title: string, description: string }> = {
+      sikaRemit_balance: { icon: <Receipt className="h-6 w-6 text-emerald-600" />, title: 'SikaRemit Balance', description: 'Pay with your account balance' },
+      sikaremit_balance: { icon: <Receipt className="h-6 w-6 text-emerald-600" />, title: 'SikaRemit Balance', description: 'Pay with your account balance' },
       credit_debit_cards: { icon: <CreditCard className="h-6 w-6 text-blue-600" />, title: 'Credit/Debit Cards', description: 'Visa, Mastercard, American Express' },
       bank_transfers: { icon: <Building2 className="h-6 w-6 text-green-600" />, title: 'Bank Transfers', description: 'Direct bank account transfers' },
       mobile_money_ghana: { icon: <Smartphone className="h-6 w-6 text-orange-600" />, title: 'Mobile Money Ghana', description: 'MTN, AirtelTigo, Telecel payments' },
       paypal: { icon: <Globe className="h-6 w-6 text-indigo-600" />, title: 'PayPal', description: 'International PayPal payments' },
-      cryptocurrency: { icon: <Bitcoin className="h-6 w-6 text-purple-600" />, title: 'Cryptocurrency', description: 'Bitcoin, Ethereum, and crypto' },
+      cryptocurrency: { icon: <Bitcoin className="h-6 w-6 text-indigo-600" />, title: 'Cryptocurrency', description: 'Bitcoin, Ethereum, and crypto' },
       qr_code: { icon: <Smartphone className="h-6 w-6 text-cyan-600" />, title: 'QR Code Payments', description: 'Scan QR codes to pay merchants' }
     }
 
@@ -123,7 +143,7 @@ export default function PaymentsPage() {
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Users className="h-4 w-4 text-purple-600" />
+              <Users className="h-4 w-4 text-indigo-600" />
               Global Reach
             </CardTitle>
           </CardHeader>
@@ -158,20 +178,23 @@ export default function PaymentsPage() {
               Start your transaction with our improved payment experience
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button asChild>
-                <Link href="/customer/payments/domestic">
-                  Transfer Money
-                </Link>
+              <Button onClick={() => handlePaymentTypeClick('transfer_domestic')}>
+                Transfer Money
               </Button>
-              <Button variant="outline" asChild>
-                <Link href="/customer/payments/checkout">
-                  Send Payment
-                </Link>
+              <Button variant="outline" onClick={() => handlePaymentTypeClick('merchant_checkout')}>
+                Send Payment
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Payment Checkout Modal */}
+      <PaymentCheckoutModal
+        isOpen={isCheckoutModalOpen}
+        onClose={() => setIsCheckoutModalOpen(false)}
+        transactionContext={checkoutTransaction!}
+      />
     </div>
   )
 }

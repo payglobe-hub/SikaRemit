@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -85,7 +85,7 @@ const TransactionHistory = () => {
 
       // In a real app, this would trigger a print dialog or download
       toast.success('Receipt generated successfully')
-      console.log('Receipt:', response.data.receipt_text)
+      
     } catch (error) {
       toast.error('Failed to generate receipt')
     }
@@ -218,7 +218,7 @@ const TransactionHistory = () => {
                       <TableCell>
                         <div>
                           <p className="font-medium">
-                            ₵{transaction.amount} {transaction.currency}
+                            â‚µ{transaction.amount} {transaction.currency}
                           </p>
                         </div>
                       </TableCell>
@@ -292,3 +292,4 @@ const TransactionHistory = () => {
 }
 
 export default TransactionHistory
+

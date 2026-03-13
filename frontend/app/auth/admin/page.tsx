@@ -12,7 +12,6 @@ import Link from 'next/link'
 const ForgotPasswordDialog = dynamic(() => import('@/components/auth/forgot-password-dialog').then(mod => ({ default: mod.ForgotPasswordDialog })), { ssr: false })
 
 export default function AdminAuthPage() {
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-orange-100 dark:from-slate-900 dark:via-red-900 dark:to-orange-900 relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -50,6 +49,20 @@ export default function AdminAuthPage() {
             </div>
           </div>
 
+          {/* Admin System Information */}
+          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="flex items-start gap-3">
+              <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200">Role-Based Access</h3>
+                <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                  Your admin role and permissions are automatically determined based on your account credentials. 
+                  No manual role selection required.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Back to Main Auth */}
           <div className="mb-4">
             <Link href="/auth">
@@ -72,7 +85,7 @@ export default function AdminAuthPage() {
                 Admin Portal
               </CardTitle>
               <CardDescription className="text-slate-600 dark:text-slate-400">
-                Secure administrative access
+                Secure administrative access with role-based authentication
               </CardDescription>
             </CardHeader>
             <CardContent>

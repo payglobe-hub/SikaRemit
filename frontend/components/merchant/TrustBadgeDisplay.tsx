@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import api from '@/lib/api/axios'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -57,8 +58,8 @@ export function TrustBadgeDisplay({
 
   const fetchTrustStatus = async () => {
     try {
-      const response = await fetch(`/api/merchants/${merchantId}/trust/status/`)
-      const data = await response.json()
+      const response = await api.get(`/api/v1/merchants/${merchantId}/trust/status/`)
+      const data = response.data
       
       if (data.success) {
         setStatus(data.verification_status)

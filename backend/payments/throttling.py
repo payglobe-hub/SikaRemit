@@ -12,6 +12,7 @@ from rest_framework.throttling import BaseThrottle
 from rest_framework import status
 from typing import Dict, List, Any, Optional, Tuple
 import math
+from shared.constants import USER_TYPE_SUPER_ADMIN, USER_TYPE_MERCHANT
 
 logger = logging.getLogger(__name__)
 
@@ -132,11 +133,11 @@ class AdvancedRateLimiter:
             return 'admin'
 
         # Check user type (assuming user_type field exists)
-        user_type = getattr(user, 'user_type', 3)  # Default to customer
+        user_type = getattr(user, 'user_type', 6)  # Default to customer
 
-        if user_type == 1:  # Admin
+        if user_type == USER_TYPE_SUPER_ADMIN:  # Admin
             return 'admin'
-        elif user_type == 2:  # Merchant
+        elif user_type == USER_TYPE_MERCHANT:  # Merchant
             return 'premium'
         else:  # Customer
             return 'basic'
@@ -324,13 +325,45 @@ class RateLimitAnalytics:
         """
         Get endpoint usage statistics for rate limiting optimization
         """
-        # This would require logging endpoint usage
-        # For now, return placeholder structure
+        from django.core.cache import cache
+
+        # Gather endpoint hit counts from cache counters
+        endpoint_keys = cache.keys('endpoint_hits:*') or []
+        endpoint_counts = {}
+        for key in endpoint_keys:
+            endpoint = key.replace('endpoint_hits:', '')
+            count = cache.get(key, 0)
+            endpoint_counts[endpoint] = count
+
+        # Sort by usage
+        sorted_endpoints = sorted(endpoint_counts.items(), key=lambda x: x[1], reverse=True)
+        most_used = [{'endpoint': ep, 'hits': cnt} for ep, cnt in sorted_endpoints[:20]]
+
+        # Gather rate-limited endpoints from violation counters
+        violation_keys = cache.keys('endpoint_violations:*') or []
+        rate_limited = []
+        for key in violation_keys:
+            endpoint = key.replace('endpoint_violations:', '')
+            count = cache.get(key, 0)
+            if count > 0:
+                rate_limited.append({'endpoint': endpoint, 'violations': count})
+        rate_limited.sort(key=lambda x: x['violations'], reverse=True)
+
+        # Peak usage hours from hourly counters
+        hourly_keys = cache.keys('hourly_hits:*') or []
+        hourly_counts = {}
+        for key in hourly_keys:
+            hour = key.replace('hourly_hits:', '')
+            count = cache.get(key, 0)
+            hourly_counts[hour] = count
+        peak_hours = sorted(hourly_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        peak_usage = [{'hour': h, 'hits': c} for h, c in peak_hours]
+
         return {
-            'most_used_endpoints': [],
-            'rate_limited_endpoints': [],
-            'peak_usage_hours': [],
-            'time_range_hours': hours
+            'most_used_endpoints': most_used,
+            'rate_limited_endpoints': rate_limited,
+            'peak_usage_hours': peak_usage,
+            'time_range_hours': hours,
         }
 
 

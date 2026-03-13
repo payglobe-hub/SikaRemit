@@ -45,7 +45,7 @@ export function EnhancedMainNav() {
   const session = useSession();
   const pathname = usePathname();
 
-  if (session.status !== 'authenticated' || !session?.user || pathname === '/' || pathname.startsWith('/auth')) return null;
+  if (session.status !== 'authenticated' || !session?.user || pathname === '/' || pathname.startsWith('/auth') || pathname.startsWith('/customer') || pathname.startsWith('/merchant') || pathname.startsWith('/admin')) return null;
 
   const user = session.user as any;
 

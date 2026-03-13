@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
+import api from '@/lib/api/axios'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,29 +23,14 @@ function VerifyEmailContent() {
       return
     }
 
-    // Simulate API call to verify email
     const verifyEmail = async () => {
       try {
-        // TODO: Replace with actual API call
-        const response = await fetch('/api/accounts/email-verification/confirm/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ token }),
-        })
-
-        if (response.ok) {
-          setStatus('success')
-          setMessage('Your email has been successfully verified! You can now sign in to your account.')
-        } else {
-          const error = await response.json()
-          setStatus('error')
-          setMessage(error.message || 'Email verification failed. The link may have expired.')
-        }
-      } catch (error) {
+        await api.post('/api/v1/accounts/verify-email/', { token })
+        setStatus('success')
+        setMessage('Your email has been successfully verified! You can now sign in to your account.')
+      } catch (error: any) {
         setStatus('error')
-        setMessage('Network error. Please try again later.')
+        setMessage(error.response?.data?.message || 'Email verification failed. The link may have expired.')
       }
     }
 
@@ -58,7 +44,7 @@ function VerifyEmailContent() {
         return (
           <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
+              <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900">Verifying your email</h2>
@@ -81,7 +67,7 @@ function VerifyEmailContent() {
             </div>
             <div className="space-y-3">
               <Link href="/auth/login">
-                <Button className="w-full bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 hover:from-purple-700 hover:via-purple-600 hover:to-pink-600">
+                <Button className="w-full bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 hover:from-blue-700 hover:via-blue-600 hover:to-indigo-600">
                   Sign In to Your Account
                 </Button>
               </Link>
@@ -137,7 +123,7 @@ function VerifyEmailContent() {
             </div>
             <div className="space-y-3">
               <Link href="/auth/register">
-                <Button className="w-full bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 hover:from-purple-700 hover:via-purple-600 hover:to-pink-600">
+                <Button className="w-full bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 hover:from-blue-700 hover:via-blue-600 hover:to-indigo-600">
                   Create New Account
                 </Button>
               </Link>
@@ -172,7 +158,7 @@ function VerifyEmailContent() {
 
       <div className="text-center text-sm text-gray-500">
         <p>Didn't receive the email? Check your spam folder or</p>
-        <Link href="/auth/forgot-password" className="text-purple-600 hover:text-purple-700 font-medium">
+        <Link href="/auth/forgot-password" className="text-blue-600 hover:text-blue-700 font-medium">
           contact support
         </Link>
       </div>
@@ -194,7 +180,7 @@ export default function VerifyEmailPage() {
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
               <div className="flex justify-center">
-                <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
+                <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Loading...</h2>

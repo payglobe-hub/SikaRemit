@@ -1,6 +1,7 @@
 from rest_framework import permissions
 from payments.models.subscriptions import Subscription
 from django.utils import timezone
+from shared.constants import USER_TYPE_SUPER_ADMIN
 
 class HasActiveSubscription(permissions.BasePermission):
     """Check if merchant has an active subscription with required tier"""
@@ -10,7 +11,7 @@ class HasActiveSubscription(permissions.BasePermission):
         if not request.user.is_authenticated:
             return False
             
-        if request.user.user_type == 1:  # admin
+        if request.user.user_type == USER_TYPE_SUPER_ADMIN:  # admin
             return True
             
         try:

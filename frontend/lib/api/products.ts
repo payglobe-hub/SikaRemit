@@ -3,8 +3,8 @@ import axios from 'axios'
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 function getAuthHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-  return token ? { Authorization: `Bearer ${token}` } : {}
+  // Auth headers will be added by axios interceptor
+  return {}
 }
 
 export interface Product {
@@ -19,6 +19,10 @@ export interface Product {
   store_id: string
   store_name?: string
   category?: string
+  image?: string
+  thumbnail?: string
+  image_url?: string
+  thumbnail_url?: string
   created_at: string
   updated_at?: string
 }
@@ -32,6 +36,7 @@ export interface CreateProductData {
   low_stock_threshold: number
   store_id: string
   category?: string
+  image?: File
 }
 
 export async function getProducts(params?: { search?: string; store_id?: string; category?: string }) {
@@ -50,8 +55,25 @@ export async function getProduct(id: string) {
 }
 
 export async function createProduct(data: CreateProductData) {
-  const response = await axios.post(`${API_BASE_URL}/api/v1/merchants/products/`, data, {
-    headers: getAuthHeaders()
+  const formData = new FormData()
+  
+  // Add all text fields
+  Object.keys(data).forEach(key => {
+    if (key !== 'image' && data[key as keyof CreateProductData] !== undefined) {
+      formData.append(key, data[key as keyof CreateProductData] as string)
+    }
+  })
+  
+  // Add image file if provided
+  if (data.image) {
+    formData.append('image', data.image)
+  }
+  
+  const response = await axios.post(`${API_BASE_URL}/api/v1/merchants/products/`, formData, {
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'multipart/form-data'
+    }
   })
   return response.data
 }

@@ -18,6 +18,9 @@ import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { CalendarIcon, Download, FileText, BarChart3, Clock, Play, Pause, Plus, Trash2, RefreshCw, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+// Prevent static generation for this page since it uses functions that can't be serialized
+export const dynamic = 'force-dynamic'
 import {
   getReportTemplates,
   getMerchantReports,
@@ -31,6 +34,7 @@ import {
   resumeScheduledReport,
   runScheduledReportNow,
   deleteScheduledReport,
+  createMerchantReport,
   type ReportTemplate,
   type MerchantReport,
   type ScheduledReport,
@@ -67,10 +71,9 @@ export default function ReportsPage() {
 
   // Mutations
   const createReportMutation = useMutation({
-    mutationFn: async () => {
-      // Simulate API call since backend is not implemented
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      return { id: Date.now(), status: 'generating' }
+    mutationFn: async (params: ReportGenerationParams) => {
+      const response = await createMerchantReport(params);
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['merchant-reports'] })
@@ -79,7 +82,7 @@ export default function ReportsPage() {
       setActiveTab('history') // Navigate to history tab to show progress
     },
     onError: (error: any) => {
-      toast.error('Failed to create report - please try again')
+      toast.error(error.response?.data?.message || 'Failed to create report - please try again')
     }
   })
 
@@ -202,7 +205,7 @@ export default function ReportsPage() {
       end_date: format(endDate, 'yyyy-MM-dd')
     }
 
-    createReportMutation.mutate()
+    createReportMutation.mutate(params)
   }
 
   const handleCreateScheduledReport = (formData: FormData) => {
@@ -250,37 +253,37 @@ export default function ReportsPage() {
   return (
     <div className="space-y-12 animate-in fade-in-0 duration-700">
       {/* Hero Section - Matching Dashboard Design */}
-      <section className="relative py-16 lg:py-24 overflow-hidden bg-gradient-to-br from-purple-50/30 via-blue-50/20 to-pink-50/30">
+      <section className="relative py-16 lg:py-24 overflow-hidden bg-gradient-to-br from-blue-50/30 via-blue-50/20 to-blue-50/30">
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-blue-400/15 to-purple-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-conic from-purple-500/5 via-transparent to-blue-500/5 rounded-full blur-2xl animate-spin" style={{animationDuration: '20s'}}></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-blue-400/20 to-blue-300/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-blue-400/15 to-blue-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-conic from-blue-500/5 via-transparent to-blue-400/5 rounded-full blur-2xl animate-spin" style={{animationDuration: '20s'}}></div>
         </div>
 
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
           <div className="text-center max-w-4xl mx-auto animate-in slide-in-from-bottom duration-1000">
-            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-purple-500/5 text-slate-700 text-sm font-semibold mb-8 animate-in zoom-in-50 duration-700 delay-300 hover:bg-white/50 hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 group">
-              <BarChart3 className="w-5 h-5 mr-3 text-purple-600 group-hover:rotate-12 transition-transform duration-300" />
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-blue-500/5 text-slate-700 text-sm font-semibold mb-8 animate-in zoom-in-50 duration-700 delay-300 hover:bg-white/50 hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 group">
+              <BarChart3 className="w-5 h-5 mr-3 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
               Analytics & Reporting
             </div>
             <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-6 leading-tight animate-in slide-in-from-bottom duration-1000 delay-500">
               Business Intelligence
-              <span className="block bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-sm">Generate insights from your data</span>
+              <span className="block bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent drop-shadow-sm">Generate insights from your data</span>
             </h1>
             <p className="text-lg text-slate-600/90 mb-8 max-w-2xl mx-auto leading-relaxed animate-in slide-in-from-bottom duration-1000 delay-700 font-medium">
               Create custom reports, analyze trends, and make data-driven decisions with comprehensive business analytics tools.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center animate-in slide-in-from-bottom duration-1000 delay-900">
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <BarChart3 className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <BarChart3 className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">Custom reports</span>
               </div>
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <Download className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <Download className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">Export options</span>
               </div>
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <Clock className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <Clock className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">Scheduled delivery</span>
               </div>
             </div>
@@ -300,11 +303,11 @@ export default function ReportsPage() {
         <TabsContent value="generate" className="space-y-6">
           <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-1 duration-700">
             <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-800 dark:to-gray-800"></div>
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-purple-400/20 to-pink-600/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-blue-400/20 to-blue-600/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
 
             <CardHeader className="relative z-10 border-b border-gray-200 dark:border-gray-700">
               <CardTitle className="text-2xl font-bold text-sikaremit-foreground flex items-center">
-                <div className={`p-3 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 shadow-lg mr-3`}>
+                <div className={`p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg mr-3`}>
                   <FileText className="h-6 w-6 text-white" />
                 </div>
                 Generate New Report
@@ -317,7 +320,7 @@ export default function ReportsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="template">Report Template</Label>
-                  <Select value={selectedTemplate?.toString()} onValueChange={(value) => setSelectedTemplate(parseInt(value))}>
+                  <Select value={selectedTemplate?.toString() || ""} onValueChange={(value) => setSelectedTemplate(value ? parseInt(value) : null)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select template" />
                     </SelectTrigger>
@@ -398,7 +401,7 @@ export default function ReportsPage() {
               <Button
                 onClick={handleCreateReport}
                 disabled={createReportMutation.isPending}
-                className="w-full md:w-auto bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-500 font-semibold hover:scale-105 relative overflow-hidden group"
+                className="w-full md:w-auto bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-2xl shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-500 font-semibold hover:scale-105 relative overflow-hidden group"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                 <FileText className="mr-2 h-4 w-4" />
@@ -409,13 +412,13 @@ export default function ReportsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {templates.map((template) => (
-              <Card key={template.id} className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden">
-                <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+              <Card key={template.id} className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 relative overflow-hidden">
+                <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
                 <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10"></div>
 
                 <CardHeader className="relative z-10">
                   <CardTitle className="flex items-center gap-2 text-sikaremit-foreground">
-                    <div className={`p-2 rounded-lg bg-gradient-to-br from-purple-600 to-pink-500 shadow-lg`}>
+                    <div className={`p-2 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg`}>
                       <BarChart3 className="h-4 w-4 text-white" />
                     </div>
                     {template.name}
@@ -425,7 +428,7 @@ export default function ReportsPage() {
                 <CardContent className="relative z-10">
                   <Button
                     variant="outline"
-                    className="w-full hover:bg-purple-50/50 border-purple-200 hover:border-purple-300"
+                    className="w-full hover:bg-blue-50/50 border-blue-200 hover:border-blue-300"
                     onClick={() => setSelectedTemplate(template.id)}
                   >
                     Select Template
@@ -442,7 +445,7 @@ export default function ReportsPage() {
 
             <CardHeader className="relative z-10 border-b border-gray-200 dark:border-gray-700">
               <CardTitle className="text-2xl font-bold text-sikaremit-foreground flex items-center">
-                <div className={`p-3 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 shadow-lg mr-3`}>
+                <div className={`p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg mr-3`}>
                   <BarChart3 className="h-6 w-6 text-white" />
                 </div>
                 Report History
@@ -547,7 +550,7 @@ export default function ReportsPage() {
             </div>
             <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-500 font-semibold hover:scale-105 relative overflow-hidden group">
+                <Button className="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-2xl shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-500 font-semibold hover:scale-105 relative overflow-hidden group">
                   <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                   <Plus className="mr-2 h-4 w-4" />
                   Schedule Report

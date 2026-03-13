@@ -1013,3 +1013,310 @@ class AirtelTigoMoneyGateway(MobileMoneyGateway):
         except Exception as e:
             logger.error(f"AirtelTigo auth error: {str(e)}")
             return self.auth_token or ''
+
+
+class GMoneyGateway(MobileMoneyGateway):
+    """
+    G-Money payment gateway implementation (Ghana Commercial Bank)
+    Supports payment collection and disbursement with full Bank of Ghana compliance
+    
+    Required environment variables:
+    - G_MONEY_API_KEY: Your G-Money API Key
+    - G_MONEY_API_SECRET: Your G-Money API Secret
+    - G_MONEY_API_URL: API URL for G-Money (production: https://api.gmoney.com.gh)
+    - G_MONEY_MERCHANT_ID: Your G-Money Merchant ID
+    - G_MONEY_WEBHOOK_SECRET: Secret for webhook signature verification
+    """
+    PROVIDER_NAME = "g_money"
+    signature_header = 'X-G-Money-Signature'
+    
+    def __init__(self):
+        super().__init__()
+        self.api_url = getattr(settings, 'G_MONEY_API_URL', None)
+        self.auth_token = getattr(settings, 'G_MONEY_API_KEY', None)
+        self.api_secret = getattr(settings, 'G_MONEY_API_SECRET', None)
+        self.webhook_secret = getattr(settings, 'G_MONEY_WEBHOOK_SECRET', None)
+        self.merchant_id = getattr(settings, 'G_MONEY_MERCHANT_ID', None)
+        self._access_token = None
+        self._token_expiry = 0
+        
+        if not all([self.api_url, self.auth_token, self.api_secret, self.merchant_id]):
+            logger.warning("G-Money gateway not fully configured. Set G_MONEY_* environment variables.")
+    
+    def is_configured(self) -> bool:
+        """Check if gateway is properly configured for production use"""
+        return all([self.api_url, self.auth_token, self.api_secret, self.merchant_id])
+    
+    def get_webhook_secret(self) -> str:
+        """Get G-Money webhook secret"""
+        return self.webhook_secret or self.api_secret or ''
+    
+    def parse_webhook(self, request) -> Dict:
+        """Parse G-Money webhook payload"""
+        try:
+            payload = json.loads(request.body)
+            transaction = payload.get('transaction', {})
+            return {
+                'event_type': payload.get('event', 'payment_callback'),
+                'transaction_id': transaction.get('transactionId') or payload.get('reference'),
+                'status': transaction.get('status', payload.get('status', 'unknown')),
+                'amount': transaction.get('amount'),
+                'currency': transaction.get('currency', 'GHS'),
+                'phone_number': transaction.get('customer', {}).get('phoneNumber') or payload.get('customerPhone'),
+                'g_money_reference': transaction.get('gMoneyReference'),
+                'bank_reference': transaction.get('bankReference'),
+                'timestamp': payload.get('timestamp'),
+                'raw_payload': payload
+            }
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse G-Money webhook: {str(e)}")
+            raise ValueError("Invalid G-Money webhook payload")
+
+    def process_webhook(self, event: Dict) -> JsonResponse:
+        """Process G-Money webhook callback"""
+        from payments.models import Payment
+        
+        try:
+            transaction_id = event.get('transaction_id')
+            status = event.get('status', '').upper()
+            
+            if not transaction_id:
+                return JsonResponse({'error': 'Missing transaction ID'}, status=400)
+            
+            try:
+                payment = Payment.objects.get(
+                    transaction_id=transaction_id,
+                    payment_method__method_type='g_money'
+                )
+            except Payment.DoesNotExist:
+                logger.warning(f"G-Money payment not found: {transaction_id}")
+                return JsonResponse({'status': 'ignored'})
+            
+            # Map G-Money status to internal status
+            g_money_status_map = {
+                'SUCCESS': 'completed',
+                'SUCCESSFUL': 'completed',
+                'COMPLETED': 'completed',
+                'PENDING': 'pending',
+                'PROCESSING': 'processing',
+                'FAILED': 'failed',
+                'CANCELLED': 'cancelled',
+                'REJECTED': 'failed',
+                'TIMEOUT': 'failed',
+                'INSUFFICIENT_FUNDS': 'failed',
+                'INVALID_ACCOUNT': 'failed'
+            }
+            
+            new_status = g_money_status_map.get(status, 'pending')
+            payment.status = new_status
+            payment.metadata = payment.metadata or {}
+            payment.metadata['g_money_callback'] = event
+            payment.metadata['g_money_reference'] = event.get('g_money_reference')
+            payment.metadata['bank_reference'] = event.get('bank_reference')
+            payment.save()
+            
+            self._send_payment_notification(payment, 'g_money_callback')
+            
+            logger.info(f"G-Money webhook processed: {transaction_id} -> {new_status}")
+            return JsonResponse({'status': 'success'})
+            
+        except Exception as e:
+            logger.error(f"G-Money webhook error: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    def process_payment(self, amount, currency, payment_method, customer, merchant, metadata=None):
+        """Process G-Money payment request"""
+        if not self.is_configured():
+            return {
+                'success': False,
+                'error': 'G-Money gateway not configured. Contact support.',
+                'raw_response': None
+            }
+        
+        try:
+            transaction_id = f"GM_{int(time.time())}_{uuid.uuid4().hex[:8]}"
+            phone_number = payment_method.details.get('phone_number', '')
+            
+            # Format phone number for Ghana
+            if phone_number.startswith('0'):
+                phone_number = '233' + phone_number[1:]
+            elif not phone_number.startswith('233'):
+                phone_number = '233' + phone_number
+            
+            payload = {
+                'merchantId': self.merchant_id,
+                'transactionId': transaction_id,
+                'amount': float(amount),
+                'currency': currency or 'GHS',
+                'customer': {
+                    'phoneNumber': phone_number,
+                    'email': customer.user.email if customer and customer.user else None,
+                    'name': f"{customer.user.first_name} {customer.user.last_name}" if customer and customer.user else 'Customer'
+                },
+                'description': metadata.get('description', f'Payment to {merchant.business_name if merchant else "SikaRemit"}'),
+                'callbackUrl': getattr(settings, 'PAYMENT_CALLBACK_URL', '') + '/g_money/',
+                'returnUrl': metadata.get('return_url') if metadata else None
+            }
+            
+            headers = {
+                'Authorization': f'Bearer {self._get_auth_token()}',
+                'Content-Type': 'application/json',
+                'X-Merchant-Id': self.merchant_id
+            }
+            
+            response = requests.post(
+                f"{self.api_url}/api/v1/payments/initiate",
+                json=payload,
+                headers=headers,
+                timeout=30
+            )
+            
+            if response.status_code in [200, 201, 202]:
+                data = response.json()
+                return {
+                    'success': True,
+                    'transaction_id': transaction_id,
+                    'provider_reference': data.get('reference'),
+                    'g_money_reference': data.get('gMoneyReference'),
+                    'status': 'pending',
+                    'message': 'Payment request sent. Please confirm on your phone.',
+                    'raw_response': data
+                }
+            else:
+                error_data = response.json() if response.text else {}
+                error_msg = error_data.get('message', error_data.get('error', 'Payment request failed'))
+                logger.error(f"G-Money payment failed: {response.status_code} - {error_msg}")
+                return {
+                    'success': False,
+                    'error': error_msg,
+                    'raw_response': error_data
+                }
+                
+        except Exception as e:
+            logger.error(f"G-Money payment error: {str(e)}")
+            return {'success': False, 'error': str(e)}
+    
+    def refund_payment(self, transaction_id, amount=None):
+        """Process G-Money refund"""
+        try:
+            from payments.models import Payment
+            
+            payment = Payment.objects.filter(transaction_id=transaction_id).first()
+            if not payment:
+                return {'success': False, 'error': 'Original payment not found'}
+            
+            refund_id = f"GM_REFUND_{int(time.time())}_{uuid.uuid4().hex[:8]}"
+            refund_amount = amount or payment.amount
+            phone_number = payment.payment_method.details.get('phone_number', '')
+            
+            if phone_number.startswith('0'):
+                phone_number = '233' + phone_number[1:]
+            
+            payload = {
+                'merchantId': self.merchant_id,
+                'transactionId': refund_id,
+                'originalTransactionId': transaction_id,
+                'amount': float(refund_amount),
+                'currency': payment.currency or 'GHS',
+                'customer': {
+                    'phoneNumber': phone_number,
+                    'email': payment.customer.user.email if payment.customer and payment.customer.user else None
+                },
+                'description': f'Refund for transaction {transaction_id}',
+                'reason': 'Customer refund request'
+            }
+            
+            headers = {
+                'Authorization': f'Bearer {self._get_auth_token()}',
+                'Content-Type': 'application/json',
+                'X-Merchant-Id': self.merchant_id
+            }
+            
+            response = requests.post(
+                f"{self.api_url}/api/v1/refunds/initiate",
+                json=payload,
+                headers=headers,
+                timeout=30
+            )
+            
+            if response.status_code in [200, 201, 202]:
+                data = response.json()
+                return {
+                    'success': True,
+                    'transaction_id': refund_id,
+                    'status': 'pending',
+                    'g_money_reference': data.get('gMoneyReference'),
+                    'raw_response': data
+                }
+            else:
+                error_data = response.json() if response.text else {}
+                return {
+                    'success': False,
+                    'error': error_data.get('message', 'Refund failed') if response.text else 'Refund failed',
+                    'raw_response': error_data
+                }
+                
+        except Exception as e:
+            logger.error(f"G-Money refund error: {str(e)}")
+            return {'success': False, 'error': str(e)}
+    
+    def check_transaction_status(self, transaction_id: str) -> Dict:
+        """Check G-Money transaction status"""
+        try:
+            headers = {
+                'Authorization': f'Bearer {self._get_auth_token()}',
+                'X-Merchant-Id': self.merchant_id
+            }
+            
+            response = requests.get(
+                f"{self.api_url}/api/v1/payments/status/{transaction_id}",
+                headers=headers,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    'success': True,
+                    'status': data.get('status'),
+                    'amount': data.get('amount'),
+                    'currency': data.get('currency'),
+                    'g_money_reference': data.get('gMoneyReference'),
+                    'raw_response': data
+                }
+            return {'success': False, 'error': 'Failed to get transaction status'}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+    
+    def _get_auth_token(self) -> str:
+        """Get OAuth token for G-Money API with caching"""
+        current_time = time.time()
+        
+        if self._access_token and current_time < self._token_expiry:
+            return self._access_token
+        
+        try:
+            # G-Money uses client credentials grant
+            response = requests.post(
+                f"{self.api_url}/oauth2/token",
+                data={
+                    'client_id': self.auth_token,
+                    'client_secret': self.api_secret,
+                    'grant_type': 'client_credentials'
+                },
+                headers={'Content-Type': 'application/x-www-form-urlencoded'},
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                self._access_token = data.get('access_token')
+                expires_in = int(data.get('expires_in', 3600))
+                self._token_expiry = current_time + expires_in - 60  # Refresh 1 min early
+                return self._access_token
+            else:
+                logger.error(f"G-Money token request failed: {response.status_code}")
+                raise ValueError("Failed to get G-Money access token")
+        except Exception as e:
+            logger.error(f"G-Money auth error: {str(e)}")
+            raise

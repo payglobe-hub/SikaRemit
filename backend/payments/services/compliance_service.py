@@ -59,7 +59,7 @@ class GhanaRemittanceCompliance:
         if not (recipient_phone.startswith('233') and len(recipient_phone) == 12):
             return False, "Invalid Ghanaian phone number"
             
-        # Network prefix validation (MTN, Vodafone, AirtelTigo)
+        # Network prefix validation (MTN, Telecel, AirtelTigo)
         prefix = recipient_phone[3:6]
         valid_prefixes = ['24', '54', '55', '59', '25', '26', '27', '57', '20', '50']
         

@@ -4,6 +4,7 @@ from rest_framework import status, permissions
 from django.contrib.auth import get_user_model
 from users.models import Customer
 from shared.constants import USER_TYPE_CUSTOMER
+from accounts.permissions import IsAdminUser
 from accounts.api.serializers import UserSerializer
 
 User = get_user_model()
@@ -13,7 +14,7 @@ class CreateCustomerAPIView(APIView):
     """
     API endpoint for creating customer users (type 3)
     """
-    permission_classes = [permissions.IsAdminUser]  # Only admins can create customers
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]  # Only admins can create customers
 
     def post(self, request):
         try:

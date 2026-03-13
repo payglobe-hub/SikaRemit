@@ -4,6 +4,7 @@ import {
   Bell,
   Building2,
   CreditCard,
+  Crown,
   DollarSign,
   FileText,
   LayoutDashboard,
@@ -19,77 +20,62 @@ export const ADMIN_NAVIGATION_ITEMS = [
   {
     title: 'Dashboard',
     href: '/admin/overview',
-    icon: LayoutDashboard,
+    icon: 'LayoutDashboard',
   },
   {
-    title: 'Analytics',
-    href: '/admin/analytics',
-    icon: BarChart3,
-  },
-  {
-    title: 'Fees',
-    href: '/admin/fees',
-    icon: DollarSign,
+    title: 'Admin Management',
+    href: '/admin/admins',
+    icon: 'Crown',
   },
   {
     title: 'Users',
     href: '/admin/users',
-    icon: Users,
+    icon: 'Users',
+  },
+  {
+    title: 'Customers',
+    href: '/admin/customers',
+    icon: 'Building2',
   },
   {
     title: 'Merchants',
     href: '/admin/merchants',
-    icon: Building2,
-  },
-  {
-    title: 'KYC Review',
-    href: '/admin/kyc',
-    icon: Shield,
-  },
-  {
-    title: 'Settings',
-    href: '/admin/settings',
-    icon: Settings,
-  },
-  {
-    title: 'Reports',
-    href: '/admin/reports',
-    icon: FileText,
-  },
-  {
-    title: 'Verification',
-    href: '/admin/verification',
-    icon: Shield,
-  },
-  {
-    title: 'Webhooks',
-    href: '/admin/webhooks',
-    icon: Webhook,
-  },
-  {
-    title: 'Notifications',
-    href: '/admin/notifications',
-    icon: Bell,
-  },
-  {
-    title: 'Audit Logs',
-    href: '/admin/audit-logs',
-    icon: ScrollText,
+    icon: 'Store',
   },
   {
     title: 'Transactions',
     href: '/admin/transactions',
-    icon: CreditCard,
+    icon: 'CreditCard',
+  },
+  {
+    title: 'KYC & Verification',
+    href: '/admin/verification',
+    icon: 'Shield',
   },
   {
     title: 'Disputes',
     href: '/admin/disputes',
-    icon: AlertTriangle,
+    icon: 'AlertTriangle',
   },
   {
-    title: 'USSD',
-    href: '/admin/ussd',
-    icon: MessageSquare,
+    title: 'Analytics',
+    href: '/admin/analytics',
+    icon: 'BarChart3',
+  },
+  {
+    title: 'Reports',
+    href: '/admin/reports',
+    icon: 'FileText',
+  },
+  {
+    title: 'Fees & Settings',
+    href: '/admin/fees',
+    icon: 'DollarSign',
+  },
+  {
+    title: 'System Settings',
+    href: '/admin/settings',
+    icon: 'Settings',
   },
 ]
 

@@ -2,8 +2,8 @@ from rest_framework import serializers
 from payments.models.transaction import Transaction
 
 class TransactionSerializer(serializers.ModelSerializer):
-    customer_id = serializers.IntegerField(source='customer.id', read_only=True)
-    merchant_id = serializers.IntegerField(source='merchant.id', read_only=True)
+    customer_id = serializers.IntegerField(source='customer.id', read_only=True, allow_null=True)
+    merchant_id = serializers.IntegerField(source='merchant.id', read_only=True, allow_null=True)
     payment_method_type = serializers.CharField(source='payment_method.method_type', read_only=True, allow_null=True)
     
     class Meta:

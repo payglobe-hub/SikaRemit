@@ -70,7 +70,6 @@ export default function AdminAnalyticsPage() {
     setRefreshing(true)
     try {
       await refetchRealtime()
-      console.log('Analytics data refreshed')
     } catch (error) {
       console.error('Failed to refresh data', error)
     }
@@ -485,7 +484,7 @@ export default function AdminAnalyticsPage() {
                           <div className="flex items-center gap-2">
                             <div className="w-32 bg-muted rounded-full h-2">
                               <div
-                                className="bg-purple-600 h-2 rounded-full"
+                                className="bg-indigo-600 h-2 rounded-full"
                                 style={{
                                   width: `${(count as number / Math.max(...Object.values(snapshotData.transactions_by_country), 1)) * 100}%`
                                 }}

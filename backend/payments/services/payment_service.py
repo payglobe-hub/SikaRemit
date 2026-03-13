@@ -42,9 +42,10 @@ class PaymentProcessor(BasePaymentProcessor):
             # Import gateway classes
             from payments.gateways.stripe import StripeGateway
             from payments.gateways.mobile_money import (
-                MTNMoMoGateway, TelecelCashGateway, AirtelTigoMoneyGateway
+                MTNMoMoGateway, TelecelCashGateway, AirtelTigoMoneyGateway, GMoneyGateway
             )
             from payments.gateways.bank_transfer import BankTransferGateway
+            from payments.gateways.sikaremit_balance import SikaRemitBalanceGateway
 
             # Gateway mapping - Core gateways for Ghana market
             gateway_classes = {
@@ -52,7 +53,9 @@ class PaymentProcessor(BasePaymentProcessor):
                 'mtn_momo': MTNMoMoGateway,
                 'telecel': TelecelCashGateway,
                 'airtel_tigo': AirtelTigoMoneyGateway,
+                'g_money': GMoneyGateway,
                 'bank_transfer': BankTransferGateway,
+                'sikaremit_balance': SikaRemitBalanceGateway,
             }
 
             # Register active gateways from hierarchy registry
@@ -65,13 +68,7 @@ class PaymentProcessor(BasePaymentProcessor):
                     except Exception as e:
                         logger.error(f"Failed to initialize gateway '{gateway_name}': {str(e)}")
 
-            # Initialize mock gateway as fallback for testing
-            try:
-                from payments.gateways.mock_gateway import MockPaymentGateway
-                self.register_gateway('mock', MockPaymentGateway())
-                logger.info("Mock gateway registered for testing")
-            except Exception as e:
-                logger.error(f"Failed to initialize mock gateway: {e}")
+            # Mock gateway removed for production security
 
         except ImportError as e:
             logger.error(f"Failed to register gateways: {str(e)}")
@@ -111,9 +108,25 @@ class PaymentProcessor(BasePaymentProcessor):
             
             # Update transaction based on gateway response
             if gateway_response['success']:
-                txn.status = Transaction.COMPLETED
-                txn.save()
-                logger.info(f"Payment processed successfully: {txn.id}")
+                try:
+                    txn.status = Transaction.COMPLETED
+                    txn.save()
+                    logger.info(f"Payment processed successfully: {txn.id}")
+                except Exception as db_err:
+                    logger.error(f"DB save failed after gateway charge, issuing refund: {db_err}")
+                    try:
+                        gateway.refund_payment(
+                            transaction_id=gateway_response.get('transaction_id'),
+                            amount=float(amount),
+                            reason='DB save failed after charge'
+                        )
+                    except Exception as refund_err:
+                        logger.critical(
+                            f"REFUND ALSO FAILED for txn {txn.id}, "
+                            f"gateway_tx={gateway_response.get('transaction_id')}, "
+                            f"amount={amount}: {refund_err}"
+                        )
+                    raise
             else:
                 txn.status = Transaction.FAILED
                 txn.save()
@@ -160,11 +173,11 @@ class PaymentProcessor(BasePaymentProcessor):
         gateway_name = gateway_registry.get_gateway_for_method(payment_method.method_type)
 
         if not gateway_name or gateway_name not in self.gateways:
-            # Fallback to mock gateway for testing
-            if 'mock' in self.gateways:
-                logger.warning(f"Using mock gateway for {payment_method.method_type}")
-                return self.gateways['mock']
-            raise ValueError(f"No gateway available for payment method: {payment_method.method_type}")
+            # CRITICAL: No mock fallback in production - fail gracefully
+            logger.error(f"No gateway available for payment method: {payment_method.method_type}")
+            logger.error(f"Available gateways: {list(self.gateways.keys())}")
+            logger.error(f"Requested gateway: {gateway_name}")
+            raise ValueError(f"Payment processing unavailable: No gateway configured for {payment_method.method_type}. Please contact support.")
 
         return self.gateways[gateway_name]
 
@@ -178,29 +191,31 @@ class PaymentService:
     def _register_gateways(self):
         """Register available payment gateways using hierarchical registry"""
         try:
-            # Import gateway classes
             from payments.gateways.stripe import StripeGateway
+            from payments.gateways.mobile_money import (
+                MTNMoMoGateway, TelecelCashGateway, AirtelTigoMoneyGateway, GMoneyGateway
+            )
+            from payments.gateways.bank_transfer import BankTransferGateway
+            from payments.gateways.sikaremit_balance import SikaRemitBalanceGateway
 
-            # Register active gateways
+            gateway_classes = {
+                'stripe': StripeGateway,
+                'mtn_momo': MTNMoMoGateway,
+                'telecel': TelecelCashGateway,
+                'airtel_tigo': AirtelTigoMoneyGateway,
+                'g_money': GMoneyGateway,
+                'bank_transfer': BankTransferGateway,
+                'sikaremit_balance': SikaRemitBalanceGateway,
+            }
+
             for gateway_name, gateway_config in gateway_registry._active_gateways.items():
-                try:
-                    if gateway_name == 'stripe' and hasattr(settings, 'STRIPE_SECRET_KEY'):
-                        self.gateways[gateway_name] = StripeGateway()
-                    # Add other gateways as needed
-
-                    if gateway_name in self.gateways:
+                if gateway_name in gateway_classes:
+                    try:
+                        gateway_instance = gateway_classes[gateway_name]()
+                        self.gateways[gateway_name] = gateway_instance
                         logger.info(f"Gateway '{gateway_name}' registered in PaymentService")
-
-                except Exception as e:
-                    logger.error(f"Failed to initialize gateway '{gateway_name}': {str(e)}")
-
-            # Initialize mock gateway as fallback for testing
-            try:
-                from payments.gateways.mock_gateway import MockPaymentGateway
-                self.gateways['mock'] = MockPaymentGateway()
-                logger.info("Mock gateway registered in PaymentService for testing")
-            except Exception as e:
-                logger.error(f"Failed to initialize mock gateway in PaymentService: {e}")
+                    except Exception as e:
+                        logger.error(f"Failed to initialize gateway '{gateway_name}': {str(e)}")
 
         except ImportError as e:
             logger.error(f"Failed to register gateways: {str(e)}")

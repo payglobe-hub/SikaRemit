@@ -22,6 +22,118 @@ from .serializers.invoices import (
 )
 
 
+def generate_invoice_pdf(invoice):
+    """Generate PDF for an invoice"""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    story = []
+    
+    # Title
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=16,
+        spaceAfter=30,
+    )
+    story.append(Paragraph("INVOICE", title_style))
+    story.append(Spacer(1, 12))
+    
+    # Invoice header information
+    header_data = [
+        ['Invoice Number:', invoice.invoice_number],
+        ['Issue Date:', str(invoice.issue_date)],
+        ['Due Date:', str(invoice.due_date)],
+        ['Status:', invoice.get_status_display()],
+    ]
+    
+    header_table = Table(header_data, colWidths=[2*inch, 4*inch])
+    header_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('TOPPADDING', (0, 0), (-1, -1), 2),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+    ]))
+    story.append(header_table)
+    story.append(Spacer(1, 20))
+    
+    # From and To sections
+    contact_style = ParagraphStyle(
+        'Contact',
+        parent=styles['Normal'],
+        fontSize=10,
+    )
+    
+    # From section
+    story.append(Paragraph("<b>From:</b>", contact_style))
+    from_info = f"""
+    {invoice.user.get_full_name() or invoice.user.email}<br/>
+    {invoice.user.email}<br/>
+    """
+    if hasattr(invoice.user, 'merchant_profile') and invoice.user.merchant_profile:
+        merchant = invoice.user.merchant_profile
+        from_info += f"{merchant.business_name}<br/>"
+    
+    story.append(Paragraph(from_info.strip(), contact_style))
+    story.append(Spacer(1, 12))
+    
+    # To section
+    story.append(Paragraph("<b>Bill To:</b>", contact_style))
+    to_info = f"""
+    {invoice.client.company_name or invoice.client.contact_person}<br/>
+    {invoice.client.contact_person if invoice.client.company_name else ''}<br/>
+    {invoice.client.email}<br/>
+    {invoice.client.phone if invoice.client.phone else ''}<br/>
+    {invoice.client.address if invoice.client.address else ''}
+    """.strip().replace('<br/><br/>', '<br/>')
+    story.append(Paragraph(to_info, contact_style))
+    story.append(Spacer(1, 20))
+    
+    # Items table
+    items_data = [['Description', 'Qty', 'Unit Price', 'Tax Rate', 'Total']]
+    
+    for item in invoice.items.all():
+        tax_amount = (item.unit_price * item.quantity * item.tax_rate / 100) if item.tax_rate else 0
+        line_total = (item.unit_price * item.quantity) + tax_amount
+        items_data.append([
+            item.description,
+            str(item.quantity),
+            f"${item.unit_price:.2f}",
+            f"{item.tax_rate or 0}%",
+            f"${line_total:.2f}"
+        ])
+    
+    # Add totals
+    subtotal = sum(item.unit_price * item.quantity for item in invoice.items.all())
+    tax_total = sum((item.unit_price * item.quantity * item.tax_rate / 100) if item.tax_rate else 0 for item in invoice.items.all())
+    
+    items_data.append(['', '', '', 'Subtotal:', f"${subtotal:.2f}"])
+    if tax_total > 0:
+        items_data.append(['', '', '', 'Tax:', f"${tax_total:.2f}"])
+    items_data.append(['', '', '', 'Total:', f"${invoice.total_amount:.2f}"])
+    
+    items_table = Table(items_data, colWidths=[3*inch, 0.75*inch, 1*inch, 1*inch, 1*inch])
+    items_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('ALIGN', (1, 0), (4, -1), 'RIGHT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ('LEFTPADDING', (0, 0), (-1, -1), 5),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+    ]))
+    
+    story.append(items_table)
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+
 # Business Clients
 class BusinessClientViewSet(ModelViewSet):
     """
@@ -147,8 +259,78 @@ class InvoiceViewSet(ModelViewSet):
         # Mark as sent
         invoice.mark_as_sent()
 
-        # TODO: Implement actual email sending
-        # For now, just return success
+        # Send email notification
+        frGaoer.eeces 
+i       pdf_buffer = mport Ne_onvtice_pdf(iivoice)ficationService
+        
+        Save PD tivice
+       fil_name = f"invoice_{invoice.invoice_nmbe}.pdf"
+        ivoice.df_file.save(fie_nm, CntentFie(pf_buffer.getvalue()), sav=Tue)
+        invoice.save()
+        # Create email subject and message
+        subject = f"Invoice {invoice.invoice_number} from {invoice.user.get_full_name() or invoice.user.email}"
+        edsuccssfuly
+        message = f"""
+Dear {invoice.client.contact_person or invoice.client.company_name},',
+            'file_name: file_name
+
+Please find attached invoice {invoice.invoice_number} for {invoice.total_amount}.
+
+Invoice Details:
+- Invoice Number: {invoice.invoice_number}
+- Issue Date: {invoice.issue_date}
+- Due Date: {invoice.due_date}
+- Total Amount: ${invoice.total_amount}
+- Amount Due: ${invoice.amount_due}
+
+You can view and download your invoice at: {settings.FRONTEND_URL}/invoices/{invoice.id}
+
+If you have any questions, please contact us.
+
+Best regards,
+{invoice.user.get_full_name() or invoice.user.email}
+SikaRemit
+        """.strip()
+        
+        try:
+            # Send email to client
+            NotificationService.send_email_notification_to_address(
+                email=invoice.client.email,
+                subject=subject,
+                message=message
+            )
+            
+            # Also send notification to the user who sent the invoice
+            NotificationService.create_notification(
+                user=request.user,
+                title=f"Invoice {invoice.invoice_number} sent",
+                message=f"Invoice {invoice.invoice_number} has been sent to {invoice.client.company_name or invoice.client.contact_person}",
+                level='success',
+                notification_type='invoice_sent',
+                metadata={
+                    'invoice_id': str(invoice.id),
+                    'client_email': invoice.client.email
+                }
+            )
+            
+        except Exception as e:
+            # If email fails, still mark as sent but log the error
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send invoice email for invoice {invoice.invoice_number}: {str(e)}")
+            
+            # Create error notification for the user
+            NotificationService.create_notification(
+                user=request.user,
+                title=f"Invoice {invoice.invoice_number} sent (email failed)",
+                message=f"Invoice sent but email delivery failed. Please try again or contact support.",
+                level='warning',
+                notification_type='invoice_sent_email_failed',
+                metadata={
+                    'invoice_id': str(invoice.id),
+                    'error': str(e)
+                }
+            )
 
         serializer = self.get_serializer(invoice)
         return Response({
@@ -196,14 +378,22 @@ class InvoiceViewSet(ModelViewSet):
         """Generate PDF for the invoice"""
         invoice = self.get_object()
 
-        # TODO: Implement actual PDF generation
-        # For now, return placeholder
+        try:
+            pdf_buffer = generate_invoice_pdf(invoice)
+            filename = f"invoice_{invoice.invoice_number}.pdf"
+            invoice.pdf_file.save(filename, ContentFile(pdf_buffer.read()), save=True)
 
-        return Response({
-            'message': 'PDF generation not yet implemented',
-            'invoice_id': invoice.id,
-            'download_url': f'/api/payments/invoices/{invoice.id}/pdf/'
-        })
+            return Response({
+                'message': 'PDF generated successfully',
+                'invoice_id': invoice.id,
+                'download_url': f'/api/payments/invoices/{invoice.id}/download_pdf/'
+            })
+        except Exception as e:
+            logger.error(f"PDF generation failed for invoice {invoice.id}: {e}")
+            return Response(
+                {'error': f'PDF generation failed: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=True, methods=['get'])
     def download_pdf(self, request, pk=None):
@@ -216,8 +406,17 @@ class InvoiceViewSet(ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # TODO: Return actual file
-        return Response({'message': 'PDF download not yet implemented'})
+        # Read the file and return it
+        try:
+            with invoice.pdf_file.open('rb') as pdf_file:
+                response = HttpResponse(pdf_file.read(), content_type='application/pdf')
+                response['Content-Disposition'] = f'attachment; filename="invoice_{invoice.invoice_number}.pdf"'
+                return response
+        except Exception as e:
+            return Response(
+                {'error': f'Error downloading PDF: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=False, methods=['get'])
     def analytics(self, request):
@@ -381,9 +580,7 @@ def send_reminder(request, invoice_id):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # TODO: Implement actual reminder sending
-    # For now, create a reminder record
-
+    # Create reminder record
     reminder = InvoiceReminder.objects.create(
         invoice=invoice,
         reminder_type='email',
@@ -392,8 +589,60 @@ def send_reminder(request, invoice_id):
         scheduled_for=timezone.now()
     )
 
+    # Send email reminder
+    from notifications.services import NotificationService
+    
+    try:
+        NotificationService.send_email_notification_to_address(
+            email=invoice.client.email,
+            subject=reminder.subject,
+            message=reminder.message
+        )
+        
+        # Update reminder as sent
+        reminder.sent_at = timezone.now()
+        reminder.save()
+        
+        # Create notification for the user
+        NotificationService.create_notification(
+            user=request.user,
+            title=f'Reminder sent for Invoice {invoice.invoice_number}',
+            message=f'Payment reminder sent to {invoice.client.company_name or invoice.client.contact_person}',
+            level='info',
+            notification_type='reminder_sent',
+            metadata={
+                'invoice_id': str(invoice.id),
+                'reminder_id': str(reminder.id)
+            }
+        )
+        
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to send reminder email for invoice {invoice.invoice_number}: {str(e)}")
+        
+        # Create error notification
+        NotificationService.create_notification(
+            user=request.user,
+            title=f'Reminder failed for Invoice {invoice.invoice_number}',
+            message=f'Failed to send payment reminder. Please try again.',
+            level='warning',
+            notification_type='reminder_failed',
+            metadata={
+                'invoice_id': str(invoice.id),
+                'reminder_id': str(reminder.id),
+                'error': str(e)
+            }
+        )
+        
+        return Response({
+            'message': 'Reminder record created but email failed to send',
+            'reminder_id': reminder.id,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     return Response({
-        'message': 'Reminder scheduled successfully',
+        'message': 'Reminder sent successfully',
         'reminder_id': reminder.id
     })
 

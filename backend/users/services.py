@@ -3,6 +3,7 @@ from .models import Merchant, Customer, KYCDocument, MerchantCustomer, MerchantK
 from core.response import APIResponse
 from django.db.models import Q
 from django.utils import timezone
+from shared.constants import USER_TYPE_MERCHANT, USER_TYPE_CUSTOMER
 
 User = get_user_model()
 
@@ -10,9 +11,9 @@ class UserService:
     
     @staticmethod
     def get_user_profile(user):
-        if user.user_type == 2:
+        if user.user_type == USER_TYPE_MERCHANT:
             return user.merchant_profile
-        elif user.user_type == 3:
+        elif user.user_type == USER_TYPE_CUSTOMER:
             return user.customer_profile
         return None
 

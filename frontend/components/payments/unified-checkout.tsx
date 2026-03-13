@@ -163,7 +163,7 @@ export function UnifiedCheckout({
         if (recipient?.delivery_method === 'mobile_money' && !recipient?.delivery_phone) {
           return 'Mobile phone number is required for mobile money delivery'
         }
-        if (recipient?.delivery_method === 'bank_account') {
+        if (recipient?.delivery_method === 'bank') {
           if (!recipient?.delivery_account_number || !recipient?.delivery_bank_name) {
             return 'Bank account details are required for bank delivery'
           }

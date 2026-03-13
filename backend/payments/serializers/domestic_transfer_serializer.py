@@ -53,6 +53,10 @@ class DomesticTransferSerializer(serializers.ModelSerializer):
             'airtel_tigo': 'airtel_tigo',
             'airteltigo': 'airtel_tigo',
             'airteltigo money': 'airtel_tigo',
+            'g-money': 'g_money',
+            'g_money': 'g_money',
+            'g money': 'g_money',
+            'gmoney': 'g_money',
         }
         return provider_map.get(provider_lower, provider_lower)
     
@@ -73,16 +77,31 @@ class DomesticTransferSerializer(serializers.ModelSerializer):
                 }
             )
         elif recipient_details['type'] == 'mobile':
-            normalized_provider = self._normalize_mobile_provider(recipient_details.get('mobileProvider'))
-            recipient, created = Recipient.objects.get_or_create(
-                user=sender.user,
-                recipient_type=recipient_details['type'],
-                phone=recipient_details.get('phone'),
-                defaults={
-                    'name': recipient_details['name'],
-                    'mobile_provider': normalized_provider,
-                }
-            )
+            mobile_provider = recipient_details.get('mobileProvider')
+            if mobile_provider:
+                # Normalize the mobile provider name
+                normalized_provider = self._normalize_mobile_provider(mobile_provider)
+                recipient, created = Recipient.objects.get_or_create(
+                    user=sender.user,
+                    recipient_type=recipient_details['type'],
+                    phone=recipient_details.get('phone'),
+                    defaults={
+                        'name': recipient_details['name'],
+                        'mobile_provider': normalized_provider,
+                    }
+                )
+                if not created:
+                    recipient.mobile_provider = normalized_provider
+                    recipient.save()
+            else:
+                recipient, created = Recipient.objects.get_or_create(
+                    user=sender.user,
+                    recipient_type=recipient_details['type'],
+                    phone=recipient_details.get('phone'),
+                    defaults={
+                        'name': recipient_details['name'],
+                    }
+                )
         elif recipient_details['type'] == 'sikaremit':
             # SikaRemit wallet transfer - recipient is identified by phone/email
             sikaremit_identifier = recipient_details.get('sikaremit_identifier', '')

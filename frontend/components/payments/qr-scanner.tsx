@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useRef, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -22,6 +22,7 @@ export function QRScanner({ transactionContext, onSuccess, onCancel, onScanCompl
   const streamRef = useRef<MediaStream | null>(null)
   const [isScanning, setIsScanning] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [scanned, setScanned] = useState(false)
   const [scannedData, setScannedData] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
@@ -33,10 +34,9 @@ export function QRScanner({ transactionContext, onSuccess, onCancel, onScanCompl
     // Dynamically import QR scanner library
     const loadQRScanner = async () => {
       try {
-        // For now, we'll simulate QR scanning since we don't have the library installed
-        // In production, you'd install and import a QR scanning library like:
-        // import QrScanner from 'qr-scanner'
-        setQrcodeScanner({ simulate: true })
+        // Import real QR scanner library
+        const { default: QrScanner } = await import('qr-scanner')
+        setQrcodeScanner(QrScanner)
       } catch (error) {
         console.error('Failed to load QR scanner:', error)
         setError('QR scanner not available')
@@ -90,74 +90,72 @@ export function QRScanner({ transactionContext, onSuccess, onCancel, onScanCompl
   const scanQRCode = async () => {
     if (!QrcodeScanner) return
 
-    // Simulate QR scanning for demo purposes
-    // In production, use actual QR scanning library
-    const simulateScan = () => {
-      if (!isScanning) return
+    try {
+      // Set up real QR scanner
+      const qrScanner = new QrcodeScanner(
+        videoRef.current!,
+        (result: any) => handleQRResult(result)
+      )
 
-      // Simulate finding a QR code after a random delay
-      setTimeout(async () => {
-        if (!isScanning) return
-
-        try {
-          // Simulate QR data - in real implementation, this would come from camera
-          // For demo purposes, generate a sample QR
-          const mockQRData = {
-            version: '1.0',
-            type: 'payment',
-            merchant_id: 1,
-            merchant_name: 'Sample Merchant',
-            amount: transactionContext.amount,
-            currency: transactionContext.currency || 'GHS',
-            reference: `QR_${Date.now()}`,
-            customer_id: 1,
-            customer_email: 'customer@example.com',
-            expiry: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-            timestamp: new Date().toISOString(),
-            metadata: {},
-            signature: 'demo_signature'
-          }
-
-          // Validate the QR code
-          setIsProcessing(true)
-          const validationResult = await validateQRPayment({ qr_data: mockQRData })
-
-          if (validationResult.valid) {
-            setScannedData(mockQRData)
-            onScanComplete?.(mockQRData)
-            stopScanning()
-
-            toast({
-              title: 'QR Code Scanned',
-              description: `Valid payment QR found for ${validationResult.payment_details?.merchant_name}`
-            })
-          } else {
-            toast({
-              title: 'Invalid QR Code',
-              description: validationResult.error || 'This QR code is not valid for payment',
-              variant: 'destructive'
-            })
-            // Continue scanning
-            if (isScanning) {
-              setTimeout(simulateScan, 2000)
-            }
-          }
-        } catch (error: any) {
-          toast({
-            title: 'Scan Failed',
-            description: error.message || 'Failed to process QR code',
-            variant: 'destructive'
-          })
-          if (isScanning) {
-            setTimeout(simulateScan, 2000)
-          }
-        } finally {
-          setIsProcessing(false)
-        }
-      }, Math.random() * 3000 + 2000) // Random delay between 2-5 seconds
+      await qrScanner.start()
+      
+      // Store scanner instance for cleanup
+      ;(window as any).currentQRScanner = qrScanner
+    } catch (error) {
+      console.error('QR scanner setup failed:', error)
+      setError('Failed to start QR scanner')
     }
+  }
 
-    simulateScan()
+  const handleQRResult = async (result: any) => {
+    if (scanned || isProcessing) return
+    
+    try {
+      setScanned(true)
+      setIsProcessing(true)
+      
+      // Haptic feedback if available
+      if ('vibrate' in navigator) {
+        navigator.vibrate(100)
+      }
+      
+      
+      
+      // Validate the QR code
+      const validationResult = await validateQRPayment({ qr_data: result.data })
+
+      if (validationResult.valid) {
+        setScannedData(validationResult.payment_details)
+        onScanComplete?.(validationResult.payment_details)
+        stopScanning()
+
+        toast({
+          title: 'QR Code Scanned',
+          description: `Valid payment QR found for ${validationResult.payment_details?.merchant_name}`
+        })
+      } else {
+        toast({
+          title: 'Invalid QR Code',
+          description: validationResult.error || 'This QR code is not valid for payment',
+          variant: 'destructive'
+        })
+        // Continue scanning
+        setTimeout(() => {
+          setScanned(false)
+          setIsProcessing(false)
+        }, 2000)
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Scan Failed',
+        description: error.message || 'Failed to process QR code',
+        variant: 'destructive'
+      })
+      setTimeout(() => {
+        setScanned(false)
+        setIsProcessing(false)
+      }, 2000)
+    }
   }
 
   const processPayment = async () => {
@@ -330,3 +328,4 @@ export function QRScanner({ transactionContext, onSuccess, onCancel, onScanCompl
     </div>
   )
 }
+

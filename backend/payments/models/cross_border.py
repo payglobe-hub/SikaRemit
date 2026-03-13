@@ -1,7 +1,14 @@
 from django.db import models
 from django.utils import timezone
 import uuid
-# from .compliance import GhanaRemittanceCompliance  # TODO: Create this class
+# Ghana remittance compliance exempt entity types
+EXEMPT_ENTITIES = [
+    ('government', 'Government Entity'),
+    ('ngo', 'Non-Governmental Organization'),
+    ('diplomatic', 'Diplomatic Mission'),
+    ('international_org', 'International Organization'),
+    ('licensed_dealer', 'Licensed Forex Dealer'),
+]
 
 class CrossBorderRemittance(models.Model):
     """Model for international money transfers"""
@@ -65,7 +72,7 @@ class CrossBorderRemittance(models.Model):
     exempt_status = models.CharField(
         max_length=20,
         blank=True,
-        # choices=[(e, e) for e in GhanaRemittanceCompliance.EXEMPT_ENTITIES]  # TODO: Fix when class exists
+        choices=EXEMPT_ENTITIES,
     )
     exemption_status = models.CharField(
         max_length=10,

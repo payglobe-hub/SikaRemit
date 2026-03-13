@@ -309,14 +309,40 @@ class MLFraudDetectionService:
 
     def _calculate_geographic_score(self, user, transaction) -> float:
         """
-        Calculate geographic anomaly score
+        Calculate geographic anomaly score based on IP and country data
         """
         try:
-            # This would use IP geolocation in production
-            # For now, return neutral score
-            return 0.0
+            score = 0.0
+            metadata = getattr(transaction, 'metadata', {}) or {}
+            ip_address = metadata.get('ip_address', '')
+            country_to = getattr(transaction, 'country_to', '')
+
+            # Check if transaction country differs from user's usual countries
+            if country_to:
+                from payments.models import Transaction
+                usual_countries = list(
+                    Transaction.objects.filter(
+                        customer__user=user, status='completed'
+                    ).values_list('country_to', flat=True).distinct()[:10]
+                )
+                if usual_countries and country_to not in usual_countries:
+                    score += 0.6  # New country is suspicious
+
+            # Check IP geolocation if available
+            if ip_address:
+                try:
+                    from django.contrib.gis.geoip2 import GeoIP2
+                    geo = GeoIP2()
+                    ip_country = geo.country_code(ip_address)
+                    if ip_country and country_to and ip_country != country_to:
+                        score += 0.4  # IP country mismatch
+                except Exception:
+                    pass  # GeoIP2 not configured
+
+            return min(score, 1.0)
 
         except Exception as e:
+            logger.error(f"Geographic score calculation failed: {str(e)}")
             return 0.0
 
     def _calculate_time_anomaly(self, transaction) -> float:
@@ -342,12 +368,37 @@ class MLFraudDetectionService:
 
     def _calculate_device_score(self, transaction) -> float:
         """
-        Calculate device/browser anomaly score
+        Calculate device/browser anomaly score based on metadata
         """
         try:
-            # This would use device/browser fingerprinting in production
-            # For now, return neutral score
-            return 0.0
+            score = 0.0
+            metadata = getattr(transaction, 'metadata', {}) or {}
+            user_agent = metadata.get('user_agent', '')
+            device_id = metadata.get('device_id', '')
+
+            # No device info at all is mildly suspicious
+            if not user_agent and not device_id:
+                return 0.2
+
+            # Check if this device has been seen before for this user
+            if device_id:
+                from payments.models import Transaction
+                user = getattr(transaction, 'customer', None)
+                if user:
+                    user_obj = getattr(user, 'user', user)
+                    known_devices = Transaction.objects.filter(
+                        customer__user=user_obj, status='completed',
+                        metadata__device_id=device_id
+                    ).exists()
+                    if not known_devices:
+                        score += 0.5  # New device
+
+            # Check for suspicious user agents (automation tools)
+            suspicious_agents = ['curl', 'wget', 'python-requests', 'scrapy', 'bot']
+            if user_agent and any(agent in user_agent.lower() for agent in suspicious_agents):
+                score += 0.7
+
+            return min(score, 1.0)
 
         except Exception as e:
             logger.error(f"Device score calculation failed: {str(e)}")
@@ -358,9 +409,28 @@ class MLFraudDetectionService:
         return user.customer.customer_transactions.count()
 
     def _get_user_fraud_history(self, user) -> int:
-        """Get user's fraud history score"""
-        # Placeholder - would check fraud database in production
-        return 0
+        """Get user's fraud history score from transaction data"""
+        try:
+            from payments.models import Transaction
+            # Count transactions flagged as fraudulent or refunded due to fraud
+            fraud_count = Transaction.objects.filter(
+                customer__user=user,
+                status__in=['fraud_blocked', 'fraud_review', 'reversed']
+            ).count()
+
+            # Also count chargebacks/disputes
+            try:
+                from payments.models.dispute import Dispute
+                dispute_count = Dispute.objects.filter(
+                    transaction__customer__user=user
+                ).count()
+                fraud_count += dispute_count
+            except (ImportError, Exception):
+                pass
+
+            return fraud_count
+        except Exception:
+            return 0
 
     def _calculate_fraud_score(self, features: Dict[str, float]) -> float:
         """

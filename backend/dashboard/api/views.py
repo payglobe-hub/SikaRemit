@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions
+from accounts.permissions import IsAdminUser
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from datetime import timedelta
@@ -12,7 +13,7 @@ from payments.models.payment import Payment
 User = get_user_model()
 
 class MetricsAPIView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     
     def get(self, request):
         # AdminMetrics model not available - returning empty list
@@ -22,7 +23,7 @@ class AdminDashboardStatsAPIView(APIView):
     """
     Admin dashboard statistics endpoint
     """
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     
     def get(self, request):
         try:

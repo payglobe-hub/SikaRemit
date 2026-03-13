@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 import importlib.util
 import os
@@ -56,4 +56,7 @@ urlpatterns = [
     path('kyc/eligibility/', check_transaction_eligibility, name='kyc-eligibility'),
     path('kyc/documents/', get_kyc_documents, name='kyc-documents'),
     path('kyc/resubmit/', resubmit_kyc, name='kyc-resubmit'),
+
+    # Admin hierarchy URLs
+    path('', include('users.urls_admin')),
 ] + router.urls

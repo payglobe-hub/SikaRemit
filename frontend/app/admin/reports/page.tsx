@@ -18,7 +18,15 @@ import {
   TrendingUp,
   Calendar,
   Filter,
-  Plus
+  Plus,
+  Clock,
+  Users,
+  Building,
+  AlertTriangle,
+  DollarSign,
+  Activity,
+  Settings,
+  Mail
 } from 'lucide-react'
 import {
   generateReport,
@@ -26,6 +34,14 @@ import {
   downloadReport,
   deleteReport,
   getReportStats,
+  getSystemMetrics,
+  getComplianceReport,
+  getMerchantPerformance,
+  getCustomerAnalytics,
+  getFinancialSummary,
+  scheduleReport,
+  getScheduledReports,
+  cancelScheduledReport,
   REPORT_TYPES,
   REPORT_FORMATS,
   type Report,
@@ -41,12 +57,17 @@ export default function ReportsPage() {
   const { formatAmount } = useCurrency()
   const [showGenerateDialog, setShowGenerateDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false)
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
+  const [activeView, setActiveView] = useState<'reports' | 'analytics' | 'scheduled'>('reports')
   const [formData, setFormData] = useState<ReportParams>({
     report_type: 'payments',
     date_from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     date_to: new Date().toISOString().split('T')[0],
-    format: 'pdf'
+    format: 'pdf',
+    include_charts: true,
+    include_summary: true
   })
 
   const { data: reports, isLoading: reportsLoading } = useQuery({
@@ -63,6 +84,57 @@ export default function ReportsPage() {
       date_to: formData.date_to
     }),
     enabled: !!formData.report_type && !!formData.date_from && !!formData.date_to
+  })
+
+  // Advanced Analytics Queries
+  const { data: systemMetrics, isLoading: systemMetricsLoading } = useQuery({
+    queryKey: ['system-metrics'],
+    queryFn: getSystemMetrics,
+    refetchInterval: 30000 // Refresh every 30 seconds
+  })
+
+  const { data: complianceData, isLoading: complianceLoading } = useQuery({
+    queryKey: ['compliance-report'],
+    queryFn: () => getComplianceReport({
+      start_date: formData.date_from,
+      end_date: formData.date_to
+    }),
+    enabled: !!formData.date_from && !!formData.date_to
+  })
+
+  const { data: merchantPerformance, isLoading: merchantPerfLoading } = useQuery({
+    queryKey: ['merchant-performance'],
+    queryFn: () => getMerchantPerformance({
+      start_date: formData.date_from,
+      end_date: formData.date_to,
+      sort_by: 'revenue'
+    }),
+    enabled: !!formData.date_from && !!formData.date_to
+  })
+
+  const { data: customerAnalytics, isLoading: customerAnalyticsLoading } = useQuery({
+    queryKey: ['customer-analytics'],
+    queryFn: () => getCustomerAnalytics({
+      start_date: formData.date_from,
+      end_date: formData.date_to
+    }),
+    enabled: !!formData.date_from && !!formData.date_to
+  })
+
+  const { data: financialSummary, isLoading: financialLoading } = useQuery({
+    queryKey: ['financial-summary'],
+    queryFn: () => getFinancialSummary({
+      start_date: formData.date_from,
+      end_date: formData.date_to,
+      granularity: 'daily'
+    }),
+    enabled: !!formData.date_from && !!formData.date_to
+  })
+
+  const { data: scheduledReports, isLoading: scheduledLoading } = useQuery({
+    queryKey: ['scheduled-reports'],
+    queryFn: getScheduledReports,
+    refetchInterval: 60000 // Refresh every minute
   })
 
   const generateMutation = useMutation({

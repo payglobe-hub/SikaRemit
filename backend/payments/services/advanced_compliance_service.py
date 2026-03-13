@@ -223,14 +223,8 @@ class PEPSanctionsService:
         """
         try:
             # This would integrate with EU sanctions API
-            # For now, return mock data
-            return [
-                {
-                    'name': 'Example EU Sanctioned Entity',
-                    'type': 'entity',
-                    'sanctions_type': 'eu_sanctions'
-                }
-            ]
+            # In production, this should connect to actual EU sanctions database
+            return []  # No sanctions data loaded - configure EU API integration
         except Exception as e:
             logger.error(f"Failed to load EU sanctions data: {str(e)}")
             return []
@@ -345,11 +339,58 @@ class PEPSanctionsService:
 
     def _check_adverse_media(self, entity_name: str, aliases: List[str]) -> List[Dict[str, Any]]:
         """
-        Check for adverse media mentions
+        Check for adverse media mentions using configured API or local compliance logs
         """
-        # This would integrate with adverse media screening services
-        # For now, return empty list
-        return []
+        try:
+            # Use external adverse media API if configured
+            api_key = getattr(settings, 'ADVERSE_MEDIA_API_KEY', None)
+            api_url = getattr(settings, 'ADVERSE_MEDIA_API_URL', None)
+
+            if api_key and api_url:
+                all_names = [entity_name] + (aliases or [])
+                payload = {'names': all_names, 'categories': ['fraud', 'money_laundering', 'terrorism', 'corruption', 'sanctions']}
+                try:
+                    response = requests.post(
+                        api_url,
+                        headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+                        json=payload,
+                        timeout=15
+                    )
+                    if response.status_code == 200:
+                        data = response.json()
+                        return data.get('matches', [])
+                    else:
+                        logger.warning(f"Adverse media API returned {response.status_code}")
+                except requests.RequestException as e:
+                    logger.error(f"Adverse media API request failed: {e}")
+
+            # Fallback: check local compliance logs for prior adverse findings
+            try:
+                from merchants.models import ComplianceLog
+                all_names = [entity_name.lower()] + [a.lower() for a in (aliases or [])]
+                local_matches = []
+                logs = ComplianceLog.objects.filter(
+                    check_type='adverse_media',
+                    result__in=['match', 'potential_match']
+                )
+                for log in logs:
+                    log_entity = (getattr(log, 'entity_name', '') or '').lower()
+                    if log_entity and any(self._calculate_name_similarity(log_entity, name) > 0.7 for name in all_names):
+                        local_matches.append({
+                            'source': 'local_compliance_log',
+                            'entity_name': log_entity,
+                            'result': log.result,
+                            'date': str(getattr(log, 'created_at', '')),
+                            'details': getattr(log, 'details', {}),
+                        })
+                return local_matches
+            except (ImportError, Exception) as e:
+                logger.warning(f"Local adverse media check failed: {e}")
+                return []
+
+        except Exception as e:
+            logger.error(f"Adverse media check failed: {str(e)}")
+            return []
 
     def _calculate_name_similarity(self, name1: str, name2: str) -> float:
         """

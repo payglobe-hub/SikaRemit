@@ -1,11 +1,6 @@
-import axios from 'axios'
+import api from '@/lib/api/axios'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-
-function getAuthHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
 
 export interface Store {
   id: string
@@ -28,36 +23,26 @@ export interface CreateStoreData {
 }
 
 export async function getStores() {
-  const response = await axios.get(`${API_BASE_URL}/api/v1/merchants/stores/`, {
-    headers: getAuthHeaders()
-  })
+  const response = await api.get('/api/v1/merchants/stores/')
   return response.data
 }
 
 export async function getStore(id: string) {
-  const response = await axios.get(`${API_BASE_URL}/api/v1/merchants/stores/${id}/`, {
-    headers: getAuthHeaders()
-  })
+  const response = await api.get(`/api/v1/merchants/stores/${id}/`)
   return response.data
 }
 
 export async function createStore(data: CreateStoreData) {
-  const response = await axios.post(`${API_BASE_URL}/api/v1/merchants/stores/`, data, {
-    headers: getAuthHeaders()
-  })
+  const response = await api.post('/api/v1/merchants/stores/', data)
   return response.data
 }
 
 export async function updateStore(id: string, data: Partial<CreateStoreData>) {
-  const response = await axios.patch(`${API_BASE_URL}/api/v1/merchants/stores/${id}/`, data, {
-    headers: getAuthHeaders()
-  })
+  const response = await api.patch(`/api/v1/merchants/stores/${id}/`, data)
   return response.data
 }
 
 export async function deleteStore(id: string) {
-  const response = await axios.delete(`${API_BASE_URL}/api/v1/merchants/stores/${id}/`, {
-    headers: getAuthHeaders()
-  })
+  const response = await api.delete(`/api/v1/merchants/stores/${id}/`)
   return response.data
 }

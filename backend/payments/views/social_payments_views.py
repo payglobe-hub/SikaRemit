@@ -62,11 +62,78 @@ class PaymentRequestViewSet(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Process payment (this would integrate with existing payment processing)
-        # For now, we'll mark as paid
-        payment_request.status = 'paid'
-        payment_request.paid_at = timezone.now()
-        payment_request.save()
+        # Process payment through the payment gateway
+        payment_method_id = request.data.get('payment_method_id')
+        if not payment_method_id:
+            return Response(
+                {'error': 'payment_method_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            from django.db import transaction as db_transaction
+            from payments.models import PaymentMethod
+            from payments.services.payment_service import PaymentProcessor
+
+            pay_method = PaymentMethod.objects.get(id=payment_method_id, user=request.user)
+            processor = PaymentProcessor()
+
+            gateway = processor._get_gateway_for_payment_method(pay_method)
+            gateway_result = gateway.process_payment(
+                amount=float(payment_request.amount),
+                currency=getattr(payment_request, 'currency', 'GHS'),
+                payment_method=pay_method,
+                customer=request.user.customer_profile if hasattr(request.user, 'customer_profile') else None,
+                merchant=None,
+                metadata={
+                    'type': 'payment_request',
+                    'payment_request_id': str(payment_request.id),
+                    'requester_id': str(payment_request.requester.id),
+                }
+            )
+
+            if not gateway_result.get('success'):
+                return Response(
+                    {'error': gateway_result.get('error', 'Payment processing failed')},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # DB update inside atomic block — if it fails, issue a refund
+            try:
+                with db_transaction.atomic():
+                    payment_request.status = 'paid'
+                    payment_request.paid_at = timezone.now()
+                    payment_request.save()
+            except Exception as db_err:
+                logger.error(f"DB save failed after successful charge, issuing refund: {db_err}")
+                try:
+                    gateway.refund_payment(
+                        transaction_id=gateway_result.get('transaction_id'),
+                        amount=float(payment_request.amount),
+                        reason='DB save failed after charge'
+                    )
+                except Exception as refund_err:
+                    logger.critical(
+                        f"REFUND ALSO FAILED for payment_request {payment_request.id}, "
+                        f"gateway_tx={gateway_result.get('transaction_id')}, "
+                        f"amount={payment_request.amount}: {refund_err}"
+                    )
+                return Response(
+                    {'error': 'Payment was charged but recording failed. A refund has been initiated.'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+        except PaymentMethod.DoesNotExist:
+            return Response(
+                {'error': 'Payment method not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"Payment request processing failed: {e}")
+            return Response(
+                {'error': f'Payment processing failed: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         serializer = self.get_serializer(payment_request)
         return Response(serializer.data)
@@ -142,6 +209,7 @@ class SplitBillViewSet(ModelViewSet):
         split_bill = self.get_object()
 
         amount = request.data.get('amount')
+        payment_method_id = request.data.get('payment_method_id')
         description = request.data.get('description', '')
 
         if not amount:
@@ -150,27 +218,86 @@ class SplitBillViewSet(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Create payment record
-        payment = SplitPayment.objects.create(
-            split_bill=split_bill,
-            payer=request.user,
-            amount=amount,
-            description=description
-        )
+        if not payment_method_id:
+            return Response(
+                {'error': 'payment_method_id is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # Update participant payment amounts
-        # This is a simplified version - in reality, you'd need more complex logic
-        # to determine which participants this payment applies to
-        participants = split_bill.participants.filter(is_settled=False)
-        if participants.exists():
-            # Simple equal distribution for now
-            amount_per_participant = float(amount) / participants.count()
-            for participant in participants:
-                participant.amount_paid += amount_per_participant
-                if participant.is_paid_in_full:
-                    participant.is_settled = True
-                    participant.settled_at = timezone.now()
-                participant.save()
+        # Route payment through gateway
+        try:
+            from django.db import transaction as db_transaction
+            from payments.models import PaymentMethod
+            from payments.services.payment_service import PaymentProcessor
+
+            pay_method = PaymentMethod.objects.get(id=payment_method_id, user=request.user)
+            processor = PaymentProcessor()
+            gateway = processor._get_gateway_for_payment_method(pay_method)
+
+            gateway_result = gateway.process_payment(
+                amount=float(amount),
+                currency=getattr(split_bill, 'currency', 'GHS'),
+                payment_method=pay_method,
+                customer=request.user.customer_profile if hasattr(request.user, 'customer_profile') else None,
+                merchant=None,
+                metadata={
+                    'type': 'split_bill_payment',
+                    'split_bill_id': str(split_bill.id),
+                }
+            )
+
+            if not gateway_result.get('success'):
+                return Response(
+                    {'error': gateway_result.get('error', 'Payment processing failed')},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Record payment + update participants atomically; refund if DB fails
+            try:
+                with db_transaction.atomic():
+                    payment = SplitPayment.objects.create(
+                        split_bill=split_bill,
+                        payer=request.user,
+                        amount=amount,
+                        description=description
+                    )
+
+                    participants = split_bill.participants.filter(is_settled=False)
+                    if participants.exists():
+                        amount_per_participant = float(amount) / participants.count()
+                        for participant in participants:
+                            participant.amount_paid += amount_per_participant
+                            if participant.is_paid_in_full:
+                                participant.is_settled = True
+                                participant.settled_at = timezone.now()
+                            participant.save()
+            except Exception as db_err:
+                logger.error(f"DB save failed after split bill charge, issuing refund: {db_err}")
+                try:
+                    gateway.refund_payment(
+                        transaction_id=gateway_result.get('transaction_id'),
+                        amount=float(amount),
+                        reason='DB save failed after charge'
+                    )
+                except Exception as refund_err:
+                    logger.critical(
+                        f"REFUND ALSO FAILED for split_bill {split_bill.id}, "
+                        f"gateway_tx={gateway_result.get('transaction_id')}, "
+                        f"amount={amount}: {refund_err}"
+                    )
+                return Response(
+                    {'error': 'Payment was charged but recording failed. A refund has been initiated.'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+        except PaymentMethod.DoesNotExist:
+            return Response({'error': 'Payment method not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Split bill payment failed: {e}")
+            return Response(
+                {'error': f'Payment processing failed: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         serializer = SplitBillSerializer(split_bill)
         return Response(serializer.data)
@@ -259,11 +386,18 @@ class GroupSavingsViewSet(ModelViewSet):
         group_savings = self.get_object()
 
         amount = request.data.get('amount')
+        payment_method_id = request.data.get('payment_method_id')
         message = request.data.get('message', '')
 
         if not amount:
             return Response(
                 {'error': 'Amount is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not payment_method_id:
+            return Response(
+                {'error': 'payment_method_id is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -279,12 +413,68 @@ class GroupSavingsViewSet(ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # Add contribution
-        contribution = group_savings.add_contribution(request.user, amount)
+        # Route contribution through payment gateway
+        try:
+            from django.db import transaction as db_transaction
+            from payments.models import PaymentMethod
+            from payments.services.payment_service import PaymentProcessor
 
-        # Update participant's total contributed
-        participant.total_contributed += amount
-        participant.save()
+            pay_method = PaymentMethod.objects.get(id=payment_method_id, user=request.user)
+            processor = PaymentProcessor()
+            gateway = processor._get_gateway_for_payment_method(pay_method)
+
+            gateway_result = gateway.process_payment(
+                amount=float(amount),
+                currency=getattr(group_savings, 'currency', 'GHS'),
+                payment_method=pay_method,
+                customer=request.user.customer_profile if hasattr(request.user, 'customer_profile') else None,
+                merchant=None,
+                metadata={
+                    'type': 'group_savings_contribution',
+                    'group_savings_id': str(group_savings.id),
+                    'message': message,
+                }
+            )
+
+            if not gateway_result.get('success'):
+                return Response(
+                    {'error': gateway_result.get('error', 'Payment processing failed')},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Record contribution atomically; refund if DB fails
+            try:
+                with db_transaction.atomic():
+                    contribution = group_savings.add_contribution(request.user, amount)
+                    participant.total_contributed += amount
+                    participant.save()
+            except Exception as db_err:
+                logger.error(f"DB save failed after group savings charge, issuing refund: {db_err}")
+                try:
+                    gateway.refund_payment(
+                        transaction_id=gateway_result.get('transaction_id'),
+                        amount=float(amount),
+                        reason='DB save failed after charge'
+                    )
+                except Exception as refund_err:
+                    logger.critical(
+                        f"REFUND ALSO FAILED for group_savings {group_savings.id}, "
+                        f"gateway_tx={gateway_result.get('transaction_id')}, "
+                        f"amount={amount}: {refund_err}"
+                    )
+                return Response(
+                    {'error': 'Payment was charged but recording failed. A refund has been initiated.'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+        except PaymentMethod.DoesNotExist:
+            return Response({'error': 'Payment method not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Group savings contribution payment failed: {e}")
+            return Response(
+                {'error': f'Payment processing failed: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         serializer = GroupSavingsSerializer(group_savings)
         return Response(serializer.data)
@@ -341,8 +531,27 @@ def send_social_invite(request):
         expires_at=timezone.now() + timedelta(days=7)  # 7 days expiry
     )
 
-    # TODO: Send email/SMS invitation
-    # For now, just return the invite data
+    # Send email invitation to recipient
+    try:
+        from django.core.mail import send_mail
+        from django.conf import settings as django_settings
+
+        invite_url = f"{django_settings.FRONTEND_URL or 'https://sikaremit.com'}/invite/{invite_token}"
+        email_body = (
+            f"{request.user.get_full_name() or request.user.email} has invited you to {title}.\n\n"
+            f"{message}\n\n"
+            f"Accept the invitation here: {invite_url}\n\n"
+            f"This invitation expires in 7 days."
+        )
+        send_mail(
+            subject=f"SikaRemit Invitation: {title}",
+            message=email_body,
+            from_email=getattr(django_settings, 'DEFAULT_FROM_EMAIL', 'noreply@sikaremit.com'),
+            recipient_list=[recipient_email],
+            fail_silently=True,
+        )
+    except Exception as e:
+        logger.error(f"Failed to send invite email to {recipient_email}: {e}")
 
     serializer = SocialPaymentInviteSerializer(invite)
     return Response(serializer.data)
@@ -399,7 +608,34 @@ def accept_social_invite(request, token):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-    # TODO: Handle other invite types (payment_request, split_bill)
+    elif invite.invite_type == 'split_bill':
+        try:
+            split_bill = SplitBill.objects.get(id=invite.related_object_id)
+            if not SplitBillParticipant.objects.filter(
+                split_bill=split_bill,
+                user=request.user
+            ).exists():
+                SplitBillParticipant.objects.create(
+                    split_bill=split_bill,
+                    user=request.user
+                )
+        except SplitBill.DoesNotExist:
+            return Response(
+                {'error': 'Split bill not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+    elif invite.invite_type == 'payment_request':
+        try:
+            payment_request = PaymentRequest.objects.get(id=invite.related_object_id)
+            payment_request.recipient = request.user
+            payment_request.status = 'accepted'
+            payment_request.save()
+        except PaymentRequest.DoesNotExist:
+            return Response(
+                {'error': 'Payment request not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
     return Response({
         'message': 'Invitation accepted successfully',

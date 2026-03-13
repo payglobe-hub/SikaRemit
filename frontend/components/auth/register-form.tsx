@@ -4,6 +4,7 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
 import { register } from '@/lib/api/auth'
 import { useToast } from '@/hooks/use-toast'
@@ -17,7 +18,7 @@ export function RegisterForm({ userType = 'customer' }: { userType?: 'customer' 
     firstName: '',
     lastName: '',
     phone: '',
-    userType: 3 // Always customer for this form
+    userType: 6 // Always customer for this form
   })
   const [isLoading, setIsLoading] = React.useState(false)
   const { toast } = useToast()
@@ -132,7 +133,7 @@ export function RegisterForm({ userType = 'customer' }: { userType?: 'customer' 
           type="email"
           value={formData.email}
           onChange={handleChange}
-          placeholder="john@example.com"
+          placeholder=""
           required
         />
       </div>
@@ -145,16 +146,15 @@ export function RegisterForm({ userType = 'customer' }: { userType?: 'customer' 
           type="tel"
           value={formData.phone}
           onChange={handleChange}
-          placeholder="+1234567890"
+          placeholder=""
         />
       </div>
 
       <div>
         <Label htmlFor="password">Password</Label>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           value={formData.password}
           onChange={handleChange}
           placeholder="••••••••"

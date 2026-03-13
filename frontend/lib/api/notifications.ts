@@ -1,6 +1,4 @@
-import apiClient from './client'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import api from './axios'
 
 export type Notification = {
   id: number
@@ -39,20 +37,32 @@ export async function getNotifications(params?: {
   level?: string
   notification_type?: string
 }): Promise<{ data: Notification[], count?: number }> {
-  const response = await apiClient.get('/api/v1/notifications/', { params })
-  return {
-    data: response.data.data || response.data.results || response.data,
-    count: response.data.count
+  try {
+    const response = await api.get('/api/v1/notifications/', { params })
+    return {
+      data: response.data.data || response.data.results || response.data,
+      count: response.data.count
+    }
+  } catch (error: any) {
+    console.error('Notifications API Error:', error)
+    
+    // If 401, try to refresh the page to re-authenticate
+    if (error.response?.status === 401) {
+      console.warn('Authentication expired, redirecting to login...')
+      // Token refresh is handled by the api interceptor
+    }
+    
+    throw error
   }
 }
 
 export async function getNotificationById(id: number): Promise<Notification> {
-  const response = await apiClient.get(`/api/v1/notifications/${id}/`)
+  const response = await api.get(`/api/v1/notifications/${id}/`)
   return response.data
 }
 
 export async function markNotificationAsRead(id: number) {
-  const response = await apiClient.patch(`/api/v1/notifications/${id}/read/`, {})
+  const response = await api.patch(`/api/v1/notifications/${id}/read/`, {})
   return response.data
 }
 
@@ -61,7 +71,7 @@ export async function markAsRead(notificationId: string) {
 }
 
 export async function markAllNotificationsAsRead() {
-  const response = await apiClient.post('/api/v1/notifications/mark_all_read/')
+  const response = await api.post('/api/v1/notifications/mark_all_read/')
   return response.data
 }
 
@@ -70,18 +80,18 @@ export async function markAllAsRead() {
 }
 
 export async function deleteNotification(notificationId: string) {
-  const response = await apiClient.delete(`/api/v1/notifications/${notificationId}/`)
+  const response = await api.delete(`/api/v1/notifications/${notificationId}/`)
   return response.data
 }
 
 // Preferences functions
 export async function getNotificationPreferences(): Promise<NotificationPreferences> {
-  const response = await apiClient.get('/api/v1/notifications/preferences/')
+  const response = await api.get('/api/v1/notifications/preferences/')
   return response.data
 }
 
 export async function updateNotificationPreferences(preferences: Partial<NotificationPreferences>): Promise<NotificationPreferences> {
-  const response = await apiClient.patch('/api/v1/notifications/preferences/', preferences)
+  const response = await api.patch('/api/v1/notifications/preferences/', preferences)
   return response.data
 }
 
@@ -95,7 +105,7 @@ export async function updateCustomerNotificationPreferences(preferences: Notific
 
 // Analytics function
 export async function getNotificationAnalytics(): Promise<NotificationAnalytics> {
-  const response = await apiClient.get('/api/v1/notifications/analytics/')
+  const response = await api.get('/api/v1/notifications/analytics/')
   return response.data
 }
 

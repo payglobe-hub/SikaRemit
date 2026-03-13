@@ -156,10 +156,21 @@ jobs:
     environment: staging
     
     steps:
-      - name: Deploy to Vercel Staging
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy frontend to Netlify (staging)
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_STAGING }}
         run: |
-          echo "Deploying to Vercel staging..."
-          # Add Vercel deployment commands
+          if [ -n "$NETLIFY_AUTH_TOKEN" ] && [ -n "$NETLIFY_SITE_ID" ]; then
+            npm install -g netlify-cli
+            netlify deploy --dir=frontend/.next --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
+            echo "Netlify staging deploy triggered successfully"
+          else
+            echo "::warning::Netlify staging secrets not configured"
+          fi
   
   deploy-production:
     name: Deploy to Production
@@ -169,7 +180,18 @@ jobs:
     environment: production
     
     steps:
-      - name: Deploy to Vercel Production
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy frontend to Netlify (production)
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_PRODUCTION }}
         run: |
-          echo "Deploying to Vercel production..."
-          # Add Vercel deployment commands
+          if [ -n "$NETLIFY_AUTH_TOKEN" ] && [ -n "$NETLIFY_SITE_ID" ]; then
+            npm install -g netlify-cli
+            netlify deploy --prod --dir=frontend/.next --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
+            echo "Netlify production deploy triggered successfully"
+          else
+            echo "::warning::Netlify production secrets not configured"
+          fi

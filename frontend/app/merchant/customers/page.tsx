@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+// Prevent static generation for this page since it uses functions that can't be serialized
+export const dynamic = 'force-dynamic'
 import {
   Users,
   Search,
@@ -187,37 +190,37 @@ export default function MerchantCustomersPage() {
   return (
     <div className="space-y-12 animate-in fade-in-0 duration-700">
       {/* Hero Section - Matching Dashboard Design */}
-      <section className="relative py-16 lg:py-24 overflow-hidden bg-gradient-to-br from-purple-50/30 via-white to-pink-50/30">
+      <section className="relative py-16 lg:py-24 overflow-hidden bg-gradient-to-br from-blue-50/30 via-blue-50/20 to-blue-50/30">
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-blue-400/15 to-purple-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-conic from-purple-500/5 via-transparent to-blue-500/5 rounded-full blur-2xl animate-spin" style={{animationDuration: '20s'}}></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-blue-400/20 to-blue-300/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-blue-400/15 to-blue-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-conic from-blue-500/5 via-transparent to-blue-400/5 rounded-full blur-2xl animate-spin" style={{animationDuration: '20s'}}></div>
         </div>
 
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
           <div className="text-center max-w-4xl mx-auto animate-in slide-in-from-bottom duration-1000">
-            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-purple-500/5 text-slate-700 text-sm font-semibold mb-8 animate-in zoom-in-50 duration-700 delay-300 hover:bg-white/50 hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 group">
-              <Users className="w-5 h-5 mr-3 text-purple-600 group-hover:rotate-12 transition-transform duration-300" />
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-blue-500/5 text-slate-700 text-sm font-semibold mb-8 animate-in zoom-in-50 duration-700 delay-300 hover:bg-white/50 hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 group">
+              <Users className="w-5 h-5 mr-3 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
               Customer Management
             </div>
             <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-6 leading-tight animate-in slide-in-from-bottom duration-1000 delay-500">
               Customer Portfolio
-              <span className="block bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-sm">Manage your customer relationships</span>
+              <span className="block bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent drop-shadow-sm">Manage your customer relationships</span>
             </h1>
             <p className="text-lg text-slate-600/90 mb-8 max-w-2xl mx-auto leading-relaxed animate-in slide-in-from-bottom duration-1000 delay-700 font-medium">
               Onboard, verify, and manage your customers with comprehensive KYC tools and relationship management features.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center animate-in slide-in-from-bottom duration-1000 delay-900">
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <Shield className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <Shield className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">KYC Compliance</span>
               </div>
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <CheckCircle className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <CheckCircle className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">Risk Management</span>
               </div>
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <UserPlus className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <UserPlus className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">Easy Onboarding</span>
               </div>
             </div>
@@ -234,15 +237,15 @@ export default function MerchantCustomersPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
-            <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden">
-              <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+            <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 relative overflow-hidden">
+              <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-800/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
               <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10"></div>
 
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 relative z-10">
                 <CardTitle className="text-sm font-semibold text-sikaremit-muted uppercase tracking-wide">
                   Total Customers
                 </CardTitle>
-                <div className={`p-3 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                   <Users className="h-5 w-5 text-white" />
                 </div>
               </CardHeader>
@@ -250,7 +253,7 @@ export default function MerchantCustomersPage() {
               <CardContent className="relative z-10">
                 <div className="text-3xl font-bold text-sikaremit-foreground mb-2">{stats?.total_customers || 0}</div>
                 <div className="space-y-1">
-                  <div className={`text-xs font-semibold px-2 py-1 rounded-full inline-flex items-center bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400`}>
+                  <div className={`text-xs font-semibold px-2 py-1 rounded-full inline-flex items-center bg-green-100 text-blue-600 dark:text-blue-400/30 dark:text-green-400`}>
                     <TrendingUp className="w-3 h-3 mr-1" />
                     Growing
                   </div>
@@ -259,15 +262,15 @@ export default function MerchantCustomersPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden">
-              <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+            <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 relative overflow-hidden">
+              <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-800/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
               <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10"></div>
 
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 relative z-10">
                 <CardTitle className="text-sm font-semibold text-sikaremit-muted uppercase tracking-wide">
                   Active Customers
                 </CardTitle>
-                <div className={`p-3 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                   <CheckCircle className="h-5 w-5 text-white" />
                 </div>
               </CardHeader>
@@ -275,7 +278,7 @@ export default function MerchantCustomersPage() {
               <CardContent className="relative z-10">
                 <div className="text-3xl font-bold text-sikaremit-foreground mb-2">{stats?.active_customers || 0}</div>
                 <div className="space-y-1">
-                  <div className={`text-xs font-semibold px-2 py-1 rounded-full inline-flex items-center bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400`}>
+                  <div className={`text-xs font-semibold px-2 py-1 rounded-full inline-flex items-center bg-green-100 text-blue-600 dark:text-blue-400/30 dark:text-green-400`}>
                     <CheckCircle className="w-3 h-3 mr-1" />
                     Verified
                   </div>
@@ -284,15 +287,15 @@ export default function MerchantCustomersPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden">
-              <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+            <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 relative overflow-hidden">
+              <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-800/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
               <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10"></div>
 
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 relative z-10">
                 <CardTitle className="text-sm font-semibold text-sikaremit-muted uppercase tracking-wide">
                   Pending KYC
                 </CardTitle>
-                <div className={`p-3 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                   <Clock className="h-5 w-5 text-white" />
                 </div>
               </CardHeader>
@@ -309,15 +312,15 @@ export default function MerchantCustomersPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden">
-              <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+            <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 relative overflow-hidden">
+              <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-800/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
               <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10"></div>
 
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 relative z-10">
                 <CardTitle className="text-sm font-semibold text-sikaremit-muted uppercase tracking-wide">
                   KYC Approved
                 </CardTitle>
-                <div className={`p-3 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                   <Shield className="h-5 w-5 text-white" />
                 </div>
               </CardHeader>
@@ -325,7 +328,7 @@ export default function MerchantCustomersPage() {
               <CardContent className="relative z-10">
                 <div className="text-3xl font-bold text-sikaremit-foreground mb-2">{stats?.kyc_approved || 0}</div>
                 <div className="space-y-1">
-                  <div className={`text-xs font-semibold px-2 py-1 rounded-full inline-flex items-center bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400`}>
+                  <div className={`text-xs font-semibold px-2 py-1 rounded-full inline-flex items-center bg-green-100 text-blue-600 dark:text-blue-400/30 dark:text-green-400`}>
                     <Shield className="w-3 h-3 mr-1" />
                     Compliant
                   </div>
@@ -345,13 +348,13 @@ export default function MerchantCustomersPage() {
             </div>
             <Dialog open={onboardDialogOpen} onOpenChange={setOnboardDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-500 font-semibold hover:scale-105 relative overflow-hidden group">
+                <Button className="bg-gradient-to-r from-blue-500 to-blue-700 dark:hover:from-blue-950/20 hover:to-blue-600 shadow-2xl shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-500 font-semibold hover:scale-105 relative overflow-hidden group">
                   <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                   <UserPlus className="w-5 h-5 mr-2" />
                   Onboard Customer
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-white/90 backdrop-blur-xl border-white/30 shadow-2xl shadow-purple-500/10">
+              <DialogContent className="bg-white/90 backdrop-blur-xl border-white/30 shadow-2xl shadow-blue-500/10">
                 <DialogHeader>
                   <DialogTitle>Onboard New Customer</DialogTitle>
                   <DialogDescription>
@@ -407,7 +410,7 @@ export default function MerchantCustomersPage() {
           </div>
 
           {/* Filters and Search */}
-          <Card className="border-0 shadow-xl bg-sikaremit-card/80 backdrop-blur-sm bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5">
+          <Card className="border-0 shadow-xl bg-sikaremit-card/80 backdrop-blur-sm bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5">
             <CardContent className="p-6">
               <div className="flex flex-col lg:flex-row gap-4">
                 <div className="flex-1">
@@ -417,7 +420,7 @@ export default function MerchantCustomersPage() {
                       placeholder="Search customers by email or name..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-12 h-12 text-base border-2 border-slate-200 focus:border-purple-500 rounded-xl shadow-sm"
+                      className="pl-12 h-12 text-base border-2 border-slate-200 focus:border-blue-500 rounded-xl shadow-sm"
                     />
                   </div>
                 </div>
@@ -456,12 +459,12 @@ export default function MerchantCustomersPage() {
           </Card>
 
           {/* Customer Table */}
-          <Card className="border-0 shadow-xl bg-sikaremit-card/80 backdrop-blur-sm bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5">
+          <Card className="border-0 shadow-xl bg-sikaremit-card/80 backdrop-blur-sm bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5">
             <CardHeader className="border-b border-slate-200">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-2xl font-bold text-sikaremit-foreground flex items-center">
-                    <Users className="w-7 h-7 mr-3 text-purple-600" />
+                    <Users className="w-7 h-7 mr-3 text-blue-600" />
                     Customer Records
                   </CardTitle>
                   <CardDescription className="text-sikaremit-muted text-lg mt-1">
@@ -502,7 +505,7 @@ export default function MerchantCustomersPage() {
                       {customers?.map((customer: MerchantCustomer, index: number) => (
                         <tr
                           key={customer.id}
-                          className="group border-b border-slate-100 hover:bg-gradient-to-r hover:from-purple-50/50 hover:to-transparent transition-all duration-300 animate-in slide-in-from-left duration-500"
+                          className="group border-b border-slate-100 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent transition-all duration-300 animate-in slide-in-from-left duration-500"
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
                           <td className="p-6">
@@ -556,8 +559,8 @@ export default function MerchantCustomersPage() {
                           </td>
                           <td className="p-6">
                             <div className="flex items-center space-x-2">
-                              <Button variant="ghost" size="sm" className="hover:bg-purple-50" onClick={() => setSelectedCustomer(customer)}>
-                                <Eye className="w-4 h-4 text-purple-600" />
+                              <Button variant="ghost" size="sm" className="hover:bg-blue-50" onClick={() => setSelectedCustomer(customer)}>
+                                <Eye className="w-4 h-4 text-blue-600" />
                               </Button>
 
                               <DropdownMenu>
@@ -606,7 +609,7 @@ export default function MerchantCustomersPage() {
                   </p>
                   <Button
                     onClick={() => setOnboardDialogOpen(true)}
-                    className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
+                    className="bg-gradient-to-r from-blue-500 to-blue-700 dark:hover:from-blue-950/20 hover:to-blue-600"
                   >
                     <UserPlus className="w-5 h-5 mr-2" />
                     Onboard Customer
@@ -619,7 +622,7 @@ export default function MerchantCustomersPage() {
           {/* Customer Details Dialog */}
           {selectedCustomer && (
             <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
-              <DialogContent className="max-w-2xl bg-white/90 backdrop-blur-xl border-white/30 shadow-2xl shadow-purple-500/10">
+              <DialogContent className="max-w-2xl bg-white/90 backdrop-blur-xl border-white/30 shadow-2xl shadow-blue-500/10">
                 <DialogHeader>
                   <DialogTitle>Customer Details</DialogTitle>
                   <DialogDescription>

@@ -133,11 +133,16 @@ export function logError(error: AppError, additionalContext?: Record<string, any
 
   // Send to Sentry in production
   if (isProduction && MONITORING_CONFIG.SENTRY_DSN) {
-    // Sentry integration would go here
-    // Sentry.captureException(error.originalError || new Error(error.message), {
-    //   tags: { type: error.type, severity: error.severity },
-    //   extra: errorLog,
-    // });
+    try {
+      const Sentry = require('@sentry/nextjs');
+      Sentry.captureException(error.originalError || new Error(error.message), {
+        tags: { type: error.type, severity: error.severity },
+        extra: errorLog,
+      });
+    } catch (e) {
+      // Sentry not available, skip
+      console.error('Sentry error tracking failed:', e);
+    }
   }
 }
 

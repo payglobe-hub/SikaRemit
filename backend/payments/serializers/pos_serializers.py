@@ -40,12 +40,15 @@ class POSDeviceRegistrationSerializer(serializers.Serializer):
 class POSTransactionSerializer(serializers.ModelSerializer):
     """Serializer for POS Transaction model"""
 
+    device_type = serializers.CharField(source='device.device_type', read_only=True)
+    device_id = serializers.CharField(source='device.device_id', read_only=True)
+
     class Meta:
         model = POSTransaction
         fields = [
             'transaction_id', 'device_type', 'device_id', 'transaction_type',
             'amount', 'currency', 'status', 'card_last4', 'card_brand',
-            'response_data', 'created_at'
+            'processor_response', 'created_at'
         ]
         read_only_fields = ['transaction_id', 'created_at']
 

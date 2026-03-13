@@ -1,11 +1,4 @@
-import axios from 'axios'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-
-function getAuthHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
+import api from './axios'
 
 export interface Payout {
   id: string
@@ -13,6 +6,8 @@ export interface Payout {
   currency: string
   status: 'pending' | 'processing' | 'completed' | 'failed'
   bank_account?: string
+  recipient_name: string
+  recipient_email: string
   created_at: string
   completed_at?: string
 }
@@ -24,34 +19,31 @@ export interface Balance {
 }
 
 export async function getBalance() {
-  const response = await axios.get(`${API_BASE_URL}/api/v1/accounts/merchant/payouts/balance/`, {
-    headers: getAuthHeaders()
-  })
+  const response = await api.get('/api/v1/accounts/merchant/payouts/balance/')
   return response.data
 }
 
 export async function getPayouts(params?: { status?: string; page?: number }) {
-  const response = await axios.get(`${API_BASE_URL}/api/v1/accounts/merchant/payouts/`, {
-    headers: getAuthHeaders(),
+  const response = await api.get('/api/v1/accounts/merchant/payouts/', {
     params
   })
   return response.data
 }
 
-export async function requestPayout(amount: number, bank_account_id?: string) {
-  const response = await axios.post(
-    `${API_BASE_URL}/api/v1/accounts/merchant/payouts/`,
-    { amount, bank_account_id },
-    {
-      headers: getAuthHeaders()
-    }
+export async function requestPayout(
+  amount: number, 
+  recipient_name: string,
+  recipient_email: string,
+  bank_account_id?: string
+) {
+  const response = await api.post(
+    '/api/v1/accounts/merchant/payouts/',
+    { amount, recipient_name, recipient_email, bank_account_id }
   )
   return response.data
 }
 
 export async function getPayout(id: string) {
-  const response = await axios.get(`${API_BASE_URL}/api/v1/accounts/merchant/payouts/${id}/`, {
-    headers: getAuthHeaders()
-  })
+  const response = await api.get(`/api/v1/accounts/merchant/payouts/${id}/`)
   return response.data
 }

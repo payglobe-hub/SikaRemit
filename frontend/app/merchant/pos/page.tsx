@@ -1,5 +1,8 @@
 'use client'
 
+// Prevent static generation for this page since it uses functions that can't be serialized
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'

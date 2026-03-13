@@ -9,28 +9,28 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/50 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-blue-400/15 to-purple-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-conic from-purple-500/5 via-transparent to-blue-500/5 rounded-full blur-2xl animate-spin" style={{animationDuration: '20s'}}></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-blue-400/20 to-blue-300/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-blue-400/15 to-indigo-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-conic from-indigo-500/5 via-transparent to-blue-500/5 rounded-full blur-2xl animate-spin" style={{animationDuration: '20s'}}></div>
       </div>
       {/* Header */}
-      <header className="relative z-20 border-b border-white/20 bg-white/10 backdrop-blur-xl supports-[backdrop-filter]:bg-white/5 shadow-lg shadow-purple-500/5">
+      <header className="relative z-20 border-b border-white/20 bg-white/10 backdrop-blur-xl supports-[backdrop-filter]:bg-white/5 shadow-lg shadow-blue-500/5">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-3 group relative">
               <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-xl shadow-purple-500/25 group-hover:shadow-2xl group-hover:shadow-purple-500/40 transition-all duration-500 group-hover:scale-110">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-xl shadow-blue-500/25 group-hover:shadow-2xl group-hover:shadow-blue-500/40 transition-all duration-500 group-hover:scale-110">
                   <Globe className="w-6 h-6 text-white group-hover:rotate-12 transition-transform duration-500" />
                 </div>
-                <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/30 to-pink-500/30 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="absolute -inset-2 bg-gradient-to-r from-purple-600/20 to-pink-500/20 rounded-xl blur-xl opacity-0 group-hover:opacity-75 transition-opacity duration-700"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/30 to-indigo-500/30 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute -inset-2 bg-gradient-to-r from-blue-600/20 to-indigo-500/20 rounded-xl blur-xl opacity-0 group-hover:opacity-75 transition-opacity duration-700"></div>
               </div>
               <div className="relative">
-                <span className="text-lg font-bold bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-sm">
+                <span className="text-lg font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 bg-clip-text text-transparent drop-shadow-sm">
                   SikaRemit
                 </span>
                 <div className="text-sm text-slate-600/80 -mt-1 hidden sm:block drop-shadow-sm">
@@ -41,10 +41,10 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
             {/* Right side - Help & Support */}
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="text-slate-600 hover:text-purple-600 bg-white/50 hover:bg-white/70 backdrop-blur-sm border border-white/20 hover:border-purple-200/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10">
+              <Button variant="ghost" size="sm" className="text-slate-600 hover:text-blue-600 bg-white/50 hover:bg-white/70 backdrop-blur-sm border border-white/20 hover:border-blue-200/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10">
                 Help
               </Button>
-              <Button variant="ghost" size="sm" className="text-slate-600 hover:text-purple-600 bg-white/50 hover:bg-white/70 backdrop-blur-sm border border-white/20 hover:border-purple-200/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10">
+              <Button variant="ghost" size="sm" className="text-slate-600 hover:text-blue-600 bg-white/50 hover:bg-white/70 backdrop-blur-sm border border-white/20 hover:border-blue-200/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10">
                 Support
               </Button>
             </div>
@@ -61,7 +61,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
               <div className="space-y-6">
                 <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 leading-tight">
                   Secure Payments
-                  <span className="block text-purple-600">Made Simple</span>
+                  <span className="block text-blue-600">Made Simple</span>
                 </h1>
                 <p className="text-base text-slate-600 leading-relaxed max-w-md">
                   Experience seamless, secure payment processing with SikaRemit.
@@ -72,25 +72,25 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
               {/* Feature Cards */}
               <div className="grid gap-4 max-w-md">
                 <div className="group relative overflow-hidden">
-                  <div className="flex items-center space-x-4 p-5 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-purple-500/5 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-500 hover:bg-white/50 hover:scale-[1.02] hover:-translate-y-1">
-                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                  <div className="flex items-center space-x-4 p-5 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-blue-500/5 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-500 hover:bg-white/50 hover:scale-[1.02] hover:-translate-y-1">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
                       <Shield className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900 group-hover:text-purple-900 transition-colors">Bank-Level Security</h3>
+                      <h3 className="font-semibold text-slate-900 group-hover:text-blue-900 transition-colors">Bank-Level Security</h3>
                       <p className="text-sm text-slate-600/90 group-hover:text-slate-700 transition-colors">Advanced encryption and compliance</p>
                     </div>
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
 
                 <div className="group relative overflow-hidden">
-                  <div className="flex items-center space-x-4 p-5 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-purple-500/5 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-500 hover:bg-white/50 hover:scale-[1.02] hover:-translate-y-1">
+                  <div className="flex items-center space-x-4 p-5 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-blue-500/5 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-500 hover:bg-white/50 hover:scale-[1.02] hover:-translate-y-1">
                     <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
                       <Zap className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900 group-hover:text-purple-900 transition-colors">Lightning Fast</h3>
+                      <h3 className="font-semibold text-slate-900 group-hover:text-blue-900 transition-colors">Lightning Fast</h3>
                       <p className="text-sm text-slate-600/90 group-hover:text-slate-700 transition-colors">Instant transactions worldwide</p>
                     </div>
                   </div>
@@ -98,12 +98,12 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
                 </div>
 
                 <div className="group relative overflow-hidden">
-                  <div className="flex items-center space-x-4 p-5 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-purple-500/5 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-500 hover:bg-white/50 hover:scale-[1.02] hover:-translate-y-1">
+                  <div className="flex items-center space-x-4 p-5 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-blue-500/5 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-500 hover:bg-white/50 hover:scale-[1.02] hover:-translate-y-1">
                     <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
                       <CreditCard className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900 group-hover:text-purple-900 transition-colors">Multiple Payment Methods</h3>
+                      <h3 className="font-semibold text-slate-900 group-hover:text-blue-900 transition-colors">Multiple Payment Methods</h3>
                       <p className="text-sm text-slate-600/90 group-hover:text-slate-700 transition-colors">Cards, mobile money, bank transfers</p>
                     </div>
                   </div>
@@ -131,8 +131,8 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
             {/* Right Panel - Auth Forms */}
             <div className="w-full lg:w-auto animate-in slide-in-from-right duration-700 delay-200">
               <div className="mx-auto max-w-md lg:max-w-none relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/20 via-pink-500/20 to-purple-600/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                <div className="relative bg-white/80 backdrop-blur-2xl rounded-2xl shadow-2xl shadow-purple-500/10 border border-white/30 p-8 hover:shadow-purple-500/20 transition-all duration-500">
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/20 via-indigo-500/20 to-blue-600/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                <div className="relative bg-white/80 backdrop-blur-2xl rounded-2xl shadow-2xl shadow-blue-500/10 border border-white/30 p-8 hover:shadow-blue-500/20 transition-all duration-500">
                   {children}
                 </div>
               </div>

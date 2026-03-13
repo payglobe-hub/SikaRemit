@@ -214,41 +214,42 @@ class FraudMonitoringViewSet(viewsets.ViewSet):
         Get active fraud alerts
         """
         try:
-            # This would query a fraud alerts table in production
-            # For now, return mock alerts
-            alerts = [
-                {
-                    'id': 'alert_001',
-                    'type': 'high_risk_transaction',
-                    'severity': 'high',
-                    'message': 'Transaction amount significantly above user average',
-                    'transaction_id': 'txn_123',
-                    'user_id': 'user_456',
-                    'timestamp': timezone.now().isoformat(),
-                    'status': 'active'
-                },
-                {
-                    'id': 'alert_002',
-                    'type': 'unusual_frequency',
-                    'severity': 'medium',
-                    'message': 'Unusual transaction frequency detected',
-                    'user_id': 'user_789',
-                    'timestamp': (timezone.now() - timezone.timedelta(minutes=30)).isoformat(),
-                    'status': 'active'
-                }
-            ]
+            # Query actual fraud alerts from database
+            from ..models import FraudAlert
+            
+            alerts = FraudAlert.objects.filter(
+                status='active'
+            ).order_by('-created_at')[:50]  # Get 50 most recent
+            
+            alert_data = []
+            for alert in alerts:
+                alert_data.append({
+                    'id': str(alert.id),
+                    'type': alert.alert_type,
+                    'severity': alert.severity,
+                    'message': alert.description,
+                    'transaction_id': str(alert.transaction_id) if alert.transaction_id else None,
+                    'user_id': str(alert.user.id) if alert.user else None,
+                    'timestamp': alert.created_at.isoformat(),
+                    'status': alert.status,
+                    'risk_score': alert.risk_score,
+                    'auto_blocked': alert.auto_blocked
+                })
 
             return Response({
-                'alerts': alerts,
-                'total_active': len(alerts),
+                'alerts': alert_data,
+                'total_active': len(alert_data),
                 'timestamp': timezone.now().isoformat()
             })
-
+            
         except Exception as e:
-            return Response(
-                {'error': f'Failed to fetch alerts: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            logger.error(f"Error fetching fraud alerts: {str(e)}")
+            return Response({
+                'alerts': [],
+                'total_active': 0,
+                'timestamp': timezone.now().isoformat(),
+                'error': 'Failed to fetch fraud alerts'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=['post'])
     def resolve_alert(self, request, pk=None):
@@ -306,10 +307,30 @@ class FraudMonitoringViewSet(viewsets.ViewSet):
                 'risk_trends': self._calculate_risk_trends(start_date, end_date)
             }
 
-            # Geographic risk (placeholder)
+            # Geographic risk from actual transaction data
+            from django.db.models import Count
+            country_failures = transactions.filter(status='failed').values('country_to').annotate(
+                fail_count=Count('id')
+            ).order_by('-fail_count')[:10]
+
+            high_risk_regions = []
+            for cf in country_failures:
+                country = cf['country_to'] or 'Unknown'
+                total_for_country = transactions.filter(country_to=cf['country_to']).count()
+                if total_for_country > 0 and cf['fail_count'] / total_for_country > 0.3:
+                    high_risk_regions.append({
+                        'region': country,
+                        'failure_rate': round(cf['fail_count'] / total_for_country, 3),
+                        'failed_transactions': cf['fail_count'],
+                    })
+
+            suspicious_locations = transactions.filter(
+                status='failed', amount__gte=5000
+            ).values('country_to').distinct().count()
+
             geographic_risk = {
-                'high_risk_regions': [],  # To be implemented with real geographic risk data
-                'suspicious_locations': 0  # To be calculated from transaction data
+                'high_risk_regions': high_risk_regions,
+                'suspicious_locations': suspicious_locations
             }
 
             # Time-based risk
@@ -333,13 +354,33 @@ class FraudMonitoringViewSet(viewsets.ViewSet):
             )
 
     def _calculate_risk_trends(self, start_date, end_date):
-        """Calculate risk trends over time"""
-        # Placeholder implementation
-        return [
-            {'date': (start_date + timezone.timedelta(days=i)).date().isoformat(),
-             'risk_score': 0.3 + (i * 0.02)}  # Increasing risk over time
-            for i in range(7)
-        ]
+        """Calculate risk trends over time from actual transaction data"""
+        from django.db.models import Count, Q
+        trends = []
+        current = start_date
+        while current <= end_date:
+            day_end = current + timezone.timedelta(days=1)
+            day_txns = Transaction.objects.filter(created_at__range=(current, day_end))
+            total = day_txns.count()
+            failed = day_txns.filter(status='failed').count()
+            high_amount = day_txns.filter(amount__gte=1000).count()
+
+            if total > 0:
+                failure_rate = failed / total
+                high_amount_rate = high_amount / total
+                risk_score = round(min((failure_rate * 0.6) + (high_amount_rate * 0.4), 1.0), 3)
+            else:
+                risk_score = 0.0
+
+            trends.append({
+                'date': current.date().isoformat() if hasattr(current, 'date') else str(current)[:10],
+                'risk_score': risk_score,
+                'total_transactions': total,
+                'failed_transactions': failed,
+                'high_amount_transactions': high_amount,
+            })
+            current += timezone.timedelta(days=1)
+        return trends
 
     def _calculate_overall_risk_score(self, risk_metrics):
         """Calculate overall risk score"""

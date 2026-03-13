@@ -1,4 +1,4 @@
-import axios from 'axios'
+﻿import axios from 'axios'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -33,16 +33,16 @@ async function loadCountries() {
   if (countriesLoaded) return
 
   try {
-    console.log('Loading countries from API...')
+    
     const response = await publicApiClient.get('/api/countries/')
-    console.log('Countries API response:', response.status, response.data)
+    
 
     const data = response.data?.results || response.data
     if (Array.isArray(data)) {
       countries.length = 0 // Clear array
       countries.push(...data)
       countriesLoaded = true
-      console.log(`Loaded ${data.length} countries`)
+      
     } else {
       console.error('Countries data is not an array:', data)
     }
@@ -63,3 +63,4 @@ export async function refreshCountries(): Promise<Country[]> {
   await loadCountries()
   return countries
 }
+

@@ -7,14 +7,14 @@ from .currency import Currency
 
 class TelecomProvider(models.Model):
     """
-    Telecom provider (MTN, Vodafone, AirtelTigo, Glo, etc.)
+    Telecom provider (MTN, Telecel, AirtelTigo, Glo, etc.)
     """
-    name = models.CharField(max_length=100, unique=True, help_text="Provider name (e.g., MTN, Vodafone)")
+    name = models.CharField(max_length=100, unique=True, help_text="Provider name (e.g., MTN, Telecel)")
     code = models.CharField(
         max_length=20,
         unique=True,
         validators=[RegexValidator(r'^[A-Z0-9_]+$', 'Code must contain only uppercase letters, numbers, and underscores')],
-        help_text="Unique code for the provider (e.g., MTN, VODAFONE)"
+        help_text="Unique code for the provider (e.g., MTN, TELECEL)"
     )
     country = models.ForeignKey(
         Country,
@@ -89,6 +89,7 @@ class TelecomPackage(models.Model):
     data_amount = models.CharField(
         max_length=50,
         blank=True,
+        null=True,
         help_text="Data amount (e.g., 1GB, 500MB, Unlimited)"
     )
     validity_days = models.PositiveIntegerField(

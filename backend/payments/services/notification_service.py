@@ -29,6 +29,15 @@ class NotificationService:
     MERCHANT_INVITATION = 'merchant_invitation'
     PASSWORD_RESET = 'password_reset'
     SECURITY_ALERT = 'security_alert'
+    
+    # Dispute notification types
+    DISPUTE_CREATED = 'dispute_created'
+    DISPUTE_CONFIRMATION = 'dispute_confirmation'
+    DISPUTE_RESPONSE = 'dispute_response'
+    DISPUTE_RESOLUTION = 'dispute_resolution'
+    DISPUTE_ESCALATION = 'dispute_escalation'
+    DISPUTE_ESCALATED_TO_ADMIN = 'dispute_escalated_to_admin'
+    DISPUTE_POSITIVE_FEEDBACK = 'dispute_positive_feedback'
 
     # SMS providers
     AFRICASTALKING = 'africastalking'
@@ -130,6 +139,15 @@ class NotificationService:
             NotificationService.MERCHANT_INVITATION: ('merchant_invitation', 'Merchant Invitation - SikaRemit'),
             NotificationService.PASSWORD_RESET: ('password_reset', 'Password Reset - SikaRemit'),
             NotificationService.SECURITY_ALERT: ('security_alert', 'Security Alert - SikaRemit'),
+            
+            # Dispute notification templates
+            NotificationService.DISPUTE_CREATED: ('dispute_created', 'New Dispute Filed - SikaRemit'),
+            NotificationService.DISPUTE_CONFIRMATION: ('dispute_confirmation', 'Dispute Filed Successfully - SikaRemit'),
+            NotificationService.DISPUTE_RESPONSE: ('dispute_response', 'Dispute Response Received - SikaRemit'),
+            NotificationService.DISPUTE_RESOLUTION: ('dispute_resolution', 'Dispute Resolved - SikaRemit'),
+            NotificationService.DISPUTE_ESCALATION: ('dispute_escalation', 'Dispute Escalated to Admin - SikaRemit'),
+            NotificationService.DISPUTE_ESCALATED_TO_ADMIN: ('dispute_escalated_to_admin', 'Your Dispute Has Been Escalated - SikaRemit'),
+            NotificationService.DISPUTE_POSITIVE_FEEDBACK: ('dispute_positive_feedback', 'Positive Dispute Feedback - SikaRemit'),
         }
 
         return templates.get(notification_type, ('default', 'Notification - SikaRemit'))
@@ -149,6 +167,16 @@ class NotificationService:
             NotificationService.KYC_APPROVED: "Your KYC verification has been approved. You can now make international transfers.",
             NotificationService.KYC_REJECTED: "Your KYC verification was rejected. Please check your documents and try again.",
             NotificationService.SECURITY_ALERT: f"Security alert: {context.get('message', 'Unusual activity detected')}",
+            
+            # Dispute SMS messages
+            NotificationService.DISPUTE_CREATED: f"New dispute filed for transaction {context.get('transaction_id', 'N/A')}. Amount: {context.get('amount', 'N/A')} {context.get('currency', 'N/A')}. Please respond within 48 hours.",
+            NotificationService.DISPUTE_CONFIRMATION: f"Your dispute for transaction {context.get('transaction_id', 'N/A')} has been filed successfully. We'll notify you of updates.",
+            NotificationService.DISPUTE_RESPONSE: f"Response received for your dispute {context.get('dispute_id', 'N/A')}. Check your email for details.",
+            NotificationService.DISPUTE_RESOLUTION: f"Your dispute {context.get('dispute_id', 'N/A')} has been resolved. Check your email for resolution details.",
+            NotificationService.DISPUTE_ESCALATION: f"Dispute {context.get('dispute_id', 'N/A')} escalated to admin for review.",
+            NotificationService.DISPUTE_ESCALATED_TO_ADMIN: f"Your dispute {context.get('dispute_id', 'N/A')} has been escalated to SikaRemit admin team for resolution.",
+            NotificationService.DISPUTE_POSITIVE_FEEDBACK: f"Customer provided positive feedback for resolved dispute {context.get('dispute_id', 'N/A')}. Great job!",
+            
             NotificationService.USSD_APPROVAL: f"Your USSD transaction has been APPROVED!\nAmount: GHS {context.get('amount', 'N/A')}\nType: {context.get('type', 'N/A')}\nID: {context.get('transaction_id', 'N/A')}\nRecipient: {context.get('recipient', 'N/A')}\nStatus: ✅ Approved",
             NotificationService.USSD_REJECTION: f"Your USSD transaction has been REJECTED.\nAmount: GHS {context.get('amount', 'N/A')}\nType: {context.get('type', 'N/A')}\nID: {context.get('transaction_id', 'N/A')}\nReason: {context.get('reason', 'N/A')}\nStatus: ❌ Rejected",
             NotificationService.USSD_STATUS_UPDATE: f"SikaRemit Transaction Update:\nAmount: GHS {context.get('amount', 'N/A')}\nType: {context.get('type', 'N/A')}\nID: {context.get('transaction_id', 'N/A')}\nStatus: {context.get('status', 'N/A')}",

@@ -13,10 +13,8 @@ function warnOnce(endpoint: string, message: string) {
 }
 
 function getAuthHeaders() {
-  const token = localStorage.getItem('access_token')
-  return {
-    Authorization: `Bearer ${token}`
-  }
+  // Auth headers will be added by axios interceptor
+  return {}
 }
 
 export interface USSDTransaction {

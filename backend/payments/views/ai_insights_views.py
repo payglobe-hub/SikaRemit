@@ -262,17 +262,50 @@ def save_financial_goal(request):
         description: Invalid goal data
     """
     try:
-        # This would integrate with a goals model
-        # For now, return placeholder response
+        from payments.models.budgeting import Budget
+        from decimal import Decimal
+        from datetime import datetime
+
+        name = request.data.get('name')
+        target_amount = request.data.get('target_amount')
+        target_date = request.data.get('target_date')
+        category = request.data.get('category', 'savings')
+
+        if not name or not target_amount:
+            return Response(
+                {'error': 'name and target_amount are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Parse target_date or default to 1 year from now
+        if target_date:
+            end_date = datetime.strptime(target_date, '%Y-%m-%d').date()
+        else:
+            end_date = (timezone.now() + timezone.timedelta(days=365)).date()
+
+        goal = Budget.objects.create(
+            user=request.user,
+            name=name,
+            description=f"Financial goal: {category}",
+            budget_type='custom',
+            frequency='monthly',
+            start_date=timezone.now().date(),
+            end_date=end_date,
+            total_savings_target=Decimal(str(target_amount)),
+            total_income_target=Decimal('0'),
+            total_expense_limit=Decimal('0'),
+            is_active=True,
+        )
+
         goal_data = {
-            'id': 'goal_123',
-            'name': request.data.get('name'),
-            'target_amount': request.data.get('target_amount'),
-            'current_amount': 0,
-            'target_date': request.data.get('target_date'),
-            'category': request.data.get('category'),
-            'progress_percentage': 0,
-            'created_at': timezone.now()
+            'id': goal.id,
+            'name': goal.name,
+            'target_amount': float(goal.total_savings_target),
+            'current_amount': float(goal.current_savings),
+            'target_date': goal.end_date.isoformat(),
+            'category': category,
+            'progress_percentage': float(goal.savings_percentage),
+            'created_at': goal.created_at.isoformat(),
         }
 
         return Response(goal_data, status=status.HTTP_201_CREATED)

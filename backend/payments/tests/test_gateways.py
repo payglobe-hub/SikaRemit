@@ -505,3 +505,142 @@ class WebhookSignatureTests(TestCase):
         
         result = gateway.verify_webhook_signature(MockRequest(), None)
         self.assertFalse(result)
+
+
+class GMoneyGatewayTests(TestCase):
+    """Tests for G-Money gateway"""
+    
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='TestPass123!'
+        )
+        # Create customer profile
+        from users.models import Customer
+        self.customer, _ = Customer.objects.get_or_create(user=self.user)
+    
+    @override_settings(
+        G_MONEY_API_KEY='test_api_key',
+        G_MONEY_API_SECRET='test_api_secret',
+        G_MONEY_API_URL='https://api.gmoney.com.gh',
+        G_MONEY_MERCHANT_ID='test_merchant_id',
+        G_MONEY_WEBHOOK_SECRET='test_webhook_secret'
+    )
+    @patch('requests.post')
+    def test_process_payment_success(self, mock_post):
+        """Test successful G-Money payment"""
+        from payments.gateways.mobile_money import GMoneyGateway
+        
+        # Mock successful token response and payment response
+        mock_response = Mock()
+        mock_response.json.side_effect = [
+            {'access_token': 'test_token', 'expires_in': 3600},  # Token request
+            {'reference': 'test_ref', 'gMoneyReference': 'gm_ref_123'}  # Payment request
+        ]
+        mock_response.raise_for_status.return_value = None
+        mock_post.return_value = mock_response
+        
+        gateway = GMoneyGateway()
+        
+        # Mock payment method
+        payment_method = Mock()
+        payment_method.details = {'phone_number': '0241234567'}
+        
+        # Mock merchant
+        merchant = Mock()
+        merchant.business_name = 'Test Merchant'
+        
+        result = gateway.process_payment(
+            amount=Decimal('10.00'),
+            currency='GHS',
+            payment_method=payment_method,
+            customer=self.customer,
+            merchant=merchant
+        )
+        
+        self.assertTrue(result['success'])
+        self.assertEqual(result['status'], 'pending')
+        self.assertIn('transaction_id', result)
+        self.assertIn('g_money_reference', result)
+    
+    @override_settings(
+        G_MONEY_API_KEY='test_api_key',
+        G_MONEY_API_SECRET='test_api_secret', 
+        G_MONEY_API_URL='https://api.gmoney.com.gh',
+        G_MONEY_MERCHANT_ID='test_merchant_id'
+    )
+    def test_is_configured(self):
+        """Test G-Money gateway configuration check"""
+        from payments.gateways.mobile_money import GMoneyGateway
+        
+        gateway = GMoneyGateway()
+        self.assertTrue(gateway.is_configured())
+    
+    def test_is_not_configured(self):
+        """Test G-Money gateway not configured"""
+        from payments.gateways.mobile_money import GMoneyGateway
+        
+        gateway = GMoneyGateway()
+        self.assertFalse(gateway.is_configured())
+    
+    @override_settings(
+        G_MONEY_API_KEY='test_api_key',
+        G_MONEY_API_SECRET='test_api_secret',
+        G_MONEY_API_URL='https://api.gmoney.com.gh',
+        G_MONEY_MERCHANT_ID='test_merchant_id',
+        G_MONEY_WEBHOOK_SECRET='test_webhook_secret'
+    )
+    def test_parse_webhook(self):
+        """Test G-Money webhook parsing"""
+        from payments.gateways.mobile_money import GMoneyGateway
+        
+        gateway = GMoneyGateway()
+        
+        # Mock request with webhook payload
+        class MockRequest:
+            body = json.dumps({
+                'event': 'payment_callback',
+                'transaction': {
+                    'transactionId': 'test_txn_123',
+                    'status': 'SUCCESS',
+                    'amount': 10.00,
+                    'currency': 'GHS',
+                    'gMoneyReference': 'gm_ref_123',
+                    'customer': {
+                        'phoneNumber': '0241234567'
+                    }
+                }
+            }).encode()
+        
+        result = gateway.parse_webhook(MockRequest())
+        
+        self.assertEqual(result['event_type'], 'payment_callback')
+        self.assertEqual(result['transaction_id'], 'test_txn_123')
+        self.assertEqual(result['status'], 'SUCCESS')
+        self.assertEqual(result['amount'], 10.00)
+        self.assertEqual(result['currency'], 'GHS')
+        self.assertEqual(result['g_money_reference'], 'gm_ref_123')
+    
+    @override_settings(
+        G_MONEY_API_KEY='test_api_key',
+        G_MONEY_API_SECRET='test_api_secret',
+        G_MONEY_API_URL='https://api.gmoney.com.gh',
+        G_MONEY_MERCHANT_ID='test_merchant_id',
+        G_MONEY_WEBHOOK_SECRET='test_webhook_secret'
+    )
+    def test_webhook_signature_verification(self):
+        """Test G-Money webhook signature verification"""
+        from payments.gateways.mobile_money import GMoneyGateway
+        
+        gateway = GMoneyGateway()
+        
+        class MockRequest:
+            body = b'test_payload'
+        
+        # Test with no signature
+        result = gateway.verify_webhook_signature(MockRequest(), '')
+        self.assertFalse(result)
+        
+        result = gateway.verify_webhook_signature(MockRequest(), None)
+        self.assertFalse(result)

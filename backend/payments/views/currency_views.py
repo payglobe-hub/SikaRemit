@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes as drf_permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from accounts.permissions import IsAdminUser
 from rest_framework.response import Response
 from decimal import Decimal
 from ..models import Currency, ExchangeRate
@@ -76,7 +77,7 @@ def historical_rates(request):
 
 
 @api_view(['POST'])
-@permission_classes([permissions.IsAdminUser])
+@drf_permission_classes([IsAuthenticated, IsAdminUser])
 def set_exchange_rates(request):
     """
     Admin endpoint to manually set exchange rates

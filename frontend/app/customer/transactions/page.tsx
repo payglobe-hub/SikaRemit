@@ -3,9 +3,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { RefreshCw, Eye } from 'lucide-react'
+import { RefreshCw, Eye, AlertTriangle } from 'lucide-react'
 import { getRecentTransactions, Transaction as TransactionType } from '@/lib/api/payments'
 import { useQuery } from '@tanstack/react-query'
+import Link from 'next/link'
 
 type Transaction = TransactionType & {
   reference_number?: string
@@ -101,6 +102,17 @@ export default function TransactionsPage() {
                       }`}>
                         {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
                       </div>
+                      {tx.status === 'completed' && (
+                        <div className="mt-2">
+                          <Link
+                            href="/customer/disputes/create-dispute"
+                            className="inline-flex items-center px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded hover:bg-orange-200 transition-colors"
+                          >
+                            <AlertTriangle className="w-3 h-3 mr-1" />
+                            Report Issue
+                          </Link>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

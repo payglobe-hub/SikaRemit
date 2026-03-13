@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
 import { ArrowLeft, Lock, CheckCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -56,7 +57,7 @@ export default function ChangePasswordPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
-            <div className="p-3 bg-gradient-to-br from-purple-600 to-pink-500 rounded-full">
+            <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-500 rounded-full">
               <Lock className="h-6 w-6 text-white" />
             </div>
           </div>
@@ -116,7 +117,7 @@ export default function ChangePasswordPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600"
               >
                 {isLoading ? (
                   <>

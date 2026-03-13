@@ -24,6 +24,7 @@ const MOBILE_MONEY_PROVIDERS = [
   { id: 'MTN', name: 'MTN Mobile Money', color: 'bg-yellow-500', prefixes: ['024', '054', '055', '059'], logo: '/logos/mtn-momo.png' },
   { id: 'Telecel', name: 'Telecel Cash', color: 'bg-red-500', prefixes: ['020', '050'], logo: '/logos/telecel-cash.jpg' },
   { id: 'AirtelTigo', name: 'AirtelTigo Money', color: 'bg-blue-500', prefixes: ['026', '056', '027', '057'], logo: '/logos/airteltigo-money.jpg' },
+  { id: 'G-Money', name: 'G-Money', color: 'bg-green-500', prefixes: ['023', '025'], logo: '/logos/g-money.svg' },
 ]
 
 export default function WithdrawPage() {
@@ -33,7 +34,7 @@ export default function WithdrawPage() {
   
   // Mobile Money form state
   const [momoAmount, setMomoAmount] = useState('')
-  const [momoProvider, setMomoProvider] = useState<'MTN' | 'Telecel' | 'AirtelTigo'>('MTN')
+  const [momoProvider, setMomoProvider] = useState<'MTN' | 'Telecel' | 'AirtelTigo' | 'G-Money'>('MTN')
   const [momoPhone, setMomoPhone] = useState('')
   
   // Bank Transfer form state
@@ -88,7 +89,7 @@ export default function WithdrawPage() {
       const prefix = momoPhone.startsWith('0') ? momoPhone.substring(0, 3) : '0' + momoPhone.substring(0, 2)
       const provider = MOBILE_MONEY_PROVIDERS.find(p => p.prefixes.includes(prefix))
       if (provider) {
-        setMomoProvider(provider.id as 'MTN' | 'Telecel' | 'AirtelTigo')
+        setMomoProvider(provider.id as 'MTN' | 'Telecel' | 'AirtelTigo' | 'G-Money')
       }
     }
   }, [momoPhone])
@@ -249,7 +250,7 @@ export default function WithdrawPage() {
 
                     <div className="space-y-2">
                       <Label htmlFor="momo-provider">Provider</Label>
-                      <Select value={momoProvider} onValueChange={(value: 'MTN' | 'Telecel' | 'AirtelTigo') => setMomoProvider(value)}>
+                      <Select value={momoProvider} onValueChange={(value: 'MTN' | 'Telecel' | 'AirtelTigo' | 'G-Money') => setMomoProvider(value)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select provider" />
                         </SelectTrigger>

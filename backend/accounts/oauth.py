@@ -1,6 +1,7 @@
 from django.conf import settings
 from requests_oauthlib import OAuth2Session
 from django.core.exceptions import PermissionDenied
+from shared.constants import USER_TYPE_CUSTOMER
 from .models import User
 import logging
 
@@ -48,7 +49,7 @@ class OAuthService:
                 user = User.objects.create_user(
                     email=user_info['email'],
                     password=None,
-                    user_type=3,  # Default to customer
+                    user_type=USER_TYPE_CUSTOMER,
                     first_name=user_info.get('first_name', ''),
                     last_name=user_info.get('last_name', ''),
                     is_verified=True

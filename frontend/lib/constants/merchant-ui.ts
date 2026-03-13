@@ -36,14 +36,9 @@ export const NAVIGATION_ITEMS = [
     icon: 'LayoutDashboard',
   },
   {
-    title: 'Point of Sale',
-    href: '/merchant/pos',
+    title: 'Transactions',
+    href: '/merchant/transactions',
     icon: 'CreditCard',
-  },
-  {
-    title: 'Stores',
-    href: '/merchant/stores',
-    icon: 'Store',
   },
   {
     title: 'Customers',
@@ -51,34 +46,49 @@ export const NAVIGATION_ITEMS = [
     icon: 'Users',
   },
   {
+    title: 'Invoices',
+    href: '/merchant/invoices',
+    icon: 'FileText',
+  },
+  {
     title: 'Products',
     href: '/merchant/products',
     icon: 'Package',
   },
   {
-    title: 'Transactions',
-    href: '/merchant/transactions',
-    icon: 'CreditCard',
+    title: 'Stores',
+    href: '/merchant/stores',
+    icon: 'Store',
+  },
+  {
+    title: 'POS',
+    href: '/merchant/pos',
+    icon: 'DollarSign',
   },
   {
     title: 'Payouts',
     href: '/merchant/payouts',
-    icon: 'DollarSign',
-  },
-  {
-    title: 'Analytics',
-    href: '/merchant/analytics',
-    icon: 'BarChart',
+    icon: 'Wallet',
   },
   {
     title: 'Reports',
     href: '/merchant/reports',
+    icon: 'BarChart3',
+  },
+  {
+    title: 'Analytics',
+    href: '/merchant/analytics',
     icon: 'PieChart',
   },
   {
-    title: 'Invoices',
-    href: '/merchant/invoices',
-    icon: 'FileText',
+    title: 'Notifications',
+    href: '/merchant/notifications',
+    icon: 'Bell',
+  },
+  {
+    title: 'Disputes',
+    href: '/merchant/disputes',
+    icon: 'AlertTriangle',
   },
   {
     title: 'Settings',

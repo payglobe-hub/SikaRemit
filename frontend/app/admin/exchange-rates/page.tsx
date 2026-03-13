@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useToast } from '@/hooks/use-toast'
+import api from '@/lib/api/axios'
 import {
   Plus,
   Edit,
@@ -31,20 +32,32 @@ import {
 
 // Types for exchange rates
 interface ExchangeRate {
-  id: number
-  from_currency: string
-  to_currency: string
+  id: string
+  from_currency: {
+    id: number
+    code: string
+    name: string
+    symbol: string
+  }
+  to_currency: {
+    id: number
+    code: string
+    name: string
+    symbol: string
+  }
+  from_currency_code: string
+  to_currency_code: string
+  from_currency_name: string
+  to_currency_name: string
   rate: number
+  inverse_rate: number
   source: string
-  is_active: boolean
-  effective_from: string
-  effective_until?: string
-  created_by_name: string
-  updated_by_name: string
-  notes: string
-  created_at: string
-  updated_at: string
-  is_currently_effective: boolean
+  timestamp: string
+  is_latest: boolean
+  valid_from: string
+  valid_to?: string
+  spread?: number
+  metadata: any
 }
 
 interface ExchangeRateHistory {
@@ -65,13 +78,6 @@ interface Currency {
   symbol: string
   flag_emoji?: string
   is_active: boolean
-}
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-
-function getAuthHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-  return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
 export default function ExchangeRatesAdmin() {
@@ -102,11 +108,8 @@ export default function ExchangeRatesAdmin() {
 
   const loadCurrencies = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/v1/payments/currencies/`, {
-        headers: getAuthHeaders()
-      })
-      if (!response.ok) throw new Error('Failed to fetch currencies')
-      const data = await response.json()
+      const response = await api.get('/api/v1/payments/currencies/')
+      const data = response.data
       const currencyList = Array.isArray(data) ? data : (data.results || [])
       setCurrencies(currencyList.filter((c: Currency) => c.is_active))
     } catch (error) {
@@ -122,11 +125,8 @@ export default function ExchangeRatesAdmin() {
   const loadExchangeRates = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`${API_URL}/api/v1/payments/exchange-rates/`, {
-        headers: getAuthHeaders()
-      })
-      if (!response.ok) throw new Error('Failed to fetch')
-      const data = await response.json()
+      const response = await api.get('/api/v1/payments/exchange-rates-admin/')
+      const data = response.data
       // Handle both array and paginated response
       const rates = Array.isArray(data) ? data : (data.results || [])
       setExchangeRates(rates)
@@ -143,27 +143,14 @@ export default function ExchangeRatesAdmin() {
 
   const handleCreateRate = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/v1/payments/exchange-rates/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        },
-        body: JSON.stringify({
-          from_currency: formData.from_currency,
-          to_currency: formData.to_currency,
-          rate: parseFloat(formData.rate),
-          effective_from: formData.effective_from || new Date().toISOString(),
-          effective_until: formData.effective_until || null,
-          notes: formData.notes,
-          is_active: formData.is_active
-        })
+      await api.post('/api/v1/payments/exchange-rates-admin/', {
+        from_currency: formData.from_currency,
+        to_currency: formData.to_currency,
+        rate: parseFloat(formData.rate),
+        valid_from: formData.effective_from || new Date().toISOString(),
+        valid_to: formData.effective_until || null,
+        source: 'admin'
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Failed to create')
-      }
 
       await loadExchangeRates()
       setIsCreateDialogOpen(false)
@@ -186,27 +173,14 @@ export default function ExchangeRatesAdmin() {
     if (!selectedRate) return
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/payments/exchange-rates/${selectedRate.id}/`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        },
-        body: JSON.stringify({
-          from_currency: formData.from_currency,
-          to_currency: formData.to_currency,
-          rate: parseFloat(formData.rate),
-          effective_from: formData.effective_from || selectedRate.effective_from,
-          effective_until: formData.effective_until || null,
-          notes: formData.notes,
-          is_active: formData.is_active
-        })
+      await api.put(`/api/v1/payments/exchange-rates-admin/${selectedRate.id}/`, {
+        from_currency: formData.from_currency,
+        to_currency: formData.to_currency,
+        rate: parseFloat(formData.rate),
+        valid_from: formData.effective_from || selectedRate.valid_from,
+        valid_to: formData.effective_until || null,
+        source: 'admin'
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Failed to update')
-      }
 
       await loadExchangeRates()
       setIsEditDialogOpen(false)
@@ -226,18 +200,11 @@ export default function ExchangeRatesAdmin() {
     }
   }
 
-  const handleDeleteRate = async (rateId: number) => {
+  const handleDeleteRate = async (rateId: string) => {
     if (!confirm('Are you sure you want to delete this exchange rate?')) return
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/payments/exchange-rates/${rateId}/`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      })
-
-      if (!response.ok && response.status !== 204) {
-        throw new Error('Failed to delete')
-      }
+      await api.delete(`/api/v1/payments/exchange-rates-admin/${rateId}/`)
 
       await loadExchangeRates()
 
@@ -256,19 +223,8 @@ export default function ExchangeRatesAdmin() {
 
   const handleToggleActive = async (rate: ExchangeRate) => {
     try {
-      const newStatus = !rate.is_active
-      const response = await fetch(`${API_URL}/api/v1/payments/exchange-rates/${rate.id}/`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        },
-        body: JSON.stringify({ is_active: newStatus })
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to update status')
-      }
+      const newStatus = !rate.is_latest
+      await api.patch(`/api/v1/payments/exchange-rates-admin/${rate.id}/`, { is_latest: newStatus })
 
       await loadExchangeRates()
 
@@ -300,13 +256,13 @@ export default function ExchangeRatesAdmin() {
   const openEditDialog = (rate: ExchangeRate) => {
     setSelectedRate(rate)
     setFormData({
-      from_currency: rate.from_currency,
-      to_currency: rate.to_currency,
+      from_currency: rate.from_currency.code,
+      to_currency: rate.to_currency.code,
       rate: rate.rate.toString(),
-      effective_from: rate.effective_from.split('T')[0],
-      effective_until: rate.effective_until ? rate.effective_until.split('T')[0] : '',
-      notes: rate.notes,
-      is_active: rate.is_active
+      effective_from: rate.valid_from.split('T')[0],
+      effective_until: rate.valid_to ? rate.valid_to.split('T')[0] : '',
+      notes: '',
+      is_active: rate.is_latest
     })
     setIsEditDialogOpen(true)
   }
@@ -322,13 +278,10 @@ export default function ExchangeRatesAdmin() {
   }
 
   const getStatusBadge = (rate: ExchangeRate) => {
-    if (!rate.is_active) {
+    if (!rate.is_latest) {
       return <Badge variant="secondary">Inactive</Badge>
     }
-    if (rate.is_currently_effective) {
-      return <Badge variant="default" className="bg-green-500">Active</Badge>
-    }
-    return <Badge variant="outline">Scheduled</Badge>
+    return <Badge variant="default" className="bg-green-500">Active</Badge>
   }
 
   if (loading) {
@@ -392,12 +345,12 @@ export default function ExchangeRatesAdmin() {
                     {exchangeRates.map((rate) => (
                       <TableRow key={rate.id}>
                         <TableCell className="font-medium">
-                          {rate.from_currency} → {rate.to_currency}
+                          {rate.from_currency.code} → {rate.to_currency.code}
                         </TableCell>
                         <TableCell>{rate.rate}</TableCell>
                         <TableCell>{getStatusBadge(rate)}</TableCell>
-                        <TableCell>{formatDate(rate.effective_from)}</TableCell>
-                        <TableCell>{formatDate(rate.updated_at)}</TableCell>
+                        <TableCell>{formatDate(rate.valid_from)}</TableCell>
+                        <TableCell>{formatDate(rate.timestamp)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Button
@@ -410,9 +363,9 @@ export default function ExchangeRatesAdmin() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleToggleActive(rate)}
+                              onClick={() => setIsHistoryDialogOpen(true)}
                             >
-                              {rate.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              {rate.is_latest ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </Button>
                             <Button
                               variant="ghost"
@@ -424,7 +377,7 @@ export default function ExchangeRatesAdmin() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDeleteRate(rate.id)}
+                              onClick={() => handleDeleteRate(rate.id as string)}
                               className="text-red-600 hover:text-red-700"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -449,7 +402,7 @@ export default function ExchangeRatesAdmin() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {exchangeRates.filter(r => r.is_active).length}
+                  {exchangeRates.filter(r => r.is_latest).length}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Currently active exchange rates
@@ -463,7 +416,7 @@ export default function ExchangeRatesAdmin() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {exchangeRates.filter(r => !r.is_currently_effective && r.is_active).length}
+                  {exchangeRates.filter(r => !r.is_latest).length}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Rates scheduled for future activation
@@ -610,7 +563,7 @@ export default function ExchangeRatesAdmin() {
                 checked={formData.is_active}
                 onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
               />
-              <Label htmlFor="is_active">Active</Label>
+              <Label htmlFor="is_active">Latest</Label>
             </div>
           </div>
           <DialogFooter>
@@ -714,7 +667,7 @@ export default function ExchangeRatesAdmin() {
                 checked={formData.is_active}
                 onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
               />
-              <Label htmlFor="edit_is_active">Active</Label>
+              <Label htmlFor="edit_is_active">Latest</Label>
             </div>
           </div>
           <DialogFooter>

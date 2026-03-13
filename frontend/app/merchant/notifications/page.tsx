@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+// Prevent static generation for this page since it uses functions that can't be serialized
+export const dynamic = 'error'
 import {
   Bell,
   CheckCircle,
@@ -25,70 +28,71 @@ import {
   VolumeX
 } from 'lucide-react'
 import {
-  getMerchantNotifications,
-  markMerchantNotificationAsRead,
-  markAllMerchantNotificationsAsRead,
-  getMerchantNotificationSettings,
-  updateMerchantNotificationSettings
-} from '@/lib/api/merchant'
+  getNotifications as getMerchantNotifications,
+  markAsRead as markMerchantNotificationAsRead,
+  markAllAsRead as markAllMerchantNotificationsAsRead,
+  getNotificationPreferences as getMerchantNotificationSettings,
+  updateNotificationPreferences as updateMerchantNotificationSettings
+} from '@/lib/api/notifications'
 import { useToast } from '@/hooks/use-toast'
 
 interface MerchantNotification {
-  id: string
+  id: number
   title: string
   message: string
-  type: 'success' | 'warning' | 'info' | 'error'
-  category: 'transaction' | 'payout' | 'security' | 'system' | 'customer'
-  time: string
-  read: boolean
+  level: 'success' | 'warning' | 'info' | 'error' | 'payment' | 'security'
+  category?: string
+  created_at: string
+  is_read: boolean
   actionUrl?: string
   metadata?: any
 }
 
 interface NotificationSettings {
-  email: boolean
-  sms: boolean
-  push: boolean
-  transactionAlerts: boolean
-  payoutAlerts: boolean
-  securityAlerts: boolean
-  customerAlerts: boolean
-  marketingEmails: boolean
+  email_enabled: boolean
+  sms_enabled: boolean
+  push_enabled: boolean
+  web_enabled: boolean
 }
 
 export default function MerchantNotificationsPage() {
+  // Prevent server-side rendering to avoid prerendering issues
+  if (typeof window === 'undefined') {
+    return null
+  }
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [settings, setSettings] = useState<NotificationSettings>({
-    email: true,
-    sms: false,
-    push: true,
-    transactionAlerts: true,
-    payoutAlerts: true,
-    securityAlerts: true,
-    customerAlerts: true,
-    marketingEmails: false
+    email_enabled: true,
+    sms_enabled: false,
+    push_enabled: true,
+    web_enabled: true
   })
 
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
   const {
-    data: notifications,
+    data: notificationsData,
     isLoading,
     refetch,
     isRefetching
-  } = useQuery<MerchantNotification[]>({
+  } = useQuery<{ data: MerchantNotification[], count?: number }>({
     queryKey: ['merchant-notifications'],
-    queryFn: getMerchantNotifications,
+    queryFn: async () => {
+      const result = await getMerchantNotifications()
+      return result
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
+
+  const notifications = notificationsData?.data || []
 
   const filteredNotifications = (notifications || []).filter(notification => {
     const matchesReadFilter =
       filter === 'all' ||
-      (filter === 'unread' && !notification.read) ||
-      (filter === 'read' && notification.read)
+      (filter === 'unread' && !notification.is_read) ||
+      (filter === 'read' && notification.is_read)
 
     const matchesCategoryFilter =
       categoryFilter === 'all' || notification.category === categoryFilter
@@ -96,7 +100,7 @@ export default function MerchantNotificationsPage() {
     return matchesReadFilter && matchesCategoryFilter
   })
 
-  const unreadCount = (notifications || []).filter(n => !n.read).length
+  const unreadCount = (notifications || []).filter(n => !n.is_read).length
 
   const markAsReadMutation = useMutation({
     mutationFn: (notificationId: string) => markMerchantNotificationAsRead(notificationId),
@@ -104,6 +108,18 @@ export default function MerchantNotificationsPage() {
       queryClient.invalidateQueries({ queryKey: ['merchant-notifications'] })
     }
   })
+
+  const {
+    data: settingsData,
+    refetch: refetchSettings
+  } = useQuery<NotificationSettings>({
+    queryKey: ['merchant-notification-settings'],
+    queryFn: getMerchantNotificationSettings,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  })
+
+  // Use API data if available, otherwise use local state
+  const currentSettings = settingsData || settings
 
   const markAllAsReadMutation = useMutation({
     mutationFn: () => markAllMerchantNotificationsAsRead(),
@@ -119,6 +135,7 @@ export default function MerchantNotificationsPage() {
   const updateSettingsMutation = useMutation({
     mutationFn: (newSettings: NotificationSettings) => updateMerchantNotificationSettings(newSettings),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['merchant-notification-settings'] })
       toast({
         title: 'Settings updated',
         description: 'Notification preferences have been saved.',
@@ -143,30 +160,34 @@ export default function MerchantNotificationsPage() {
   }
 
   const handleSettingsChange = (key: keyof NotificationSettings, value: boolean) => {
-    const newSettings = { ...settings, [key]: value }
+    const newSettings = { ...currentSettings, [key]: value }
     setSettings(newSettings)
     updateSettingsMutation.mutate(newSettings)
   }
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
+  const getNotificationIcon = (level: string) => {
+    switch (level) {
       case 'success':
         return <CheckCircle className="w-5 h-5 text-emerald-500" />
       case 'warning':
         return <AlertTriangle className="w-5 h-5 text-amber-500" />
       case 'error':
         return <X className="w-5 h-5 text-red-500" />
+      case 'payment':
+        return <DollarSign className="w-5 h-5 text-green-500" />
+      case 'security':
+        return <Shield className="w-5 h-5 text-red-500" />
       default:
         return <Bell className="w-5 h-5 text-blue-500" />
     }
   }
 
-  const getCategoryIcon = (category: string) => {
+  const getCategoryIcon = (category?: string) => {
     switch (category) {
       case 'transaction':
         return <DollarSign className="w-4 h-4 text-green-600" />
       case 'payout':
-        return <DollarSign className="w-4 h-4 text-purple-600" />
+        return <DollarSign className="w-4 h-4 text-indigo-600" />
       case 'security':
         return <Shield className="w-4 h-4 text-red-600" />
       case 'customer':
@@ -176,13 +197,17 @@ export default function MerchantNotificationsPage() {
     }
   }
 
-  const getNotificationColor = (type: string) => {
-    switch (type) {
+  const getNotificationColor = (level: string) => {
+    switch (level) {
       case 'success':
         return 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/20'
       case 'warning':
         return 'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20'
       case 'error':
+        return 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20'
+      case 'payment':
+        return 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20'
+      case 'security':
         return 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20'
       default:
         return 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20'
@@ -192,9 +217,9 @@ export default function MerchantNotificationsPage() {
   return (
     <div className="space-y-8 animate-in fade-in-0 duration-700">
       {/* Hero Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 p-8 text-white shadow-2xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 backdrop-blur-3xl"></div>
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/30 to-indigo-600/30 rounded-full blur-3xl animate-pulse"></div>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-900 p-8 text-white shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-blue-600/20 backdrop-blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/30 to-indigo-600/30 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-400/30 to-cyan-600/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
         <div className="relative z-10">
@@ -204,10 +229,10 @@ export default function MerchantNotificationsPage() {
                 <Bell className="w-10 h-10" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
                   Notifications Center
                 </h1>
-                <p className="text-purple-200/80 text-lg mt-1">
+                <p className="text-blue-200/80 text-lg mt-1">
                   Stay updated with your business activities and alerts
                 </p>
               </div>
@@ -234,7 +259,7 @@ export default function MerchantNotificationsPage() {
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-200/70 text-sm">Total</p>
+                  <p className="text-blue-200/70 text-sm">Total</p>
                   <p className="text-2xl font-bold text-white">{notifications?.length || 0}</p>
                 </div>
                 <Bell className="w-8 h-8 text-blue-400" />
@@ -243,7 +268,7 @@ export default function MerchantNotificationsPage() {
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-200/70 text-sm">Unread</p>
+                  <p className="text-blue-200/70 text-sm">Unread</p>
                   <p className="text-2xl font-bold text-white">{unreadCount}</p>
                 </div>
                 <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
@@ -252,9 +277,13 @@ export default function MerchantNotificationsPage() {
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-200/70 text-sm">Today</p>
+                  <p className="text-blue-200/70 text-sm">Today</p>
                   <p className="text-2xl font-bold text-white">
-                    {(notifications || []).filter(n => n.time.includes('hour') || n.time.includes('minute')).length}
+                    {(notifications || []).filter(n => {
+                      const createdDate = new Date(n.created_at)
+                      const today = new Date()
+                      return createdDate.toDateString() === today.toDateString()
+                    }).length}
                   </p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-emerald-400" />
@@ -263,9 +292,9 @@ export default function MerchantNotificationsPage() {
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-200/70 text-sm">Critical</p>
+                  <p className="text-blue-200/70 text-sm">Critical</p>
                   <p className="text-2xl font-bold text-white">
-                    {(notifications || []).filter(n => n.type === 'error' || n.type === 'warning').length}
+                    {(notifications || []).filter(n => n.level === 'error' || n.level === 'warning').length}
                   </p>
                 </div>
                 <AlertTriangle className="w-8 h-8 text-red-400" />
@@ -286,7 +315,7 @@ export default function MerchantNotificationsPage() {
           {/* Filters */}
           <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-1 duration-700">
             <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-800 dark:to-gray-800"></div>
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-purple-400/20 to-indigo-600/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-blue-400/20 to-indigo-600/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
 
             <CardContent className="p-6 relative z-10">
               <div className="flex flex-col sm:flex-row gap-4">
@@ -346,14 +375,14 @@ export default function MerchantNotificationsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                    <Bell className="w-7 h-7 mr-3 text-purple-600" />
+                    <Bell className="w-7 h-7 mr-3 text-blue-600" />
                     Recent Notifications
                   </CardTitle>
                   <CardDescription className="text-gray-600 dark:text-gray-400 text-lg mt-1">
                     {filteredNotifications.length} notifications • Stay informed about your business
                   </CardDescription>
                 </div>
-                <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                   Live Updates
                 </Badge>
               </div>
@@ -390,13 +419,13 @@ export default function MerchantNotificationsPage() {
                     <div
                       key={notification.id}
                       className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all duration-300 animate-in slide-in-from-left duration-500 ${
-                        !notification.read ? getNotificationColor(notification.type) : ''
+                        !notification.is_read ? getNotificationColor(notification.level) : ''
                       }`}
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div className="flex items-start space-x-4">
                         <div className="flex-shrink-0 mt-1">
-                          {getNotificationIcon(notification.type)}
+                          {getNotificationIcon(notification.level)}
                         </div>
 
                         <div className="flex-1 min-w-0">
@@ -420,15 +449,15 @@ export default function MerchantNotificationsPage() {
 
                               <div className="flex items-center justify-between">
                                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                                  {notification.time}
+                                  {notification.created_at}
                                 </span>
 
                                 <div className="flex items-center space-x-2">
-                                  {!notification.read && (
+                                  {!notification.is_read && (
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleMarkAsRead(notification.id)}
+                                      onClick={() => handleMarkAsRead(notification.id.toString())}
                                       disabled={markAsReadMutation.isPending}
                                     >
                                       Mark as Read
@@ -446,7 +475,7 @@ export default function MerchantNotificationsPage() {
                           </div>
                         </div>
 
-                        {!notification.read && (
+                        {!notification.is_read && (
                           <div className="flex-shrink-0">
                             <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                           </div>
@@ -464,11 +493,11 @@ export default function MerchantNotificationsPage() {
         <TabsContent value="settings" className="space-y-6">
           <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-1 duration-700">
             <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-800 dark:to-gray-800"></div>
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-purple-400/20 to-indigo-600/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-blue-400/20 to-indigo-600/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
 
             <CardHeader className="relative z-10">
               <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                <Settings className="w-7 h-7 mr-3 text-purple-600" />
+                <Settings className="w-7 h-7 mr-3 text-blue-600" />
                 Notification Preferences
               </CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-400 text-lg">
@@ -494,22 +523,22 @@ export default function MerchantNotificationsPage() {
                       </div>
                     </div>
                     <Switch
-                      checked={settings.email}
-                      onCheckedChange={(checked) => handleSettingsChange('email', checked)}
+                      checked={currentSettings.email_enabled}
+                      onCheckedChange={(checked) => handleSettingsChange('email_enabled', checked)}
                     />
                   </div>
 
                   <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                     <div className="flex items-center space-x-3">
-                      <Smartphone className="w-5 h-5 text-purple-600" />
+                      <Smartphone className="w-5 h-5 text-blue-600" />
                       <div>
                         <Label className="text-base font-medium">SMS Notifications</Label>
                         <p className="text-sm text-gray-600 dark:text-gray-400">Receive via SMS</p>
                       </div>
                     </div>
                     <Switch
-                      checked={settings.sms}
-                      onCheckedChange={(checked) => handleSettingsChange('sms', checked)}
+                      checked={currentSettings.sms_enabled}
+                      onCheckedChange={(checked) => handleSettingsChange('sms_enabled', checked)}
                     />
                   </div>
 
@@ -522,82 +551,28 @@ export default function MerchantNotificationsPage() {
                       </div>
                     </div>
                     <Switch
-                      checked={settings.push}
-                      onCheckedChange={(checked) => handleSettingsChange('push', checked)}
+                      checked={currentSettings.push_enabled}
+                      onCheckedChange={(checked) => handleSettingsChange('push_enabled', checked)}
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Alert Types */}
+              {/* Web Notifications */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                  <AlertTriangle className="w-5 h-5 mr-2 text-amber-600" />
-                  Alert Types
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                    <div>
-                      <Label className="text-base font-medium">Transaction Alerts</Label>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Payments received, refunds, etc.</p>
-                    </div>
-                    <Switch
-                      checked={settings.transactionAlerts}
-                      onCheckedChange={(checked) => handleSettingsChange('transactionAlerts', checked)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                    <div>
-                      <Label className="text-base font-medium">Payout Alerts</Label>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Payout processing and completion</p>
-                    </div>
-                    <Switch
-                      checked={settings.payoutAlerts}
-                      onCheckedChange={(checked) => handleSettingsChange('payoutAlerts', checked)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                    <div>
-                      <Label className="text-base font-medium">Security Alerts</Label>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Login attempts, suspicious activity</p>
-                    </div>
-                    <Switch
-                      checked={settings.securityAlerts}
-                      onCheckedChange={(checked) => handleSettingsChange('securityAlerts', checked)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                    <div>
-                      <Label className="text-base font-medium">Customer Alerts</Label>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">New customers, high-value purchases</p>
-                    </div>
-                    <Switch
-                      checked={settings.customerAlerts}
-                      onCheckedChange={(checked) => handleSettingsChange('customerAlerts', checked)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Marketing Preferences */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                  <Mail className="w-5 h-5 mr-2 text-indigo-600" />
-                  Marketing & Updates
+                  <Smartphone className="w-5 h-5 mr-2 text-indigo-600" />
+                  Web Notifications
                 </h3>
 
                 <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                   <div>
-                    <Label className="text-base font-medium">Marketing Emails</Label>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Product updates, tips, and promotional content</p>
+                    <Label className="text-base font-medium">Web Notifications</Label>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Receive notifications in your browser</p>
                   </div>
                   <Switch
-                    checked={settings.marketingEmails}
-                    onCheckedChange={(checked) => handleSettingsChange('marketingEmails', checked)}
+                    checked={currentSettings.web_enabled}
+                    onCheckedChange={(checked) => handleSettingsChange('web_enabled', checked)}
                   />
                 </div>
               </div>
@@ -605,9 +580,9 @@ export default function MerchantNotificationsPage() {
               {/* Save Button */}
               <div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
                 <Button
-                  onClick={() => updateSettingsMutation.mutate(settings)}
+                  onClick={() => updateSettingsMutation.mutate(currentSettings)}
                   disabled={updateSettingsMutation.isPending}
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
                   {updateSettingsMutation.isPending ? 'Saving...' : 'Save Preferences'}
                 </Button>

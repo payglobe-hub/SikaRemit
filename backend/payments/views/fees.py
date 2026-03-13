@@ -192,8 +192,8 @@ class MerchantFeeOverrideViewSet(viewsets.ModelViewSet):
         return MerchantFeeOverride.objects.none()
 
     def get_serializer_class(self):
-        # TODO: Create proper serializers
-        return None
+        from payments.serializers.fees import MerchantFeeOverrideSerializer
+        return MerchantFeeOverrideSerializer
 
     def perform_create(self, serializer):
         if hasattr(self.request.user, 'merchant_profile') and self.request.user.merchant_profile:
@@ -284,5 +284,5 @@ class FeeCalculationLogViewSet(viewsets.ReadOnlyModelViewSet):
             return FeeCalculationLog.objects.filter(user=user)
 
     def get_serializer_class(self):
-        # TODO: Create proper serializers
-        return None
+        from payments.serializers.fees import FeeCalculationLogSerializer
+        return FeeCalculationLogSerializer

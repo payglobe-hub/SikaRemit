@@ -27,7 +27,7 @@ class BankTransferGateway(PaymentGateway):
         self.default_provider = 'direct_bank' if self.providers['direct_bank']['enabled'] else None
 
         if not self.default_provider:
-            logger.warning("No bank transfer providers configured - bank transfers will be simulated")
+            logger.error("No bank transfer providers configured - bank transfers will be unavailable")
 
     def process_payment(self, amount, currency, payment_method, customer, merchant, metadata=None):
         """Process bank transfer payment"""
@@ -35,8 +35,12 @@ class BankTransferGateway(PaymentGateway):
             provider = self._get_provider_for_method(payment_method)
 
             if not provider:
-                # Fallback to simulated processing if no providers configured
-                return self._simulate_bank_transfer(amount, currency, payment_method, customer, merchant, metadata)
+                logger.error("No bank transfer provider configured — cannot process bank transfer")
+                return {
+                    'success': False,
+                    'error': 'Bank transfer is currently unavailable. No banking provider configured.',
+                    'raw_response': None
+                }
 
             provider_config = self.providers[provider]
 
@@ -99,34 +103,84 @@ class BankTransferGateway(PaymentGateway):
                 'raw_response': response.json()
             }
 
-    def _simulate_bank_transfer(self, amount, currency, payment_method, customer, merchant, metadata=None):
-        """Fallback simulated bank transfer when no real providers are configured"""
-        logger.warning("Using simulated bank transfer - no real banking APIs configured")
-
-        transaction_id = f"SIM_BANK_{uuid.uuid4()}"
-
-        return {
-            'success': True,
-            'transaction_id': transaction_id,
-            'reference': transaction_id,
-            'instructions': f"""
-            Please transfer {currency} {amount:,} to:
-            Bank: {merchant.bank_name or 'Sample Bank'}
-            Account: {merchant.bank_account_number or '1234567890'}
-            Account Name: {merchant.business_name}
-            Reference: {transaction_id}
-            """,
-            'simulated': True,
-            'raw_response': {
-                'amount': amount,
-                'currency': currency,
-                'merchant_account': merchant.bank_account_number or '1234567890',
-                'reference': transaction_id
+    def disburse_funds(self, amount, currency, bank_code, account_number, account_name, 
+                     recipient_name=None, recipient_email=None, metadata=None):
+        """Process bank transfer disbursement to customer account"""
+        try:
+            provider = self.default_provider
+            
+            if not provider:
+                return {
+                    'success': False,
+                    'error': 'No bank transfer providers configured',
+                    'estimated_time': 'N/A'
+                }
+            
+            provider_config = self.providers[provider]
+            
+            if provider == 'direct_bank':
+                return self._disburse_direct_bank(
+                    amount, currency, bank_code, account_number, account_name,
+                    recipient_name, recipient_email, metadata
+                )
+            
+        except Exception as e:
+            logger.error(f"Bank transfer disbursement failed: {str(e)}")
+            return {
+                'success': False,
+                'error': f"Bank transfer disbursement failed: {str(e)}",
+                'estimated_time': 'N/A'
             }
+    
+    def _disburse_direct_bank(self, amount, currency, bank_code, account_number, account_name,
+                           recipient_name=None, recipient_email=None, metadata=None):
+        """Process disbursement via direct bank API"""
+        headers = {
+            'Authorization': f"Bearer {self.providers['direct_bank']['api_key']}",
+            'Content-Type': 'application/json'
         }
+        
+        payload = {
+            'transaction_id': f"disburse_{uuid.uuid4()}",
+            'amount': str(amount),
+            'currency': currency,
+            'debit_account': getattr(settings, 'SIKAREMIT_BANK_ACCOUNT', 'SikaRemit-Account'),
+            'credit_bank_code': bank_code,
+            'credit_account_number': account_number,
+            'credit_account_name': account_name,
+            'recipient_name': recipient_name,
+            'recipient_email': recipient_email,
+            'reference': f"SikaRemit Withdrawal - {metadata.get('transaction_reference', 'N/A')}",
+            'webhook_url': f"{settings.BACKEND_URL}/api/payments/webhooks/bank-transfer/",
+            'priority': 'normal'  # Can be 'urgent' for faster processing
+        }
+        
+        response = requests.post(
+            f"{self.providers['direct_bank']['api_url']}/disbursements/initiate",
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            return {
+                'success': True,
+                'transaction_id': data.get('disbursement_id', f"disburse_{uuid.uuid4()}"),
+                'reference': data.get('reference', payload['transaction_id']),
+                'estimated_time': data.get('estimated_time', '1-3 business days'),
+                'instructions': data.get('instructions', f'Funds will be transferred to {account_name} ({bank_code}) within 1-3 business days.'),
+                'raw_response': data
+            }
+        else:
+            logger.error(f"Direct bank disbursement failed: {response.status_code} - {response.text}")
+            return {
+                'success': False,
+                'error': response.json().get('message', 'Bank transfer disbursement failed'),
+                'raw_response': response.json() if response.content else None
+            }
 
     def refund_payment(self, transaction_id, amount=None):
-        """Process bank transfer refund"""
         # Bank transfers are typically not refundable directly
         # Refunds would need to be processed through other means
         return {

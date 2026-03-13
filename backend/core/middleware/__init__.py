@@ -3,7 +3,6 @@
 # are in core/middleware.py (not this package)
 
 from .security_middleware import (
-    SecurityHeadersMiddleware,
     IPTrackingMiddleware,
     DeviceTrackingMiddleware,
     APIRateLimitMiddleware,
@@ -13,7 +12,6 @@ from .security_middleware import (
 )
 
 __all__ = [
-    'SecurityHeadersMiddleware',
     'IPTrackingMiddleware',
     'DeviceTrackingMiddleware',
     'APIRateLimitMiddleware',

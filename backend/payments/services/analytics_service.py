@@ -220,7 +220,12 @@ class AnalyticsService:
                 'transaction_value': transaction_value,
                 'fee_revenue': fee_revenue,
                 'unique_customers': unique_customers,
-                'new_customers': 0,  # TODO: Calculate new customers
+                'new_customers': Transaction.objects.filter(
+                    merchant=merchant,
+                    created_at__range=(start_date, end_date)
+                ).values('customer').annotate(
+                    first_tx=Min('created_at')
+                ).filter(first_tx__range=(start_date, end_date)).count(),
                 'success_rate': success_rate,
                 'average_transaction_value': avg_transaction_value,
                 'transactions_by_country': transactions_by_country,
@@ -475,7 +480,7 @@ class AnalyticsService:
                 total=Sum('amount')
             )['total'] or 0,
             'active_alerts': PerformanceAlert.objects.filter(is_active=True).count(),
-            'system_health': 'operational',  # TODO: Implement actual health checks
+            'system_health': AnalyticsService._check_system_health(),
         }
 
     @staticmethod
@@ -517,7 +522,7 @@ class AnalyticsService:
             'merchant': {
                 'id': merchant.id,
                 'name': merchant.business_name,
-                'status': 'active',  # TODO: Add merchant status
+                'status': getattr(merchant, 'status', 'active'),
             },
             'period_days': days,
             'transaction_trends': list(daily_transactions),
@@ -667,6 +672,34 @@ class AnalyticsService:
             'status_distribution': list(status_distribution.values('status', 'count')),
             'top_merchants': list(top_merchants.values('merchant__business_name', 'transaction_count', 'total_volume'))
         }
+
+    @staticmethod
+    def _check_system_health() -> str:
+        """Check overall system health based on recent metrics"""
+        try:
+            now = timezone.now()
+            last_hour = now - timedelta(hours=1)
+
+            # Check recent transaction failure rate
+            recent_txs = Transaction.objects.filter(created_at__gte=last_hour)
+            total = recent_txs.count()
+            if total > 0:
+                failed = recent_txs.filter(status='failed').count()
+                failure_rate = failed / total
+                if failure_rate > 0.5:
+                    return 'critical'
+                elif failure_rate > 0.2:
+                    return 'degraded'
+
+            # Check for active critical alerts
+            if PerformanceAlert and PerformanceAlert.objects.filter(
+                is_active=True, severity='critical'
+            ).exists():
+                return 'degraded'
+
+            return 'operational'
+        except Exception:
+            return 'unknown'
 
     @staticmethod
     def _calculate_growth_rate(current: int, previous: int, period_days: int) -> float:

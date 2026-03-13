@@ -30,6 +30,9 @@ import RevenueChart from '@/components/merchant/revenue-chart'
 import SalesChart from '@/components/merchant/sales-chart'
 import * as AnalyticsAPI from '@/lib/api/analytics'
 
+// Prevent static generation for this page since it uses functions that can't be serialized
+export const dynamic = 'force-dynamic'
+
 export default function MerchantAnalyticsPage() {
   const [timeRange, setTimeRange] = useState('30d')
   const { formatAmount } = useCurrency()
@@ -59,11 +62,11 @@ export default function MerchantAnalyticsPage() {
     totalTransactions: analyticsData.transactions?.total || 0,
     totalCustomers: analyticsData.customers?.total || 0,
     averageOrderValue: analyticsData.transactions?.total ? (analyticsData.revenue?.total || 0) / analyticsData.transactions.total : 0,
-    conversionRate: 0, // TODO: Calculate from actual data
-    topProducts: [], // TODO: Add from backend
+    conversionRate: analyticsData.conversion_rate || (analyticsData.transactions?.total && analyticsData.customers?.total ? (analyticsData.transactions.total / analyticsData.customers.total * 100) : 0),
+    topProducts: analyticsData.top_products || [],
     revenueByDay: analyticsData.revenue?.chart_data || [],
-    customerAcquisition: { new: 0, returning: analyticsData.customers?.total || 0, churn: 0 }, // TODO: Add from backend
-    paymentMethods: [] // TODO: Add from backend
+    customerAcquisition: analyticsData.customer_acquisition || { new: analyticsData.customers?.new || 0, returning: analyticsData.customers?.returning || analyticsData.customers?.total || 0, churn: analyticsData.customers?.churn || 0 },
+    paymentMethods: analyticsData.payment_methods || []
   } : {
     totalRevenue: 0,
     totalTransactions: 0,
@@ -110,37 +113,37 @@ export default function MerchantAnalyticsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       {/* Hero Section */}
-      <div className="relative py-16 lg:py-24 overflow-hidden bg-gradient-to-br from-purple-50/30 via-blue-50/20 to-pink-50/30">
+      <div className="relative py-16 lg:py-24 overflow-hidden bg-gradient-to-br from-blue-50/30 via-blue-50/20 to-blue-50/30">
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-blue-400/15 to-purple-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-conic from-purple-500/5 via-transparent to-blue-500/5 rounded-full blur-2xl animate-spin" style={{animationDuration: '20s'}}></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-blue-400/20 to-blue-300/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-blue-400/15 to-blue-300/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-conic from-blue-500/5 via-transparent to-blue-400/5 rounded-full blur-2xl animate-spin" style={{animationDuration: '20s'}}></div>
         </div>
 
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
           <div className="text-center max-w-4xl mx-auto animate-in slide-in-from-bottom duration-1000">
-            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-purple-500/5 text-slate-700 text-sm font-semibold mb-8 animate-in zoom-in-50 duration-700 delay-300 hover:bg-white/50 hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 group">
-              <BarChart3 className="w-5 h-5 mr-3 text-purple-600 group-hover:rotate-12 transition-transform duration-300" />
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-blue-500/25 text-slate-700 text-sm font-semibold mb-8 animate-in zoom-in-50 duration-700 delay-300 hover:bg-white/50 hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 group">
+              <BarChart3 className="w-5 h-5 mr-3 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
               Analytics & Insights
             </div>
             <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-6 leading-tight animate-in slide-in-from-bottom duration-1000 delay-500">
               Data-Driven Intelligence
-              <span className="block bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-sm">Optimize performance with advanced analytics</span>
+              <span className="block bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent drop-shadow-sm">Optimize performance with advanced analytics</span>
             </h1>
             <p className="text-lg text-slate-600/90 mb-8 max-w-2xl mx-auto leading-relaxed animate-in slide-in-from-bottom duration-1000 delay-700 font-medium">
               Gain deep insights into your payment processing performance, customer behavior, and business metrics with comprehensive real-time analytics.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center animate-in slide-in-from-bottom duration-1000 delay-900">
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <BarChart3 className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <BarChart3 className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">Revenue analytics</span>
               </div>
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <TrendingUp className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <TrendingUp className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">Performance tracking</span>
               </div>
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <Target className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <Target className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">Conversion insights</span>
               </div>
             </div>
@@ -150,19 +153,19 @@ export default function MerchantAnalyticsPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-8 lg:px-8 space-y-8">
         {/* Time Range and Export */}
-        <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-1 duration-700">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-800 dark:to-gray-800"></div>
-          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-purple-400/20 to-pink-600/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
+        <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-1 duration-700 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/25 hover:shadow-blue-500/10">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20"></div>
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-blue-400/20 to-blue-300/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
 
           <CardContent className="p-6 relative z-10">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
-                    <Zap className="w-5 h-5 text-purple-600" />
+                    <Zap className="w-5 h-5 text-blue-600" />
                     <span className="text-lg font-semibold text-sikaremit-foreground">Performance Overview</span>
                   </div>
-                  <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                     {timeRange} period
                   </Badge>
                 </div>
@@ -196,14 +199,14 @@ export default function MerchantAnalyticsPage() {
         {/* Key Insights */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {insights.map((insight, index) => (
-            <Card key={insight.title} className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden animate-in slide-in-from-left duration-500"
+            <Card key={insight.title} className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/25 hover:shadow-blue-500/10 relative overflow-hidden animate-in slide-in-from-left duration-500"
                   style={{ animationDelay: `${index * 100}ms` }}>
-              <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+              <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
               <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10"></div>
 
               <CardContent className="relative z-10 p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <div className={`p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                     <insight.icon className="h-5 w-5 text-white" />
                   </div>
                   {insight.trend === 'up' && <TrendingUp className="w-4 h-4 text-green-600" />}
@@ -227,13 +230,13 @@ export default function MerchantAnalyticsPage() {
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-1 duration-700 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
+          <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-1 duration-700 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/25 hover:shadow-blue-500/10">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10" />
 
             <CardHeader className="relative z-10 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center space-x-3">
-                <div className="p-3 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl shadow-lg">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg">
                   <BarChart3 className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -249,13 +252,13 @@ export default function MerchantAnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-2 duration-700 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
+          <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-2 duration-700 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/25 hover:shadow-blue-500/10">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10" />
 
             <CardHeader className="relative z-10 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center space-x-3">
-                <div className="p-3 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl shadow-lg">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg">
                   <TrendingUp className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -273,14 +276,14 @@ export default function MerchantAnalyticsPage() {
         </div>
 
         {/* Top Products */}
-        <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-3 duration-700 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-600/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
+        <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-3 duration-700 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/25 hover:shadow-blue-500/10">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-blue-300/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
 
           <CardHeader className="relative z-10 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="p-3 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl shadow-lg">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg">
                   <ShoppingCart className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -288,7 +291,7 @@ export default function MerchantAnalyticsPage() {
                   <CardDescription className="text-sikaremit-muted text-lg mt-1">Your best-selling products by revenue</CardDescription>
                 </div>
               </div>
-              <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                 Best Sellers
               </Badge>
             </div>
@@ -297,10 +300,10 @@ export default function MerchantAnalyticsPage() {
           <CardContent className="relative z-10 p-6">
             <div className="space-y-4">
               {data.topProducts.map((product: any, index: number) => (
-                <div key={product.name} className="group flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gradient-to-r hover:from-purple-50/50 hover:to-transparent dark:hover:from-purple-950/20 dark:hover:to-transparent transition-all duration-300">
+                <div key={product.name} className="group flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent dark:hover:from-blue-950/20 dark:hover:to-transparent transition-all duration-300">
                   <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-800/20 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
                         {index + 1}
                       </span>
                     </div>
@@ -311,7 +314,7 @@ export default function MerchantAnalyticsPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-lg text-sikaremit-foreground">{formatAmount(product.revenue)}</p>
-                    <Badge variant="outline" className="text-xs border-purple-200 text-purple-700 dark:border-purple-800 dark:text-purple-300">
+                    <Badge variant="outline" className="text-xs border-blue-200 text-blue-700 dark:border-blue-800 dark:text-blue-300">
                       {((product.revenue / data.totalRevenue) * 100).toFixed(1)}% of total
                     </Badge>
                   </div>
@@ -323,13 +326,13 @@ export default function MerchantAnalyticsPage() {
 
         {/* Customer Analytics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-4 duration-700 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
+          <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-4 duration-700 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/25 hover:shadow-blue-500/10">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10" />
 
             <CardHeader className="relative z-10 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center space-x-3">
-                <div className="p-3 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl shadow-lg">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg">
                   <Users className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -340,25 +343,25 @@ export default function MerchantAnalyticsPage() {
             </CardHeader>
             <CardContent className="relative z-10 p-6">
               <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-lg">
+                <div className="flex justify-between items-center p-3 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 rounded-lg">
                   <span className="text-sm font-medium text-sikaremit-foreground">New Customers</span>
                   <div className="flex items-center space-x-3">
                     <span className="font-bold text-sikaremit-foreground">{data.customerAcquisition.new}</span>
                     <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full"
+                        className="bg-gradient-to-r from-blue-500 to-blue-700 h-2 rounded-full"
                         style={{ width: `${(data.customerAcquisition.new / (data.customerAcquisition.new + data.customerAcquisition.returning)) * 100}%` }}
                       ></div>
                     </div>
                   </div>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-lg">
+                <div className="flex justify-between items-center p-3 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 rounded-lg">
                   <span className="text-sm font-medium text-sikaremit-foreground">Returning Customers</span>
                   <div className="flex items-center space-x-3">
                     <span className="font-bold text-sikaremit-foreground">{data.customerAcquisition.returning}</span>
                     <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full"
+                        className="bg-gradient-to-r from-blue-500 to-blue-700 h-2 rounded-full"
                         style={{ width: `${(data.customerAcquisition.returning / (data.customerAcquisition.new + data.customerAcquisition.returning)) * 100}%` }}
                       ></div>
                     </div>
@@ -376,13 +379,13 @@ export default function MerchantAnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-5 duration-700 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
+          <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-5 duration-700 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/25 hover:shadow-blue-500/10">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10" />
 
             <CardHeader className="relative z-10 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center space-x-3">
-                <div className="p-3 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl shadow-lg">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg">
                   <DollarSign className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -402,7 +405,7 @@ export default function MerchantAnalyticsPage() {
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                       <div
                         className={`h-3 rounded-full transition-all duration-500 ${
-                          'bg-gradient-to-r from-purple-500 to-pink-500'
+                          'bg-gradient-to-r from-blue-500 to-indigo-500'
                         }`}
                         style={{ width: `${method.percentage}%` }}
                       ></div>

@@ -62,8 +62,13 @@ class Invoice(models.Model):
         if not self.invoice_number:
             # Generate invoice number
             from datetime import datetime
+            import uuid
+            
+            # Use a combination of timestamp and UUID to ensure uniqueness
+            timestamp = datetime.now().strftime('%Y%m%d')
+            unique_id = str(uuid.uuid4())[:8].upper()
             prefix = 'INV' if self.invoice_type == 'customer' else 'MINV'
-            self.invoice_number = f"{prefix}-{datetime.now().strftime('%Y%m%d')}-{self.id or 1:04d}"
+            self.invoice_number = f"{prefix}-{timestamp}-{unique_id}"
         super().save(*args, **kwargs)
 
 class InvoiceItem(models.Model):
@@ -74,6 +79,12 @@ class InvoiceItem(models.Model):
     total = models.DecimalField(max_digits=12, decimal_places=2)
 
     def save(self, *args, **kwargs):
+        # Convert string values to Decimal if needed
+        if isinstance(self.quantity, str):
+            self.quantity = float(self.quantity)
+        if isinstance(self.unit_price, str):
+            self.unit_price = float(self.unit_price)
+        
         self.total = self.quantity * self.unit_price
         super().save(*args, **kwargs)
 

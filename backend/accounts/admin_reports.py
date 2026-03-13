@@ -1,8 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, viewsets
-from rest_framework.permissions import IsAdminUser
+from accounts.permissions import IsAdminUser
 from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework import serializers
 from django.db.models import Count, Sum
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -15,28 +16,54 @@ from payments.models import Transaction, Payment
 from users.models import Customer, Merchant
 from accounts.models import User
 from core.api_utils import api_success
+from .models_reports import AdminReport
+
+
+class AdminReportSerializer(serializers.ModelSerializer):
+    """Serializer for AdminReport model"""
+    class Meta:
+        model = AdminReport
+        fields = [
+            'id', 'admin_user', 'report_type', 'format', 'status',
+            'date_from', 'date_to', 'total_records', 'file_url',
+            'file_size', 'created_at', 'completed_at', 'progress',
+            'include_charts', 'include_summary', 'filters'
+        ]
+        read_only_fields = ['id', 'created_at', 'completed_at']
+
 
 class AdminReportViewSet(viewsets.ModelViewSet):
     """Admin viewset for managing generated reports"""
     permission_classes = [IsAdminUser]
 
     def get_queryset(self):
-        """Return empty queryset since we're not using database models for reports"""
-        return []
+        """Return actual reports from database"""
+        from .models_reports import AdminReport
+        return AdminReport.objects.all().order_by('-created_at')
 
     def list(self, request):
-        """List generated reports (mock implementation)"""
-        # In a real implementation, you'd have a Report model
-        # For now, return empty list
-        return Response([])
+        """List generated reports"""
+        queryset = self.get_queryset()
+        serializer = AdminReportSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
         """Retrieve a specific report"""
-        return Response({"error": "Report not found"}, status=404)
+        try:
+            report = self.get_queryset().get(pk=pk)
+            serializer = AdminReportSerializer(report)
+            return Response(serializer.data)
+        except AdminReport.DoesNotExist:
+            return Response({"error": "Report not found"}, status=404)
 
     def destroy(self, request, pk=None):
         """Delete a report"""
-        return Response({"message": "Report deleted"})
+        try:
+            report = self.get_queryset().get(pk=pk)
+            report.delete()
+            return Response({"message": "Report deleted successfully"})
+        except AdminReport.DoesNotExist:
+            return Response({"error": "Report not found"}, status=404)
 
 @api_view(['POST'])
 @permission_classes([IsAdminUser])

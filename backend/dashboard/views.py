@@ -5,7 +5,6 @@ from rest_framework.decorators import action
 from users.models import Merchant, Customer
 from payments.models import Transaction
 from payments.models.fees import FeeConfiguration, FeeCalculationLog
-# from products.models import Product  # Module not available
 from datetime import datetime, timedelta
 from django.db.models import Sum, Count
 from django.utils import timezone
@@ -15,8 +14,11 @@ from core.api_utils import api_success
 from .models import DashboardStats
 from .serializers import DashboardStatsSerializer
 from payments.serializers.fees import FeeConfigurationSerializer
-# from users.models import AdminActivity  # Model not available
-# from users.serializers import AdminActivitySerializer  # Serializer not available
+from shared.constants import (
+    USER_TYPE_SUPER_ADMIN, USER_TYPE_MERCHANT, USER_TYPE_CUSTOMER,
+    ADMIN_HIERARCHY_LEVELS
+)
+from users.permissions import IsAdminUser, CanAccessSystemSettings, CanAccessReporting
 
 class DashboardStatsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -24,7 +26,7 @@ class DashboardStatsView(APIView):
     def get(self, request):
         user = request.user
         
-        if user.user_type == 1:  # admin
+        if user.user_type == USER_TYPE_SUPER_ADMIN:
             data = {
                 'total_merchants': Merchant.objects.count(),
                 'total_customers': Customer.objects.count(),
@@ -32,7 +34,7 @@ class DashboardStatsView(APIView):
             }
             return api_success(data, request=request)
         
-        elif user.user_type == 2:  # merchant
+        elif user.user_type == USER_TYPE_MERCHANT:
             merchant = Merchant.objects.get(user=user)
             transactions = Transaction.objects.filter(merchant=merchant)
             
@@ -78,10 +80,10 @@ class BusinessSummaryView(APIView):
     
     def get(self, request):
         try:
-            if request.user.user_type == 3:  # customer
+            if request.user.user_type == USER_TYPE_CUSTOMER:
                 return Response({'error': 'Not found'}, status=404)
                 
-            if request.user.user_type != 2:
+            if request.user.user_type != USER_TYPE_MERCHANT:
                 return Response(
                     {'error': 'Merchant analytics only available for merchant accounts'}, 
                     status=403
@@ -133,10 +135,10 @@ class SalesTrendsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request):
-        if request.user.user_type == 3:  # customer
+        if request.user.user_type == USER_TYPE_CUSTOMER:
             return Response({'error': 'Not found'}, status=404)
             
-        if request.user.user_type != 2:  # merchant only
+        if request.user.user_type != USER_TYPE_MERCHANT:
             return Response({'error': 'Unauthorized'}, status=403)
             
         merchant = Merchant.objects.get(user=request.user)
@@ -172,14 +174,14 @@ class SalesTrendsView(APIView):
         return Response(response_data)
 
 class AdminAuditView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     
     def get(self, request):
         # AdminActivity model not available - returning empty list
         return Response([])
 
 class SystemSettingsView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, CanAccessSystemSettings]
     
     def get(self, request):
         settings_data = {
@@ -190,7 +192,7 @@ class SystemSettingsView(APIView):
         return Response(settings_data)
 
 class AdminStatsView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     
     def get(self, request):
         users = Customer.objects.count()
@@ -204,14 +206,14 @@ class AdminStatsView(APIView):
         })
 
 class RecentActivityView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     
     def get(self, request):
         # AdminActivity model not available - returning empty list
         return api_success([])
 
 class SystemHealthView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     
     def get(self, request):
         # Check database connection
@@ -239,7 +241,7 @@ class FeeConfigurationViewSet(viewsets.ModelViewSet):
     """Admin API for managing fee configurations"""
     queryset = FeeConfiguration.objects.all()
     serializer_class = FeeConfigurationSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, CanAccessSystemSettings]
 
     @action(detail=False, methods=['get'])
     def analytics(self, request):

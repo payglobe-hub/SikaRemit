@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Button } from '@/components/ui/button'
 import { LoginForm } from '@/components/auth/login-form'
@@ -14,8 +14,8 @@ export default function LoginPage() {
       const scope = 'openid email profile'
       
       // Debug: Log the client ID being used
-      console.log('Google OAuth Client ID:', clientId)
-      console.log('Redirect URI:', redirectUri)
+      
+      
       
       if (!clientId) {
         alert('Google OAuth Client ID is not configured. Please check your environment variables.')
@@ -30,7 +30,7 @@ export default function LoginPage() {
         `access_type=offline&` +
         `prompt=consent`
       
-      console.log('Auth URL:', authUrl)
+      
       window.location.href = authUrl
     } catch (error) {
       console.error('Google sign in failed:', error)
@@ -39,7 +39,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Back to Auth */}
         <div className="mb-8">
@@ -106,7 +106,7 @@ export default function LoginPage() {
                 <Lock className="w-3 h-3" />
                 <span>Secure connection</span>
               </div>
-              <span className="text-gray-300">•</span>
+              <span className="text-gray-300">â€¢</span>
               <div className="flex items-center space-x-1">
                 <Shield className="w-3 h-3" />
                 <span>Bank-level security</span>
@@ -118,3 +118,4 @@ export default function LoginPage() {
     </div>
   )
 }
+

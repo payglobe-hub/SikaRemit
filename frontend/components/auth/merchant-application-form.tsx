@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { Building2, User, Phone, Mail, MapPin, CreditCard, FileText } from 'lucide-react'
-import { merchantApi } from '@/lib/api/client-client'
+import { merchantApi } from '@/lib/api/axios'
 
 export function MerchantApplicationForm() {
   const { toast } = useToast()

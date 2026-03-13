@@ -229,7 +229,29 @@ class USSDHandler:
             result = gateway.process_payment(amount, 'GHS', None, None, None)
 
             if result.get('success'):
-                transaction.mark_completed(result.get('transaction_id'))
+                try:
+                    from django.db import transaction as db_transaction
+                    with db_transaction.atomic():
+                        transaction.mark_completed(result.get('transaction_id'))
+                except Exception as db_err:
+                    logger.critical(
+                        f"DB save failed after USSD payment charge, "
+                        f"gateway_tx={result.get('transaction_id')}, "
+                        f"amount={amount}: {db_err}"
+                    )
+                    try:
+                        gateway.refund_payment(
+                            transaction_id=result.get('transaction_id'),
+                            amount=float(amount),
+                            reason='DB save failed after USSD charge'
+                        )
+                    except Exception as refund_err:
+                        logger.critical(
+                            f"REFUND ALSO FAILED for USSD tx, "
+                            f"gateway_tx={result.get('transaction_id')}, "
+                            f"amount={amount}: {refund_err}"
+                        )
+                    return self._error_response("Payment failed due to a system error. If charged, a refund will be processed.")
                 response = f"END Payment of GHS {amount:,} processed successfully. Transaction ID: {transaction.transaction_id}"
                 self.session.state = 'completed'
                 return response

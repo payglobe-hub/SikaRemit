@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from users.models import User, Customer
+from shared.constants import USER_TYPE_CUSTOMER
 
 
 class Command(BaseCommand):
@@ -15,7 +16,7 @@ class Command(BaseCommand):
                 user.username = email
                 user.first_name = 'Jane'
                 user.last_name = 'Customer'
-                user.user_type = 3
+                user.user_type = USER_TYPE_CUSTOMER
                 user.is_active = True
                 user.is_verified = True
                 user.set_password(password)
@@ -27,7 +28,7 @@ class Command(BaseCommand):
                     password=password,
                     first_name='Jane',
                     last_name='Customer',
-                    user_type=3,
+                    user_type=USER_TYPE_CUSTOMER,
                     is_verified=True,
                 )
 

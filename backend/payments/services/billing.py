@@ -19,7 +19,7 @@ class BillingService(BasePaymentService):
         self.payment_processor = PaymentProcessor()
     
     @transaction.atomic
-    def process_bill_payment(self, customer, biller, amount, currency, payment_method, bill_reference=None, bill_due_date=None, bill_type=None):
+    def process_bill_payment(self, customer, biller, amount, currency, payment_method, bill_reference=None, bill_due_date=None, bill_type=None, transaction=None):
         """
         Process a bill payment with bill-specific fields
         """
@@ -50,7 +50,8 @@ class BillingService(BasePaymentService):
             payment_type=Payment.BILL,
             bill_reference=bill_reference,
             bill_due_date=bill_due_date,
-            bill_type=bill_type
+            bill_type=bill_type,
+            transaction=transaction
         )
         
         # Store fee info in payment metadata if available

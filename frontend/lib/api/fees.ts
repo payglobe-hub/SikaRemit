@@ -28,13 +28,20 @@ export const calculateTransactionFees = async (
   } catch (error: any) {
     console.error('Fee calculation error:', error)
 
-    // Return fallback calculation
-    const fallbackFee = Math.max(request.amount * 0.005, 0.50)
-    return {
-      success: false,
-      total_fee: fallbackFee,
-      error: error.message || 'Fee calculation failed'
+    // Only provide fallback for network/server errors, not for validation errors
+    if (error?.code === 'NETWORK_ERROR' || error?.response?.status >= 500) {
+      console.warn('Fee calculation service unavailable, using emergency fallback')
+      // Emergency fallback: minimum fee calculation
+      const fallbackFee = Math.max(request.amount * 0.005, 0.50)
+      return {
+        success: false,
+        total_fee: fallbackFee,
+        error: 'Fee calculation service temporarily unavailable'
+      }
     }
+    
+    // For validation/client errors, don't provide fallback
+    throw error
   }
 }
 

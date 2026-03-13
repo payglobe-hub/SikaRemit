@@ -1,19 +1,27 @@
-'use client'
+﻿'use client'
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import axios from 'axios'
-import apiClient from '@/lib/api/client'
+import { authState, authTokens } from '@/lib/utils/cookie-auth'
 import api from '@/lib/api/axios'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
-// Helper function to get cookie value
+// Helper function to get cookie value (SSR-safe)
 function getCookie(name: string): string | null {
-  const value = `; ${document.cookie}`
-  const parts = value.split(`; ${name}=`)
-  if (parts.length === 2) return parts.pop()?.split(';').shift() || null
-  return null
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return null
+  }
+
+  try {
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null
+    return null
+  } catch (error) {
+    console.warn('Failed to read cookie:', error)
+    return null
+  }
 }
 
 interface User {
@@ -64,152 +72,100 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Get token from cookies, localStorage, or sessionStorage
-        const token = getCookie('access_token') || localStorage.getItem('access_token') || sessionStorage.getItem('access_token')
-        const storedUserData = localStorage.getItem('user_data') || sessionStorage.getItem('user_data')
-        const storedUserTypeInfo = localStorage.getItem('user_type_info') || sessionStorage.getItem('user_type_info')
+        // Get auth state from cookies
+        const { user: storedUser, userTypeInfo: storedUserTypeInfo, isAuthenticated } = authState.getAuthState()
 
-        if (!token || !storedUserData) {
-          console.log('🔐 No stored auth data found')
+        if (!isAuthenticated || !storedUser) {
+          
           setUser(null)
           setUserTypeInfo(null)
           setLoading(false)
           return
         }
 
-        console.log('🔐 Found stored auth data, authenticating...')
-        apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+        
 
-        try {
-          const userData = JSON.parse(storedUserData)
-          console.log('✅ Auth successful for:', userData.role)
-          setUser(userData)
-
-          if (storedUserTypeInfo) {
-            const userTypeData = JSON.parse(storedUserTypeInfo)
-            setUserTypeInfo(userTypeData)
-          }
-        } catch (parseError) {
-          console.error('❌ Failed to parse user data:', parseError)
-          clearAuthData()
-          setUser(null)
-          setUserTypeInfo(null)
+        // Verify token with backend if needed
+        const token = authTokens.getAccessToken()
+        if (token) {
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`
         }
+
+        setUser(storedUser)
+        setUserTypeInfo(storedUserTypeInfo || null)
+
       } catch (error) {
-        console.error('❌ Auth check failed:', error)
-        clearAuthData()
+        console.error('âŒ Auth check failed:', error)
+        authState.clearAuthState()
         setUser(null)
+        setUserTypeInfo(null)
       } finally {
-        // Always set loading to false, no matter what
         setLoading(false)
       }
     }
 
-    const clearAuthData = () => {
-      // Clear cookies
-      document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-      document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-
-      // Clear local storage and state
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user_data')
-      sessionStorage.removeItem('access_token')
-      sessionStorage.removeItem('refresh_token')
-      sessionStorage.removeItem('user_data')
-      delete apiClient.defaults.headers.common['Authorization']
-      delete api.defaults.headers.common['Authorization']
-    }
-
-    // Check auth status on initial load
     checkAuth()
-    
-    // Set up storage event listener to sync auth state across tabs
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'access_token' || e.key === 'user_data') {
-        console.log('🔄 Storage change detected, rechecking auth...')
-        checkAuth()
-      }
+
+    // Listen for cookie changes (cross-tab sync)
+    const handleCookieChange = () => {
+      const { user: currentUser, userTypeInfo: currentUserTypeInfo } = authState.getAuthState()
+      setUser(currentUser)
+      setUserTypeInfo(currentUserTypeInfo)
     }
-    
-    window.addEventListener('storage', handleStorageChange)
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('storage', handleStorageChange)
-    }
+
+    // Check for changes every 1 second (simple polling for cookie changes)
+    const interval = setInterval(handleCookieChange, 1000)
+
+    return () => clearInterval(interval)
   }, [])
 
   const login = async (email: string, password: string) => {
     setLoading(true)
-    console.log('🔐 Auth Context: Starting login process for:', email)
+    
 
     try {
-      console.log('🔐 Auth Context: Making API call to login endpoint')
-      const response = await apiClient.post('/api/v1/accounts/login/', {
+      
+      const response = await api.post('/api/v1/accounts/login/', {
         email,
         password
       })
 
-      console.log('🔐 Auth Context: API response received:', response.data)
+      
 
       const { access, refresh, user, user_type_info } = response.data
-      console.log('🔐 Auth Context: Extracted tokens, user, and user_type_info:', { access: !!access, refresh: !!refresh, user, user_type_info })
+      
 
-      // 🔍 DEBUG: Log the raw user data from backend
-      console.log('🔍 Auth Context: Raw user data from backend:', user)
-      console.log('🔍 Auth Context: User role from backend:', user.role)
-      console.log('🔍 Auth Context: User email:', user.email)
-      console.log('🔍 Auth Context: User id:', user.id)
-      console.log('🔍 Auth Context: User type info:', user_type_info)
-
-      // Use role directly from backend response (already mapped)
+      // Create user object
       const userObj = {
         id: user.id,
         email: user.email,
-        name: user.first_name || user.email, // Required name field
+        name: user.first_name && user.last_name
+          ? `${user.first_name} ${user.last_name}`
+          : user.first_name || user.last_name || 'User',
         firstName: user.first_name || '',
         lastName: user.last_name || '',
         is_verified: user.is_verified || false,
-        role: user.role // Use role directly from backend
+        role: user.role
       }
 
-      console.log('🔐 Auth Context: Created user object:', userObj)
-      console.log('🔐 Auth Context: Role determined as:', userObj.role)
+      
+      
 
-      // Also store in localStorage/sessionStorage for client-side access
-      localStorage.setItem('access_token', access)
-      localStorage.setItem('refresh_token', refresh)
-      localStorage.setItem('user_data', JSON.stringify(userObj))
-      sessionStorage.setItem('access_token', access)
-      sessionStorage.setItem('refresh_token', refresh)
-      sessionStorage.setItem('user_data', JSON.stringify(userObj))
+      // Store auth state in cookies
+      authState.setAuthState(access, refresh, userObj, user_type_info)
+
+      // Update context state
       setUser(userObj)
+      setUserTypeInfo(user_type_info || null)
 
-      // Store user type info if available
-      if (user_type_info) {
-        localStorage.setItem('user_type_info', JSON.stringify(user_type_info))
-        sessionStorage.setItem('user_type_info', JSON.stringify(user_type_info))
-        setUserTypeInfo(user_type_info)
-        console.log('🔐 Auth Context: Stored user type info:', user_type_info)
-      }
-
-      console.log('🔐 Auth Context: User state set, returning role:', userObj.role)
-
-      // Set cookies for server-side access (proxy middleware)
-      document.cookie = `access_token=${access}; path=/; max-age=86400; samesite=strict`
-      document.cookie = `refresh_token=${refresh}; path=/; max-age=86400; samesite=strict`
-
-      console.log('🔐 Auth Context: Cookies set for proxy middleware')
+      
       return userObj.role
+
     } catch (error: any) {
-      console.error('❌ Auth Context: Login failed:', error)
-      console.error('❌ Auth Context: Login failed details:', {
+      console.error('âŒ Auth Context: Login failed:', error)
+      console.error('âŒ Auth Context: Login failed details:', {
         status: error?.response?.status,
         data: error?.response?.data,
-        url: error?.config?.url,
-        baseURL: error?.config?.baseURL,
       })
       setLoading(false)
 
@@ -218,60 +174,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       throw error.response?.data || error
+    } finally {
+      setLoading(false)
     }
   }
 
   const logout = async () => {
     try {
-      const token = localStorage.getItem('access_token')
-      if (token) {
-        await apiClient.post('/api/v1/accounts/logout/', {})
+      const refreshToken = authTokens.getRefreshToken()
+      if (refreshToken) {
+        await api.post('/api/v1/accounts/logout/', { refresh: refreshToken })
       }
     } catch (error) {
-      console.error('Logout error:', error)
+      console.error('Logout API error:', error)
     } finally {
-      // Clear cookies
-      document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-      document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+      // Clear all auth data
+      authState.clearAuthState()
 
-      // Clear local storage
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user_data')
-      localStorage.removeItem('user_type_info')
-      
-      // Clear session storage
-      sessionStorage.removeItem('access_token')
-      sessionStorage.removeItem('refresh_token')
-      sessionStorage.removeItem('user_data')
-      sessionStorage.removeItem('user_type_info')
-      
       // Clear API client auth header
-      delete apiClient.defaults.headers.common['Authorization']
       delete api.defaults.headers.common['Authorization']
-      
+
       // Clear state
       setUser(null)
       setUserTypeInfo(null)
+
       
-      console.log('🔐 Logged out, cleared all auth data')
-      
+
       // Use window.location for hard redirect to avoid hook issues
-      window.location.href = '/auth'
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth'
+      }
     }
   }
 
   const register = async (data: RegisterData) => {
     setLoading(true)
     try {
-      await apiClient.post('/api/v1/accounts/register/', {
+      await api.post('/api/v1/accounts/register/', {
         email: data.email,
         password: data.password,
         password2: data.password,
         first_name: data.firstName,
         last_name: data.lastName,
         phone: data.phone,
-        user_type: data.userType || 3
+        user_type: data.userType || 6
       })
       setLoading(false)
     } catch (error) {
@@ -300,3 +246,4 @@ export function useAuth() {
   }
   return context
 }
+

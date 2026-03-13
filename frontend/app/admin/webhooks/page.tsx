@@ -39,6 +39,7 @@ import {
   type WebhookEvent
 } from '@/lib/api/webhooks'
 import { useToast } from '@/hooks/use-toast'
+import { PermissionGuard } from '@/components/ui/permission-guard'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 export default function WebhooksPage() {
@@ -176,6 +177,17 @@ export default function WebhooksPage() {
   }
 
   return (
+    <PermissionGuard
+      role={['super_admin']}
+      fallback={
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-2">
+            <h2 className="text-xl font-semibold">Access Denied</h2>
+            <p className="text-muted-foreground">You do not have permission to manage webhooks.</p>
+          </div>
+        </div>
+      }
+    >
     <div className="w-full space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -615,5 +627,6 @@ export default function WebhooksPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </PermissionGuard>
   )
 }

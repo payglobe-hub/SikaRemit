@@ -1,6 +1,6 @@
 // Exchange rate service for currency conversion
 // Uses backend database rates set by admin
-import api from '@/lib/api/client';
+import api from '@/lib/api/axios';
 
 interface ExchangeRateResponse {
   success: boolean;

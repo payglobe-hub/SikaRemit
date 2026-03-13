@@ -24,12 +24,15 @@ export function PaymentHistory() {
     isRefetching
   } = useQuery<Payment[]>({
     queryKey: ['customer-payments', page, statusFilter, sortBy, sortOrder],
-    queryFn: getCustomerPayments,
+    queryFn: () => getCustomerPayments({
+      page,
+      page_size: pageSize,
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      ordering: `${sortOrder === 'desc' ? '-' : ''}${sortBy === 'date' ? 'created_at' : sortBy}`
+    }),
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     staleTime: 5 * 60 * 1000,
-    // TODO: Update API to support pagination, filtering, and sorting
-    // For now, we'll handle this client-side
   })
 
   // Client-side filtering and sorting

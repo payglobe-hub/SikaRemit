@@ -1,9 +1,8 @@
-'use client'
+﻿'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useSession } from '@/lib/auth/session-provider'
 import { getNotifications, markAsRead, markAllAsRead, Notification } from '@/lib/api/notifications'
-import { toast } from 'sonner'
 
 type NotificationContextType = {
   notifications: Notification[]
@@ -26,10 +25,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   // Initialize WebSocket connection (disabled for now)
   useEffect(() => {
-    if (!user?.id) return
+    if (!user?.id || typeof window === 'undefined') return
 
     // TEMPORARILY DISABLE WEBSOCKET CONNECTION
-    console.log('WebSocket notifications disabled for development')
+    
     return
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -37,7 +36,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const newSocket = new WebSocket(wsUrl)
 
     newSocket.onopen = () => {
-      console.log('WebSocket connected')
+      
     }
 
     newSocket.onmessage = (event) => {
@@ -49,10 +48,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           setNotifications(prev => [data.notification, ...prev])
           setUnreadCount(data.unread_count)
 
-          toast(data.notification.title, {
-            description: data.notification.message,
-            duration: 5000
-          })
+          // Toast notification can be handled by parent components if needed
+          
         } else if (data.notification_id) {
           // Notification read update
           setNotifications(prev =>
@@ -68,7 +65,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
 
     newSocket.onclose = () => {
-      console.log('WebSocket disconnected')
+      
     }
 
     setSocket(newSocket)
@@ -160,3 +157,4 @@ export function useNotifications() {
   }
   return context
 }
+

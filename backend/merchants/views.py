@@ -3,37 +3,17 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from django.db.models import Q, Sum, Count
+from django.db.models import Q, Sum, Count, Avg
 from datetime import datetime, timedelta
 from django.utils import timezone
-from django.contrib.auth import get_user_model
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 from payments.serializers.transaction import TransactionSerializer
 from payments.models.transaction import Transaction
-@api_view(['GET'])
-@permission_classes([])
-def simple_merchant_transactions(request):
-    """Simple merchant transactions endpoint"""
-    return Response({
-        'transactions': [],
-        'count': 0,
-        'message': 'Simple transactions endpoint working'
-    })
-
-@api_view(['GET'])
-@permission_classes([])
-def simple_merchant_transactions_stats(request):
-    """Simple merchant transactions stats endpoint"""
-    return Response({
-        'total_volume': 0.0,
-        'success_rate': 0.0,
-        'average_transaction': 0.0,
-        'processing_count': 0,
-        'total_transactions': 0,
-        'completed_count': 0,
-        'failed_count': 0,
-        'pending_count': 0,
-        'message': 'Simple stats endpoint working'
-    })
+from users.permissions import (
+    IsAdminUser, CanApproveMerchants, CanReviewKYC, CanAccessReporting,
+    require_permission
+)
 from invoice.models import Invoice, InvoiceItem
 
 from .models import Store, Product, MerchantOnboarding, MerchantApplication, MerchantInvitation, ReportTemplate, Report, ScheduledReport, MerchantSettings, MerchantNotificationSettings, MerchantPayoutSettings
@@ -41,29 +21,33 @@ from users.models import MerchantCustomer  # MerchantCustomer moved to users app
 from users.models import Merchant
 from notifications.models import Notification
 from .serializers import StoreSerializer, ProductSerializer, OnboardingSerializer, VerificationSerializer, MerchantApplicationSerializer, MerchantInvitationSerializer, ReportTemplateSerializer, ReportSerializer, ScheduledReportSerializer, MerchantCustomerSerializer, CreateMerchantCustomerSerializer, OnboardMerchantCustomerSerializer, MerchantSettingsSerializer, MerchantNotificationSettingsSerializer, MerchantPayoutSettingsSerializer, MerchantCustomerStatsSerializer
-from users.permissions import IsMerchantUser, IsOwnerOrAdmin, IsAdminUser
+from invoice.serializers import InvoiceSerializer, CreateInvoiceSerializer
+from users.permissions import IsMerchantUser, IsOwnerOrAdmin, IsAdminUser, IsAdminUser
 from .permissions import SubscriptionRequiredMixin
 from notifications.services import NotificationService
+from shared.constants import USER_TYPE_SUPER_ADMIN, USER_TYPE_BUSINESS_ADMIN, USER_TYPE_MERCHANT
 
 class MerchantApplicationViewSet(viewsets.ModelViewSet):
     """API for merchant applications"""
     serializer_class = MerchantApplicationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CanApproveMerchants]
     queryset = MerchantApplication.objects.all()
 
     def get_queryset(self):
         user = self.request.user
-        if user.user_type == 1:  # admin
+        if user.user_type == USER_TYPE_SUPER_ADMIN:
             return MerchantApplication.objects.all()
-        # Regular users cannot access applications
+        elif user.user_type == USER_TYPE_BUSINESS_ADMIN:
+            return MerchantApplication.objects.all()
+        # Other users cannot access applications
         return MerchantApplication.objects.none()
 
     def perform_create(self, serializer):
         """Save application and send notification"""
         application = serializer.save()
 
-        # Send notification to all admins about new application
-        admin_users = User.objects.filter(user_type=1)  # admins
+        # Send notification to all business admins about new application
+        admin_users = User.objects.filter(user_type__in=[USER_TYPE_SUPER_ADMIN, USER_TYPE_BUSINESS_ADMIN])
         for admin in admin_users:
             NotificationService.create_notification(
                 user=admin,
@@ -84,8 +68,8 @@ class MerchantApplicationViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         """Approve an application and create invitation"""
-        if not request.user.user_type == 1:  # admin only
-            return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
+        if request.user.user_type not in [USER_TYPE_SUPER_ADMIN, USER_TYPE_BUSINESS_ADMIN]:
+            return Response({'error': 'Business Admin access required'}, status=status.HTTP_403_FORBIDDEN)
 
         application = self.get_object()
         if application.status != 'pending':
@@ -139,8 +123,8 @@ SikaRemit Team
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         """Reject an application with reason"""
-        if not request.user.user_type == 1:  # admin only
-            return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
+        if request.user.user_type not in [USER_TYPE_SUPER_ADMIN, USER_TYPE_BUSINESS_ADMIN]:
+            return Response({'error': 'Business Admin access required'}, status=status.HTTP_403_FORBIDDEN)
 
         application = self.get_object()
         reason = request.data.get('reason', '')
@@ -277,8 +261,43 @@ SikaRemit Team
             serializer = self.get_serializer(data=inv_data)
             if serializer.is_valid():
                 invitation = serializer.save(invited_by=request.user)
+                
+                # Send invitation email
+                try:
+                    subject = f"You're invited to join {request.user.get_full_name() or request.user.email}'s merchant network on SikaRemit"
+                    message = f"""
+Dear {invitation.email},
+
+You have been invited to join {request.user.get_full_name() or request.user.email}'s merchant network on SikaRemit.
+
+Please click the following link to accept the invitation and create your account:
+{settings.FRONTEND_URL}/merchant/invitation/{invitation.invitation_token}
+
+This invitation will expire in 7 days.
+
+If you have any questions, please contact us.
+
+Best regards,
+SikaRemit Team
+                    """.strip()
+                    
+                    NotificationService.send_email_notification_to_address(
+                        email=invitation.email,
+                        subject=subject,
+                        message=message
+                    )
+                    
+                    # Update invitation as sent
+                    invitation.sent_at = timezone.now()
+                    invitation.save()
+                    
+                except Exception as e:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Failed to send invitation email to {invitation.email}: {str(e)}")
+                    # Continue with next invitation
+                    
                 created_invitations.append(serializer.data)
-                # TODO: Send invitation email
             else:
                 errors.append({'index': i, 'errors': serializer.errors})
 
@@ -348,7 +367,7 @@ def accept_invitation(request, token):
             password=request.data['password'],
             first_name=request.data['firstName'],
             last_name=request.data['lastName'],
-            user_type=2,  # merchant
+            user_type=USER_TYPE_MERCHANT,
             phone=request.data.get('phoneNumber', ''),
             is_verified=True
         )
@@ -461,7 +480,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.user_type == 1:  # admin
+        if user.user_type == USER_TYPE_SUPER_ADMIN:
             return Product.objects.all()
         return Product.objects.filter(store__merchant__user=user)
 
@@ -534,6 +553,10 @@ class MerchantDashboardViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def sales_trend(self, request):
         """Get daily sales for last 30 days"""
+        from datetime import datetime, timedelta
+        from django.db.models import Sum, Count
+        from payments.models import Transaction
+        
         merchant = request.user.merchant_profile
         thirty_days_ago = datetime.now() - timedelta(days=30)
         
@@ -712,26 +735,20 @@ class ReportViewSet(SubscriptionRequiredMixin, viewsets.ModelViewSet):
                 content = "Format not supported yet"
                 file_name = f"report_{report.id}.txt"
 
-            # Save file to model (for now, we'll store it as a simple file URL)
-            # In production, you'd upload to cloud storage
-            report.file_url = f"/media/reports/{file_name}"  # Placeholder URL
+            # Save report file using Django default storage
+            import os
+            from django.conf import settings
+            from django.core.files.storage import default_storage
+            from django.core.files.base import ContentFile
+
+            storage_path = f"reports/{file_name}"
+            saved_path = default_storage.save(storage_path, ContentFile(content.encode('utf-8')))
+            report.file_url = default_storage.url(saved_path)
             report.record_count = transactions.count()
             report.file_size = len(content.encode('utf-8'))
             report.status = 'completed'
             report.completed_at = timezone.now()
             report.save()
-
-            # For demo purposes, we'll store the content in a file
-            # In a real app, you'd use proper file storage
-            import os
-            from django.conf import settings
-
-            reports_dir = os.path.join(settings.MEDIA_ROOT, 'reports')
-            os.makedirs(reports_dir, exist_ok=True)
-
-            file_path = os.path.join(reports_dir, file_name)
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(content)
 
         except Exception as e:
             report.status = 'failed'
@@ -998,25 +1015,38 @@ class MerchantCustomerViewSet(viewsets.ModelViewSet):
 class MerchantTransactionViewSet(viewsets.ReadOnlyModelViewSet):
     """API for merchant transactions"""
     serializer_class = TransactionSerializer
-    permission_classes = []  # No permissions for now
+    permission_classes = [IsAuthenticated, IsMerchantUser]
     
     def get_queryset(self):
-        # Return empty queryset for now to avoid any database issues
-        return Transaction.objects.none()
+        if not hasattr(self.request.user, 'merchant_profile'):
+            return Transaction.objects.none()
+        return Transaction.objects.filter(merchant=self.request.user.merchant_profile)
 
     @action(detail=False, methods=['get'])
     def stats(self, request):
         """Get transaction statistics for the merchant"""
-        # Return hardcoded stats for now
+        qs = self.get_queryset()
+        total = qs.count()
+        completed = qs.filter(status='completed').count()
+        failed = qs.filter(status='failed').count()
+        pending = qs.filter(status='pending').count()
+        processing = qs.filter(status='processing').count()
+
+        total_volume = qs.filter(status='completed').aggregate(
+            vol=Sum('amount'))['vol'] or 0.0
+        avg_tx = qs.filter(status='completed').aggregate(
+            avg=Avg('amount'))['avg'] or 0.0
+        success_rate = round((completed / total) * 100, 2) if total > 0 else 0.0
+
         return Response({
-            'total_volume': 0.0,
-            'success_rate': 0.0,
-            'average_transaction': 0.0,
-            'processing_count': 0,
-            'total_transactions': 0,
-            'completed_count': 0,
-            'failed_count': 0,
-            'pending_count': 0,
+            'total_volume': float(total_volume),
+            'success_rate': success_rate,
+            'average_transaction': float(avg_tx),
+            'processing_count': processing,
+            'total_transactions': total,
+            'completed_count': completed,
+            'failed_count': failed,
+            'pending_count': pending,
         })
 
 class MerchantNotificationViewSet(viewsets.ModelViewSet):
@@ -1032,6 +1062,88 @@ class MerchantAnalyticsViewSet(viewsets.ViewSet):
     """API for merchant analytics"""
     permission_classes = [IsAuthenticated, IsMerchantUser]
     
+    def _get_merchant_analytics(self, merchant):
+        """Shared analytics computation used by both list and overview"""
+        now = timezone.now()
+        current_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        prev_month_start = (current_month_start - timedelta(days=1)).replace(day=1)
+        
+        # Current period totals
+        total_transactions = Transaction.objects.filter(merchant=merchant).count()
+        total_customers = MerchantCustomer.objects.filter(merchant=merchant).count()
+        active_customers = MerchantCustomer.objects.filter(merchant=merchant, status='active').count()
+        total_revenue = Transaction.objects.filter(
+            merchant=merchant, status='completed'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        # Previous month totals for change %
+        prev_revenue = Transaction.objects.filter(
+            merchant=merchant, status='completed',
+            created_at__gte=prev_month_start, created_at__lt=current_month_start
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        curr_revenue = Transaction.objects.filter(
+            merchant=merchant, status='completed',
+            created_at__gte=current_month_start
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        prev_txn_count = Transaction.objects.filter(
+            merchant=merchant, created_at__gte=prev_month_start, created_at__lt=current_month_start
+        ).count()
+        curr_txn_count = Transaction.objects.filter(
+            merchant=merchant, created_at__gte=current_month_start
+        ).count()
+        
+        prev_cust_count = MerchantCustomer.objects.filter(
+            merchant=merchant, onboarded_at__gte=prev_month_start, onboarded_at__lt=current_month_start
+        ).count()
+        curr_cust_count = MerchantCustomer.objects.filter(
+            merchant=merchant, onboarded_at__gte=current_month_start
+        ).count()
+        
+        def pct_change(current, previous):
+            if previous == 0:
+                return 100.0 if current > 0 else 0.0
+            return round(((current - previous) / previous) * 100, 1)
+        
+        revenue_change = pct_change(float(curr_revenue), float(prev_revenue))
+        txn_change = pct_change(curr_txn_count, prev_txn_count)
+        cust_change = pct_change(curr_cust_count, prev_cust_count)
+        
+        # Pending payouts from Payout model
+        from accounts.models import Payout
+        pending_payouts = Payout.objects.filter(
+            merchant=merchant, status='pending'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        # Monthly revenue chart data (last 6 months)
+        chart_data = []
+        for i in range(5, -1, -1):
+            month_start = (now - timedelta(days=30 * i)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            if i > 0:
+                month_end = (now - timedelta(days=30 * (i - 1))).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            else:
+                month_end = now
+            month_rev = Transaction.objects.filter(
+                merchant=merchant, status='completed',
+                created_at__gte=month_start, created_at__lt=month_end
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            chart_data.append({
+                'month': month_start.strftime('%b %Y'),
+                'revenue': float(month_rev)
+            })
+        
+        return {
+            'total_transactions': total_transactions,
+            'total_customers': total_customers,
+            'active_customers': active_customers,
+            'total_revenue': float(total_revenue),
+            'pending_payouts': float(pending_payouts),
+            'revenue_change': revenue_change,
+            'txn_change': txn_change,
+            'cust_change': cust_change,
+            'chart_data': chart_data,
+        }
+    
     def list(self, request):
         """Get merchant analytics data"""
         try:
@@ -1042,37 +1154,26 @@ class MerchantAnalyticsViewSet(viewsets.ViewSet):
                 'message': 'Please complete merchant onboarding to access analytics'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Calculate analytics
-        total_transactions = Transaction.objects.filter(merchant=merchant).count()
-        
-        total_customers = MerchantCustomer.objects.filter(merchant=merchant).count()
-        active_customers = MerchantCustomer.objects.filter(merchant=merchant, status='active').count()
-        
-        total_revenue = Transaction.objects.filter(
-            merchant=merchant,
-            status='completed'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        pending_payouts = 0  # TODO: Calculate from actual payout data
+        data = self._get_merchant_analytics(merchant)
         
         analytics = {
             'revenue': {
-                'total': float(total_revenue),
-                'change_percentage': 0,  # TODO: Calculate actual change
-                'chart_data': []  # TODO: Add chart data
+                'total': data['total_revenue'],
+                'change_percentage': data['revenue_change'],
+                'chart_data': data['chart_data']
             },
             'transactions': {
-                'total': total_transactions,
-                'change_percentage': 0  # TODO: Calculate actual change
+                'total': data['total_transactions'],
+                'change_percentage': data['txn_change']
             },
             'customers': {
-                'total': total_customers,
-                'change_percentage': 0  # TODO: Calculate actual change
+                'total': data['total_customers'],
+                'change_percentage': data['cust_change']
             },
             'sales': {
-                'total': float(total_revenue),
-                'change_percentage': 0,  # TODO: Calculate actual change
-                'by_category': []  # TODO: Add category breakdown
+                'total': data['total_revenue'],
+                'change_percentage': data['revenue_change'],
+                'by_category': []
             }
         }
         
@@ -1081,31 +1182,25 @@ class MerchantAnalyticsViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def overview(self, request):
         """Get merchant analytics overview"""
-        merchant = request.user.merchant_profile
+        try:
+            merchant = request.user.merchant_profile
+        except Merchant.DoesNotExist:
+            return Response({
+                'error': 'Merchant profile not found'
+            }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Calculate analytics
-        total_transactions = Transaction.objects.filter(merchant=merchant).count()
-        
-        total_customers = MerchantCustomer.objects.filter(merchant=merchant).count()
-        active_customers = MerchantCustomer.objects.filter(merchant=merchant, status='active').count()
-        
-        total_revenue = Transaction.objects.filter(
-            merchant=merchant,
-            status='completed'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        pending_payouts = 0  # TODO: Calculate from actual payout data
+        data = self._get_merchant_analytics(merchant)
         
         analytics = {
-            'total_transactions': total_transactions,
-            'total_customers': total_customers,
-            'active_customers': active_customers,
-            'total_revenue': float(total_revenue),
-            'pending_payouts': pending_payouts,
+            'total_transactions': data['total_transactions'],
+            'total_customers': data['total_customers'],
+            'active_customers': data['active_customers'],
+            'total_revenue': data['total_revenue'],
+            'pending_payouts': data['pending_payouts'],
             'overview': {
-                'total_revenue': float(total_revenue),
-                'total_transactions': total_transactions,
-                'pending_payouts': pending_payouts,
+                'total_revenue': data['total_revenue'],
+                'total_transactions': data['total_transactions'],
+                'pending_payouts': data['pending_payouts'],
             }
         }
         
@@ -1114,11 +1209,28 @@ class MerchantAnalyticsViewSet(viewsets.ViewSet):
 class MerchantInvoiceViewSet(viewsets.ModelViewSet):
     """API for merchant invoices"""
     permission_classes = [IsAuthenticated, IsMerchantUser]
+    serializer_class = InvoiceSerializer
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CreateInvoiceSerializer
+        return InvoiceSerializer
     
     def get_queryset(self):
-        merchant = self.request.user.merchant_profile
-        # Get invoices created by this merchant
-        return Invoice.objects.filter(created_by=self.request.user)
+        # Check if user has merchant profile
+        if not hasattr(self.request.user, 'merchant_profile'):
+            return Invoice.objects.none()
+        
+        # Get invoices created by this merchant user
+        return Invoice.objects.filter(
+            created_by=self.request.user,
+            invoice_type='merchant'
+        )
+    
+    def perform_create(self, serializer):
+        # Set merchant if creating merchant invoice
+        if hasattr(self.request.user, 'merchant_profile'):
+            serializer.save(merchant=self.request.user)
 
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action

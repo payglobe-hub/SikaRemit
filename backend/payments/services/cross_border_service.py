@@ -143,22 +143,92 @@ class CrossBorderService:
 
             logger.info(f"Created remittance {remittance.id} with reference {remittance.reference_number}")
 
-            # TODO: Actual payment gateway integration
+            # Send notification for initiated remittance
+            CrossBorderService._send_remittance_notification(remittance, 'initiated')
 
-            # Report to BoG if required (placeholder)
-            # from .bog_reporting_service import BoGReportingService
-            # reporting_result = BoGReportingService.report_transaction(remittance)
+            # Route payment through the appropriate gateway
+            from .payment_processing_service import PaymentProcessingService
+            processing_service = PaymentProcessingService()
 
-            # Webhook notification (placeholder)
-            # WebhookService.send_webhook(remittance, 'remittance_processed')
+            delivery_method = recipient_data.get('delivery_method', 'mobile_money')
+            provider = recipient_data.get('provider', 'mtn_momo')
 
-            remittance.status = CrossBorderRemittance.COMPLETED
-            remittance.save()
+            if delivery_method == 'mobile_money':
+                gateway_result = processing_service._process_mobile_payment(
+                    phone_number=recipient_data.get('phone', ''),
+                    amount=float(remittance.amount_sent),
+                    provider=provider,
+                    currency=from_currency_code,
+                    metadata={
+                        'type': 'cross_border_remittance',
+                        'remittance_id': str(remittance.id),
+                        'reference': remittance.reference_number,
+                    }
+                )
+            elif delivery_method == 'bank_transfer':
+                from payments.gateways.bank_transfer import BankTransferGateway
+                bank_gateway = BankTransferGateway()
 
-            # Send notification for completed remittance
-            CrossBorderService._send_remittance_notification(remittance, 'completed')
+                class RemittanceBankMethod:
+                    def __init__(self, details):
+                        self.details = details
 
-            logger.info(f"Remittance {remittance.id} completed successfully")
+                gateway_result = bank_gateway.process_payment(
+                    amount=float(remittance.amount_sent),
+                    currency=from_currency_code,
+                    payment_method=RemittanceBankMethod({
+                        'bank_name': recipient_data.get('bank_name', ''),
+                        'account_number': recipient_data.get('account_number', ''),
+                    }),
+                    customer=sender,
+                    merchant=None,
+                    metadata={
+                        'type': 'cross_border_remittance',
+                        'remittance_id': str(remittance.id),
+                    }
+                )
+            else:
+                gateway_result = {'success': False, 'error': f'Unsupported delivery method: {delivery_method}'}
+
+            if not gateway_result.get('success'):
+                remittance.status = CrossBorderRemittance.FAILED
+                remittance.failure_reason = gateway_result.get('error', 'Gateway processing failed')
+                logger.error(f"Remittance {remittance.id} gateway failed: {gateway_result.get('error')}")
+                remittance.save()
+            else:
+                try:
+                    from django.db import transaction as db_transaction
+                    with db_transaction.atomic():
+                        remittance.status = CrossBorderRemittance.PROCESSING
+                        remittance.gateway_transaction_id = gateway_result.get('transaction_id', '')
+                        remittance.save()
+                except Exception as db_err:
+                    logger.error(f"DB save failed after remittance charge, issuing refund: {db_err}")
+                    try:
+                        if delivery_method == 'bank_transfer':
+                            bank_gateway.refund_payment(
+                                transaction_id=gateway_result.get('transaction_id'),
+                                amount=float(remittance.amount_sent),
+                                reason='DB save failed after charge'
+                            )
+                        else:
+                            gateway.refund_payment(
+                                transaction_id=gateway_result.get('transaction_id'),
+                                amount=float(remittance.amount_sent),
+                                reason='DB save failed after charge'
+                            )
+                    except Exception as refund_err:
+                        logger.critical(
+                            f"REFUND ALSO FAILED for remittance {remittance.id}, "
+                            f"gateway_tx={gateway_result.get('transaction_id')}, "
+                            f"amount={remittance.amount_sent}: {refund_err}"
+                        )
+                    raise ValueError('Remittance charged but recording failed. Refund initiated.')
+
+            if remittance.status == CrossBorderRemittance.FAILED:
+                raise ValueError(f"Payment gateway failed: {remittance.failure_reason}")
+
+            logger.info(f"Remittance {remittance.id} submitted to gateway successfully")
             return remittance
 
         except ValueError as e:

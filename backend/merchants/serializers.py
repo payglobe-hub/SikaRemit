@@ -24,11 +24,31 @@ class StoreSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     store = serializers.PrimaryKeyRelatedField(queryset=Store.objects.all())
     is_low_stock = serializers.BooleanField(read_only=True)
+    image_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
     
     class Meta:
         model = Product
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at', 'is_low_stock')
+        read_only_fields = ('created_at', 'updated_at', 'is_low_stock', 'thumbnail')
+        
+    def get_image_url(self, obj):
+        """Get full URL for product image"""
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+        
+    def get_thumbnail_url(self, obj):
+        """Get full URL for product thumbnail"""
+        if obj.thumbnail:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.thumbnail.url)
+            return obj.thumbnail.url
+        return None
         
     def validate_price(self, value):
         """Ensure price is positive"""
@@ -272,15 +292,18 @@ class MerchantCustomerSerializer(serializers.ModelSerializer):
     merchant = MerchantSerializer(read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     kyc_status_display = serializers.CharField(source='get_kyc_status_display', read_only=True)
-    
+    customer_email = serializers.EmailField(source='customer.user.email', read_only=True)
+    customer_name = serializers.CharField(source='customer.user.get_full_name', read_only=True)
+    customer_phone = serializers.CharField(source='customer.user.phone', read_only=True)
+
     class Meta:
         model = MerchantCustomer
         fields = [
-            'id', 'merchant', 'customer_email', 'customer_name', 'customer_phone',
-            'status', 'status_display', 'kyc_status', 'kyc_status_display', 
-            'kyc_required', 'notes', 'onboarded_at', 'last_activity'
+            'id', 'merchant', 'customer', 'customer_email', 'customer_name', 'customer_phone',
+            'status', 'status_display', 'kyc_status', 'kyc_status_display',
+            'kyc_required', 'notes', 'onboarded_at'
         ]
-        read_only_fields = ['id', 'onboarded_at', 'last_activity', 'merchant']
+        read_only_fields = ['id', 'onboarded_at', 'merchant']
 
 class CreateMerchantCustomerSerializer(serializers.Serializer):
     customer_email = serializers.EmailField()

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
+import { authTokens } from '@/lib/utils/cookie-auth'
 
 interface RealtimeUpdate {
   type: string
@@ -12,8 +13,11 @@ export function useRealtimeUpdates(channel: string, onUpdate?: (update: Realtime
   const wsRef = useRef<WebSocket | null>(null)
 
   useEffect(() => {
+    // Skip on server-side rendering
+    if (typeof window === 'undefined') return
+
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000'
-    const token = localStorage.getItem('access_token')
+    const token = authTokens.getAccessToken()
     
     if (!token) {
       console.warn('No access token found for WebSocket connection')
@@ -25,7 +29,7 @@ export function useRealtimeUpdates(channel: string, onUpdate?: (update: Realtime
     wsRef.current = ws
 
     ws.onopen = () => {
-      console.log(`WebSocket connected to ${channel}`)
+      
       setIsConnected(true)
     }
 
@@ -47,7 +51,7 @@ export function useRealtimeUpdates(channel: string, onUpdate?: (update: Realtime
     }
 
     ws.onclose = () => {
-      console.log(`WebSocket disconnected from ${channel}`)
+      
       setIsConnected(false)
     }
 
@@ -73,3 +77,4 @@ export function useRealtimeUpdates(channel: string, onUpdate?: (update: Realtime
     send
   }
 }
+

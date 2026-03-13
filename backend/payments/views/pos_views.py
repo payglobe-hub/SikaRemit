@@ -428,10 +428,10 @@ def get_pos_dashboard_data(request):
         'total_amount': transactions.aggregate(total=Sum('amount'))['total'] or 0,
         'completed_count': transactions.filter(status='completed').count(),
         'failed_count': transactions.filter(status='failed').count(),
-        'by_device_type': list(transactions.values('device_type').annotate(
+        'by_device_type': list(transactions.values('device__device_type').annotate(
             count=Count('id'),
             total_amount=Sum('amount')
-        ).order_by('device_type')),
+        ).order_by('device__device_type')),
         'daily_totals': list(transactions.extra(
             select={'date': 'DATE(created_at)'}
         ).values('date').annotate(
@@ -446,7 +446,7 @@ def get_pos_dashboard_data(request):
     for txn in recent_transactions:
         recent_data.append({
             'transaction_id': txn.transaction_id,
-            'device_type': txn.device_type,
+            'device_type': txn.device.device_type if txn.device else None,
             'amount': float(txn.amount),
             'currency': txn.currency,
             'status': txn.status,

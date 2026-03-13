@@ -25,28 +25,62 @@
 }
 
 :root {
-  /* Revolut Brand Colors */
-  --revolut-blue: #0047FF;
-  --revolut-dark-blue: #002D6E;
-  --revolut-light-blue: #E6F0FF;
-  --revolut-purple: #8B5CF6;
-  --revolut-pink: #EC4899;
-  --revolut-teal: #14B8A6;
-  
-  /* Neutral Palette */
-  --revolut-black: #0A0B0D;
-  --revolut-dark-gray: #1A1B1E;
-  --revolut-gray: #6B7280;
-  --revolut-light-gray: #F3F4F6;
-  --revolut-white: #FFFFFF;
-  
+  /* Unified Design System Variables */
+  --primary-50: #eff6ff;
+  --primary-100: #dbeafe;
+  --primary-200: #bfdbfe;
+  --primary-300: #93c5fd;
+  --primary-400: #60a5fa;
+  --primary-500: #3b82f6;
+  --primary-600: #2563eb;
+  --primary-700: #1d4ed8;
+  --primary-800: #1e40af;
+  --primary-900: #1e3a8a;
+  --primary-950: #172554;
+
+  --secondary-50: #f0fdf4;
+  --secondary-100: #dcfce7;
+  --secondary-200: #bbf7d0;
+  --secondary-300: #86efac;
+  --secondary-400: #4ade80;
+  --secondary-500: #22c55e;
+  --secondary-600: #16a34a;
+  --secondary-700: #15803d;
+  --secondary-800: #166534;
+  --secondary-900: #14532d;
+  --secondary-950: #052e16;
+
+  --accent-50: #faf5ff;
+  --accent-100: #f3e8ff;
+  --accent-200: #e9d5ff;
+  --accent-300: #d8b4fe;
+  --accent-400: #c084fc;
+  --accent-500: #a855f7;
+  --accent-600: #9333ea;
+  --accent-700: #7c3aed;
+  --accent-800: #6b21a8;
+  --accent-900: #581c87;
+  --accent-950: #3b0764;
+
+  --neutral-50: #f8fafc;
+  --neutral-100: #f1f5f9;
+  --neutral-200: #e2e8f0;
+  --neutral-300: #cbd5e1;
+  --neutral-400: #94a3b8;
+  --neutral-500: #64748b;
+  --neutral-600: #475569;
+  --neutral-700: #334155;
+  --neutral-800: #1e293b;
+  --neutral-900: #0f172a;
+  --neutral-950: #020617;
+
   /* Semantic Colors */
-  --revolut-success: #10B981;
-  --revolut-warning: #F59E0B;
-  --revolut-error: #EF4444;
-  --revolut-info: #3B82F6;
-  
-  /* System Variables - Mapped to Revolut Colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+
+  /* System Variables - Mapped to Unified Colors */
   --background: 0 0% 98%;
   --foreground: 220 13% 4%;
   --card: 0 0% 100%;
@@ -55,30 +89,34 @@
   --popover-foreground: 220 13% 4%;
   --primary: 217 100% 50%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 220 13% 96%;
-  --secondary-foreground: 220 13% 10%;
+  --secondary: 142 76% 36%;
+  --secondary-foreground: 0 0% 100%;
   --muted: 220 13% 96%;
   --muted-foreground: 220 8% 46%;
-  --accent: 220 13% 96%;
-  --accent-foreground: 220 13% 10%;
+  --accent: 262 83% 58%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   --border: 220 13% 90%;
   --input: 220 13% 90%;
   --ring: 217 100% 50%;
-  
-  /* Custom Revolut Variables */
-  --revolut-primary: var(--revolut-blue);
-  --revolut-primary-hover: var(--revolut-dark-blue);
-  --revolut-secondary: var(--revolut-light-gray);
-  --revolut-text-primary: var(--revolut-black);
-  --revolut-text-secondary: var(--revolut-gray);
-  --revolut-border: var(--revolut-light-gray);
-  --revolut-background: var(--revolut-white);
-  --revolut-surface: #FAFBFC;
-  --revolut-shadow: rgba(10, 11, 13, 0.08);
-  --revolut-shadow-hover: rgba(10, 11, 13, 0.12);
-  --revolut-shadow-active: rgba(10, 11, 13, 0.16);
+
+  /* Layout Variables */
+  --radius: 0.5rem;
+  --sidebar-width: 16rem;
+  --sidebar-collapsed-width: 4rem;
+  --header-height: 4rem;
+
+  /* Shadow Variables */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-base: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-soft: 0 2px 8px -2px rgba(0, 0, 0, 0.1);
+  --shadow-soft-lg: 0 4px 16px -4px rgba(0, 0, 0, 0.12);
+  --shadow-soft-xl: 0 8px 24px -4px rgba(0, 0, 0, 0.15);
+  --shadow-inner-soft: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
 }
 
 .dark {
@@ -145,600 +183,50 @@ body {
   background: hsl(var(--muted-foreground) / 0.5);
 }
 
-/* Revolut Component Classes - Professional Design System */
-
-.revolut-card {
-  background-color: var(--revolut-background);
-  border-radius: 16px;
-  border: 1px solid var(--revolut-border);
-  box-shadow: 0 1px 3px var(--revolut-shadow);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.revolut-card:hover {
-  box-shadow: 0 4px 12px var(--revolut-shadow-hover);
-  border-color: var(--revolut-border);
-  transform: translateY(-1px);
-}
-
-.revolut-glass {
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  border-radius: 16px;
-  border: 1px solid rgba(243, 244, 246, 0.5);
-}
-
-.dark .revolut-glass {
-  background-color: rgba(26, 27, 30, 0.95);
-  backdrop-filter: blur(4px);
-  border-color: rgba(42, 45, 50, 0.8);
-}
-
-.revolut-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 16px;
-  line-height: 1.5;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  border: none;
-  outline: none;
-  position: relative;
-  overflow: hidden;
-}
-
-.revolut-btn:focus-visible {
-  outline: 2px solid var(--revolut-primary);
-  outline-offset: 2px;
-}
-
-.revolut-btn:disabled {
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-.revolut-btn-primary {
-  background-color: var(--revolut-primary);
-  color: var(--revolut-background);
-  box-shadow: 0 2px 8px var(--revolut-shadow);
-  min-height: 48px;
-  padding: 12px 24px;
-}
-
-.revolut-btn-primary:hover {
-  background-color: var(--revolut-primary-hover);
-  box-shadow: 0 4px 16px var(--revolut-shadow-hover);
-  transform: translateY(-1px);
-}
-
-.revolut-btn-primary:active {
-  box-shadow: 0 2px 8px var(--revolut-shadow-active);
-  transform: translateY(0);
-}
-
-.revolut-btn-secondary {
-  background-color: var(--revolut-secondary);
-  color: var(--revolut-text-primary);
-  border: 1px solid var(--revolut-border);
-  min-height: 48px;
-  padding: 12px 24px;
-}
-
-.revolut-btn-secondary:hover {
-  background-color: var(--revolut-light-gray);
-  border-color: var(--revolut-primary);
-  color: var(--revolut-primary);
-  transform: translateY(-1px);
-}
-
-.revolut-btn-ghost {
-  background-color: transparent;
-  color: var(--revolut-text-secondary);
-  min-height: 48px;
-  padding: 12px 24px;
-}
-
-.revolut-btn-ghost:hover {
-  background-color: var(--revolut-secondary);
-  color: var(--revolut-text-primary);
-}
-
-.revolut-input {
-  display: flex;
-  height: 48px;
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid var(--revolut-border);
-  background-color: var(--revolut-background);
-  padding: 12px 16px;
-  font-size: 16px;
-  line-height: 1.5;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: var(--revolut-text-primary);
-}
-
-.revolut-input::placeholder {
-  color: var(--revolut-text-secondary);
-}
-
-.revolut-input:focus-visible {
-  outline: none;
-  border-color: var(--revolut-primary);
-  box-shadow: 0 0 0 3px rgba(0, 71, 255, 0.1);
-}
-
-.revolut-input:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-  background-color: var(--revolut-secondary);
-}
-
-.revolut-section {
-  padding-top: 80px;
-  padding-bottom: 80px;
-}
-
-@media (min-width: 768px) {
-  .revolut-section {
-    padding-top: 120px;
-    padding-bottom: 120px;
-  }
-}
-
-.revolut-container {
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 24px;
-  padding-right: 24px;
-}
-
-@media (min-width: 768px) {
-  .revolut-container {
-    padding-left: 32px;
-    padding-right: 32px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .revolut-container {
-    padding-left: 40px;
-    padding-right: 40px;
-    max-width: 1200px;
-  }
-}
-
-@media (min-width: 1280px) {
-  .revolut-container {
-    max-width: 1400px;
-  }
-}
-
-.revolut-heading {
-  font-size: 48px;
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  color: var(--revolut-text-primary);
-  margin-bottom: 24px;
-}
-
-@media (min-width: 768px) {
-  .revolut-heading {
-    font-size: 56px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .revolut-heading {
-    font-size: 64px;
-  }
-}
-
-.revolut-subheading {
-  font-size: 20px;
-  line-height: 1.6;
-  color: var(--revolut-text-secondary);
-  font-weight: 400;
-  margin-bottom: 32px;
-}
-
-@media (min-width: 768px) {
-  .revolut-subheading {
-    font-size: 22px;
-  }
-}
-
-.revolut-badge {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 24px;
-  padding: 6px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  background-color: var(--revolut-light-blue);
-  color: var(--revolut-primary);
-  border: 1px solid var(--revolut-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.revolut-gradient-text {
-  background: linear-gradient(135deg, var(--revolut-primary), var(--revolut-purple), var(--revolut-pink));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  font-weight: 700;
-}
-
-.revolut-stat {
-  background-color: var(--revolut-background);
-  border-radius: 16px;
-  border: 1px solid var(--revolut-border);
-  padding: 32px 24px;
-  text-align: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.revolut-stat:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px var(--revolut-shadow-hover);
-  border-color: var(--revolut-primary);
-}
-
-.revolut-stat-value {
-  font-size: 48px;
-  font-weight: 700;
-  color: var(--revolut-text-primary);
-  line-height: 1;
-  margin-bottom: 8px;
-}
-
-@media (min-width: 768px) {
-  .revolut-stat-value {
-    font-size: 56px;
-  }
-}
-
-.revolut-stat-label {
-  font-size: 16px;
-  color: var(--revolut-text-secondary);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.revolut-nav {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  width: 100%;
-  border-bottom: 1px solid var(--revolut-border);
-  background-color: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(4px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.dark .revolut-nav {
-  background-color: rgba(26, 27, 30, 0.98);
-  border-color: var(--revolut-border);
-}
-
+/* Navigation link styles */
 .revolut-nav-link {
-  font-size: 16px;
+  font-size: 0.875rem;
   font-weight: 500;
-  color: var(--revolut-text-secondary);
-  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: hsl(var(--foreground) / 0.7);
+  transition: color 0.2s ease;
   text-decoration: none;
-  position: relative;
 }
 
 .revolut-nav-link:hover {
-  color: var(--revolut-text-primary);
-}
-
-.revolut-nav-link::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background-color: var(--revolut-primary);
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.revolut-nav-link:hover::after {
-  width: 100%;
-}
-
-.revolut-nav-link-active {
-  color: var(--revolut-primary);
-  font-weight: 600;
-}
-
-.revolut-nav-link-active::after {
-  width: 100%;
-}
-
-.revolut-sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 40;
-  height: 100vh;
-  width: 16rem;
-  border-right: 1px solid hsl(var(--border));
-  background-color: hsl(var(--card));
-}
-
-.revolut-sidebar-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: hsl(var(--muted-foreground));
-  transition: all 0.2s;
-}
-
-.revolut-sidebar-link:hover {
-  background-color: hsl(var(--accent));
   color: hsl(var(--foreground));
 }
 
-.revolut-sidebar-link-active {
-  background-color: hsl(var(--primary) / 0.1);
-  color: hsl(var(--primary));
-}
-
-.revolut-sidebar-link-active:hover {
-  background-color: hsl(var(--primary) / 0.15);
-}
-
-.revolut-dashboard-card {
-  background-color: hsl(var(--card));
-  border-radius: 1rem;
-  border: 1px solid hsl(var(--border) / 0.5);
-  padding: 1.5rem;
-}
-
-.revolut-balance-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  background: linear-gradient(to bottom right, hsl(var(--primary)), hsl(280 84% 50%), hsl(330 84% 50%));
-  color: white;
-  box-shadow: 0 25px 50px -12px hsl(var(--primary) / 0.3);
-}
-
-@media (min-width: 768px) {
-  .revolut-balance-card {
-    padding: 2rem;
-  }
-}
-
-.revolut-quick-action {
-  background-color: hsl(var(--card));
-  border-radius: 1rem;
-  border: 1px solid hsl(var(--border) / 0.5);
-  padding: 1rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.revolut-quick-action:hover {
-  border-color: hsl(var(--primary) / 0.5);
-  box-shadow: 0 10px 15px -3px hsl(var(--primary) / 0.1);
-}
-
-.revolut-quick-action-icon {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: hsl(var(--primary) / 0.1);
-  color: hsl(var(--primary));
-  transition: all 0.2s;
-}
-
-.revolut-quick-action:hover .revolut-quick-action-icon {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  transform: scale(1.1);
-}
-
-.revolut-transaction {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  background-color: hsl(var(--muted) / 0.5);
-  transition: background-color 0.2s;
-}
-
-.revolut-transaction:hover {
-  background-color: hsl(var(--muted));
-}
-
-.revolut-table {
-  width: 100%;
-  font-size: 0.875rem;
-}
-
-.revolut-table th {
-  padding: 0.75rem 1rem;
-  text-align: left;
-  font-weight: 500;
-  color: hsl(var(--muted-foreground));
-  border-bottom: 1px solid hsl(var(--border));
-}
-
-.revolut-table td {
-  padding: 1rem;
-  border-bottom: 1px solid hsl(var(--border) / 0.5);
-}
-
-.revolut-table tr:hover td {
-  background-color: hsl(var(--muted) / 0.3);
-}
-
-.revolut-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: hsl(var(--background) / 0.8);
-  backdrop-filter: blur(4px);
-}
-
-.revolut-modal-content {
-  background-color: hsl(var(--card));
-  border-radius: 1rem;
-  border: 1px solid hsl(var(--border) / 0.5);
-  width: 100%;
-  max-width: 32rem;
-  padding: 1.5rem;
-  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-}
-
-.revolut-fade-in {
-  animation: revolut-fade-in 0.3s ease-out;
-}
-
-.revolut-slide-up {
-  animation: revolut-slide-up 0.4s ease-out;
-}
-
-.revolut-scale-in {
-  animation: revolut-scale-in 0.2s ease-out;
-}
-
-@keyframes revolut-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes revolut-slide-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes revolut-scale-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-.revolut-skeleton {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  border-radius: 0.5rem;
-  background-color: hsl(var(--muted));
-}
-
-.revolut-divider {
-  height: 1px;
-  width: 100%;
-  background-color: hsl(var(--border));
-}
-
-.revolut-avatar {
-  position: relative;
-  display: flex;
-  height: 2.5rem;
-  width: 2.5rem;
-  flex-shrink: 0;
-  overflow: hidden;
-  border-radius: 9999px;
-  background-color: hsl(var(--muted));
-}
-
-.revolut-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  border-radius: 9999px;
-  padding: 0.125rem 0.625rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.revolut-status-success {
-  background-color: hsl(142 76% 36% / 0.1);
-  color: hsl(142 76% 36%);
-}
-
-.revolut-status-warning {
-  background-color: hsl(38 92% 50% / 0.1);
-  color: hsl(38 92% 50%);
-}
-
-.revolut-status-error {
-  background-color: hsl(0 84% 60% / 0.1);
-  color: hsl(0 84% 60%);
-}
-
-.revolut-status-pending {
-  background-color: hsl(217 91% 60% / 0.1);
-  color: hsl(217 91% 60%);
+/* Conic gradient utility */
+.bg-gradient-conic {
+  background-image: conic-gradient(var(--tw-gradient-stops));
 }
 
 /* Utility classes */
-.bg-revolut-gradient {
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(280 84% 54%) 100%);
-}
-
-.bg-revolut-gradient-subtle {
-  background: linear-gradient(135deg, hsl(var(--primary) / 0.1) 0%, hsl(280 84% 54% / 0.1) 100%);
-}
-
-.text-revolut-gradient {
-  background: linear-gradient(to right, hsl(var(--primary)), hsl(280 84% 60%), hsl(330 84% 60%));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.border-revolut-gradient {
-  border-image: linear-gradient(135deg, hsl(var(--primary)), hsl(280 84% 54%)) 1;
-}
-
-/* Legacy SikaRemit classes - mapped to new system */
-.bg-sikaremit-primary {
+.bg-primary {
   background-color: hsl(var(--primary));
 }
 
-.text-sikaremit-primary {
+.text-primary {
   color: hsl(var(--primary));
 }
 
-.bg-sikaremit-card {
+.bg-card {
   background-color: hsl(var(--card));
 }
 
-.text-sikaremit-foreground {
+.text-foreground {
   color: hsl(var(--foreground));
 }
 
-.bg-sikaremit-accent {
+.bg-accent {
   background-color: hsl(var(--accent));
 }
 
-.text-sikaremit-muted {
+.text-muted {
   color: hsl(var(--muted-foreground));
 }
 
-.border-sikaremit-border {
+.border-border {
   border-color: hsl(var(--border));
 }
 
@@ -774,27 +262,14 @@ body {
 
 /* Mobile-first improvements */
 @media (max-width: 640px) {
-  .revolut-container {
+  .container {
     padding-left: 12px;
     padding-right: 12px;
-  }
-  
-  .revolut-quick-action {
-    padding: 0.75rem;
-    min-height: 88px;
-  }
-  
-  .revolut-balance-card {
-    padding: 1rem;
-  }
-  
-  .revolut-card {
-    padding: 1rem;
   }
 }
 
 /* Better dark mode glass effects */
-.dark .revolut-glass {
+.dark .glass {
   background-color: hsl(var(--card));
   backdrop-filter: blur(2px);
   border: 1px solid hsl(var(--border));

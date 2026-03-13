@@ -13,6 +13,7 @@ from users.serializers import UserSerializer, MerchantSerializer, CustomerSerial
 from users.services import UserService, KYCService
 from users.permissions import IsAdminUser, IsOwnerOrAdmin
 from users.tasks import send_verification_email, send_merchant_approval_email
+from shared.constants import ADMIN_HIERARCHY_LEVELS, USER_TYPE_SUPER_ADMIN, USER_TYPE_MERCHANT, USER_TYPE_CUSTOMER
 from users.biometrics import BiometricVerifier
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -46,7 +47,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if not user.is_authenticated:
             return User.objects.none()
             
-        if user.user_type == 1:  # Admin
+        if user.user_type == USER_TYPE_SUPER_ADMIN:  # Admin
             return User.objects.all()
         else:  # Merchant or Customer
             return User.objects.filter(pk=user.pk)
@@ -180,7 +181,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
         if not user.is_authenticated:
             return Merchant.objects.none()
             
-        if user.user_type == 1:  # Admin
+        if user.user_type == USER_TYPE_SUPER_ADMIN:  # Admin
             return Merchant.objects.all()
         else:  # Merchant can only see their own profile
             return Merchant.objects.filter(user=user)
@@ -246,7 +247,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
         """Get current merchant's profile."""
         try:
             # For merchants, return their own profile
-            if request.user.user_type == 2:  # Merchant
+            if request.user.user_type == USER_TYPE_MERCHANT:  # Merchant
                 merchant = self.get_queryset().filter(user=request.user).first()
                 if not merchant:
                     return APIResponse(
@@ -329,7 +330,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if not user.is_authenticated:
             return Customer.objects.none()
-        if user.user_type == 1:  # Admin
+        if user.user_type == USER_TYPE_SUPER_ADMIN:  # Admin
             return Customer.objects.all()
         return Customer.objects.filter(user=user)
 
@@ -647,9 +648,9 @@ class MerchantCustomerViewSet(viewsets.ModelViewSet):
         if not user.is_authenticated:
             return MerchantCustomer.objects.none()
 
-        if user.user_type == 1:  # Admin
+        if user.user_type in ADMIN_HIERARCHY_LEVELS:  # Any admin
             queryset = MerchantCustomer.objects.all()
-        elif user.user_type == 2:  # Merchant
+        elif user.user_type == USER_TYPE_MERCHANT:
             # Check if user has merchant profile
             if not hasattr(user, 'merchant_profile'):
                 return MerchantCustomer.objects.none()
@@ -711,7 +712,7 @@ class MerchantCustomerViewSet(viewsets.ModelViewSet):
             merchant_customer = self.get_object()
 
             # Verify merchant owns this relationship
-            if request.user.user_type == 2:
+            if request.user.user_type == USER_TYPE_MERCHANT:
                 if not hasattr(request.user, 'merchant_profile'):
                     return APIResponse({'error': 'Merchant profile not found'}, status=status.HTTP_404_NOT_FOUND)
                 
@@ -747,7 +748,7 @@ class MerchantCustomerViewSet(viewsets.ModelViewSet):
             merchant_customer = self.get_object()
 
             # Only merchant or admin can suspend
-            if request.user.user_type == 2:
+            if request.user.user_type == USER_TYPE_MERCHANT:
                 if not hasattr(request.user, 'merchant_profile'):
                     return APIResponse({'error': 'Merchant profile not found'}, status=status.HTTP_404_NOT_FOUND)
                 
@@ -773,7 +774,7 @@ class MerchantCustomerViewSet(viewsets.ModelViewSet):
             merchant_customer = self.get_object()
 
             # Only merchant or admin can activate
-            if request.user.user_type == 2:
+            if request.user.user_type == USER_TYPE_MERCHANT:
                 if not hasattr(request.user, 'merchant_profile'):
                     return APIResponse({'error': 'Merchant profile not found'}, status=status.HTTP_404_NOT_FOUND)
                 

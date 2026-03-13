@@ -20,6 +20,15 @@ from .pos import POSDevice, POSTransaction
 # Import main models
 from .domestic_transfer import DomesticTransfer
 
+# Exchange rate extras (history, alerts, multi-currency)
+from .exchange_rate_extra import ExchangeRateHistory, ExchangeRateAlert, MultiCurrencyPayment, ReportDashboard
+
+# Fraud detection models
+from .fraud import FraudAlert, FraudBlacklist, BlacklistedBIN, FraudReport
+
+# Double-entry bookkeeping ledger
+from .ledger import LedgerAccount, LedgerJournal, LedgerEntry, LedgerService
+
 __all__ = [
     'PaymentMethod',
     'Transaction',
@@ -55,4 +64,16 @@ __all__ = [
     'DomesticTransfer',
     'Webhook',
     'WebhookEvent',
+    'ExchangeRateHistory',
+    'ExchangeRateAlert',
+    'MultiCurrencyPayment',
+    'ReportDashboard',
+    'FraudAlert',
+    'FraudBlacklist',
+    'BlacklistedBIN',
+    'FraudReport',
+    'LedgerAccount',
+    'LedgerJournal',
+    'LedgerEntry',
+    'LedgerService',
 ]

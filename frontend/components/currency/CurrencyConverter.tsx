@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import api from '@/lib/api/axios'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -72,8 +73,8 @@ export function CurrencyConverter({
 
   const fetchCurrencies = async () => {
     try {
-      const response = await fetch('/api/payments/currency/list/')
-      const data = await response.json()
+      const response = await api.get('/api/v1/payments/currency/list/')
+      const data = response.data
       
       if (data.success) {
         setCurrencies(data.currencies)
@@ -90,18 +91,14 @@ export function CurrencyConverter({
 
     try {
       setLoading(true)
-      const response = await fetch('/api/payments/currency/convert/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: parseFloat(amount),
-          from_currency: fromCurrency,
-          to_currency: toCurrency,
-          include_fee: showFees
-        })
+      const response = await api.post('/api/v1/payments/currency/convert/', {
+        amount: parseFloat(amount),
+        from_currency: fromCurrency,
+        to_currency: toCurrency,
+        include_fee: showFees
       })
 
-      const data = await response.json()
+      const data = response.data
       
       if (data.success) {
         setResult(data.conversion)

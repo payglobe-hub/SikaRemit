@@ -1,6 +1,13 @@
 import axios from 'axios'
+import { authTokens } from '@/lib/utils/cookie-auth'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+// Helper function to get auth headers
+export function getAuthHeaders() {
+  const token = authTokens.getAccessToken()
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 
 export interface RegisterData {
   email: string
@@ -46,7 +53,7 @@ export async function register(data: RegisterData) {
     first_name: data.firstName,
     last_name: data.lastName,
     phone: data.phone,
-    user_type: data.userType || 3
+    user_type: data.userType || 6
   })
   return response.data
 }
@@ -60,7 +67,7 @@ export async function login(email: string, password: string): Promise<LoginRespo
 }
 
 export async function logout() {
-  const token = localStorage.getItem('access_token')
+  const token = authTokens.getAccessToken()
   if (!token) return
 
   try {
@@ -74,8 +81,7 @@ export async function logout() {
       }
     )
   } finally {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
+    authTokens.clearTokens()
   }
 }
 
@@ -95,7 +101,7 @@ export async function resetPassword(token: string, password: string) {
 }
 
 export async function changePassword(data: ChangePasswordData) {
-  const token = localStorage.getItem('access_token')
+  const token = authTokens.getAccessToken()
   if (!token) throw new Error('Not authenticated')
 
   const response = await axios.post(
@@ -129,7 +135,7 @@ export async function resendVerificationEmail(email: string) {
 }
 
 export async function getProfile() {
-  const token = localStorage.getItem('access_token')
+  const token = authTokens.getAccessToken()
   if (!token) throw new Error('Not authenticated')
 
   const response = await axios.get(`${API_BASE_URL}/api/v1/accounts/profile/`, {
@@ -141,7 +147,7 @@ export async function getProfile() {
 }
 
 export async function updateProfile(data: any) {
-  const token = localStorage.getItem('access_token')
+  const token = authTokens.getAccessToken()
   if (!token) throw new Error('Not authenticated')
 
   const response = await axios.patch(`${API_BASE_URL}/api/v1/accounts/profile/`, data, {
@@ -154,7 +160,7 @@ export async function updateProfile(data: any) {
 
 // Two-factor authentication functions
 export async function requestTwoFactor() {
-  const token = localStorage.getItem('access_token')
+  const token = authTokens.getAccessToken()
   if (!token) throw new Error('Not authenticated')
 
   const response = await axios.post(
@@ -170,7 +176,7 @@ export async function requestTwoFactor() {
 }
 
 export async function verifyTwoFactor(code: string) {
-  const token = localStorage.getItem('access_token')
+  const token = authTokens.getAccessToken()
   if (!token) throw new Error('Not authenticated')
 
   const response = await axios.post(
@@ -202,7 +208,7 @@ export async function googleOAuthCallback(code: string) {
 }
 
 export async function getBackupCodes() {
-  const token = localStorage.getItem('access_token')
+  const token = authTokens.getAccessToken()
   if (!token) throw new Error('Not authenticated')
 
   const response = await axios.get(
@@ -217,7 +223,7 @@ export async function getBackupCodes() {
 }
 
 export async function generateBackupCodes() {
-  const token = localStorage.getItem('access_token')
+  const token = authTokens.getAccessToken()
   if (!token) throw new Error('Not authenticated')
 
   const response = await axios.post(

@@ -10,21 +10,32 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { AlertCircle, CheckCircle, Bell, Shield, Globe, HelpCircle, Save, RefreshCw, Settings as SettingsIcon } from 'lucide-react'
+import { AlertCircle, CheckCircle, Bell, Shield, Globe, HelpCircle, Save, RefreshCw, Settings as SettingsIcon, User, Mail, Phone, Edit } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useTheme } from '@/hooks/useTheme'
 import { getCustomerNotificationPreferences, updateCustomerNotificationPreferences } from '@/lib/api/notifications'
 import { NotificationPreferences } from '@/types/notifications'
 import { PasswordChangeDialog } from '@/components/auth/password-change-dialog'
 import { TwoFactorSetupDialog } from '@/components/auth/two-factor-setup-dialog'
+import { useSession } from '@/lib/auth/session-provider'
+import api from '@/lib/api/axios'
 
 function CustomerSettingsContent() {
   const searchParams = useSearchParams()
+  const session = useSession()
   const { theme, setTheme } = useTheme()
   const [settings, setSettings] = useState({
     language: 'en',
     timezone: 'UTC'
   })
+  const [profileData, setProfileData] = useState({
+    first_name: (session?.user as any)?.first_name || '',
+    last_name: (session?.user as any)?.last_name || '',
+    phone: (session?.user as any)?.phone || '',
+    country: (session?.user as any)?.country || ''
+  })
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [notifications, setNotifications] = useState<NotificationPreferences>({
     emailNotifications: true,
     smsNotifications: false,
@@ -119,7 +130,11 @@ function CustomerSettingsContent() {
           )}
 
           <Tabs defaultValue={defaultTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="profile" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Profile
+              </TabsTrigger>
               <TabsTrigger value="notifications" className="flex items-center gap-2">
                 <Bell className="h-4 w-4" />
                 Notifications
@@ -137,6 +152,116 @@ function CustomerSettingsContent() {
                 Security
               </TabsTrigger>
             </TabsList>
+
+            {/* Profile Tab */}
+            <TabsContent value="profile" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Profile Information
+                  </CardTitle>
+                  <CardDescription>
+                    Update your personal information and contact details
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="first_name">First Name</Label>
+                      <Input
+                        id="first_name"
+                        value={profileData.first_name}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, first_name: e.target.value }))}
+                        disabled={!isEditingProfile}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="last_name">Last Name</Label>
+                      <Input
+                        id="last_name"
+                        value={profileData.last_name}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, last_name: e.target.value }))}
+                        disabled={!isEditingProfile}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input
+                        id="email"
+                        value={session?.user?.email || ''}
+                        disabled
+                        className="bg-gray-50"
+                      />
+                      <p className="text-xs text-muted-foreground">Email cannot be changed here</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        value={profileData.phone}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                        disabled={!isEditingProfile}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 pt-4">
+                    {isEditingProfile ? (
+                      <>
+                        <Button
+                          onClick={async () => {
+                            setIsSavingProfile(true)
+                            try {
+                              // Use API directly - auth headers will be added by axios interceptor
+                              await api.patch('/api/v1/accounts/customers/profile/', profileData)
+                              toast({
+                                title: "Profile Updated",
+                                description: "Your profile has been updated successfully",
+                              })
+                              setIsEditingProfile(false)
+                            } catch (error) {
+                              toast({
+                                title: "Update Failed",
+                                description: "Failed to update profile. Please try again.",
+                                variant: "destructive"
+                              })
+                            } finally {
+                              setIsSavingProfile(false)
+                            }
+                          }}
+                          disabled={isSavingProfile}
+                        >
+                          {isSavingProfile ? "Saving..." : "Save Changes"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setProfileData({
+                              first_name: (session?.user as any)?.first_name || '',
+                              last_name: (session?.user as any)?.last_name || '',
+                              phone: (session?.user as any)?.phone || '',
+                              country: (session?.user as any)?.country || ''
+                            })
+                            setIsEditingProfile(false)
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        onClick={() => setIsEditingProfile(true)}
+                        variant="outline"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit Profile
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             {/* Notifications Tab */}
             <TabsContent value="notifications" className="space-y-6">

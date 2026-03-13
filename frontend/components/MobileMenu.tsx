@@ -53,7 +53,7 @@ export function MobileMenu() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
 
-  if (session.status !== 'authenticated' || !session?.user || pathname === '/' || pathname.startsWith('/auth')) return null
+  if (session.status !== 'authenticated' || !session?.user || pathname === '/' || pathname.startsWith('/auth') || pathname.startsWith('/customer') || pathname.startsWith('/merchant') || pathname.startsWith('/admin')) return null
 
   const user = session.user as any
 
@@ -144,25 +144,25 @@ export function MobileMenu() {
                 Quick Actions
               </h4>
               <div className="grid grid-cols-2 gap-2">
-                <Link href="/payments/send" onClick={() => setIsOpen(false)}>
+                <Link href="/customer/payments/domestic" onClick={() => setIsOpen(false)}>
                   <Button variant="outline" size="sm" className="w-full justify-start h-auto py-3">
                     <CreditCard className="h-4 w-4 mr-2" />
                     Send Money
                   </Button>
                 </Link>
-                <Link href="/payments/receive" onClick={() => setIsOpen(false)}>
+                <Link href="/customer/payments/cross-border" onClick={() => setIsOpen(false)}>
                   <Button variant="outline" size="sm" className="w-full justify-start h-auto py-3">
                     <User className="h-4 w-4 mr-2" />
-                    Receive
+                    Remit
                   </Button>
                 </Link>
-                <Link href="/payments/top-up" onClick={() => setIsOpen(false)}>
+                <Link href="/customer/payments/top-up" onClick={() => setIsOpen(false)}>
                   <Button variant="outline" size="sm" className="w-full justify-start h-auto py-3">
                     <CreditCard className="h-4 w-4 mr-2" />
                     Top Up
                   </Button>
                 </Link>
-                <Link href="/payments/bills" onClick={() => setIsOpen(false)}>
+                <Link href="/customer/payments/bills" onClick={() => setIsOpen(false)}>
                   <Button variant="outline" size="sm" className="w-full justify-start h-auto py-3">
                     <Settings className="h-4 w-4 mr-2" />
                     Pay Bills

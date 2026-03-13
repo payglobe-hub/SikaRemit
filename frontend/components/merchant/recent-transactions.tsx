@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import api from '@/lib/api/axios'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ExternalLink, ArrowUpRight, TrendingUp, TrendingDown, Activity, Clock, CheckCircle, XCircle } from 'lucide-react'
@@ -23,40 +24,19 @@ export default function RecentTransactions() {
   const { data: transactions, isLoading } = useQuery({
     queryKey: ['merchant-recent-transactions'],
     queryFn: async () => {
-      // Check if we have auth token first
-      const token = localStorage.getItem('access_token')
-      if (!token) {
+      try {
+        const response = await api.get('/api/v1/payments/merchant/dashboard/transactions')
+        return response.data.results || []
+      } catch (error) {
+        console.error('Failed to fetch merchant transactions:', error)
         return []
       }
-      
-      // Only try APIs that actually exist - don't make requests to non-existent endpoints
-      // For now, return empty array until backend APIs are implemented
-      return []
-      
-      // TODO: Uncomment when backend APIs are ready
-      /*
-      try {
-        const response = await fetch('/api/v1/merchants/dashboard/recent-transactions/', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        })
-        
-        if (response.ok) {
-          const data = await response.json()
-          return data.results || data || []
-        }
-      } catch (error) {
-        // Silently ignore API errors
-      }
-      
-      return []
-      */
     },
-    retry: false,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     refetchOnWindowFocus: false,
-    refetchOnMount: false
+    refetchOnMount: true,
+    staleTime: 5 * 60 * 1000 // 5 minutes
   })
 
   const getStatusBadge = (status: string) => {

@@ -8,6 +8,8 @@ from .serializers import UserActivitySerializer, UserSerializer, AdminUserSerial
 from accounts.serializers import RecipientSerializer
 from rest_framework.decorators import action
 from django.contrib import admin
+from shared.constants import USER_TYPE_MERCHANT
+from accounts.permissions import IsAdminUser
 from django.http import HttpResponse
 import csv
 import json
@@ -28,7 +30,7 @@ class UserActivityAPIView(APIView):
         return Response(serializer.data)
 
 class UserBulkAPIView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     
     @action(detail=False, methods=['post'])
     def bulk_update_status(self, request):
@@ -55,7 +57,7 @@ class UserBulkAPIView(APIView):
         return Response({'updated': updated})
 
 class VerificationBulkAPIView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     
     @action(detail=False, methods=['post'])
     def bulk_approve(self, request):
@@ -99,7 +101,7 @@ class VerificationBulkAPIView(APIView):
         return Response({'rejected': len(verification_ids)})
 
 class ExportAPIView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     
     @action(detail=False, methods=['get'])
     def export_users(self, request):
@@ -168,7 +170,7 @@ class ExportAPIView(APIView):
         return response
 
 class UserSearchAPIView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     
     def get(self, request):
         query = request.query_params.get('q', '')
@@ -198,7 +200,7 @@ class UserSearchAPIView(APIView):
         return Response(serializer.data)
 
 class ImpersonateAPIView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     
     def post(self, request, user_id):
         try:
@@ -248,13 +250,13 @@ class MerchantMetricsAPIView(APIView):
         date_from = datetime.now() - timedelta(days=days)
         
         metrics = {
-            'total_merchants': User.objects.filter(user_type=2).count(),
+            'total_merchants': User.objects.filter(user_type=USER_TYPE_MERCHANT).count(),
             'active_merchants': User.objects.filter(
-                user_type=2, 
+                user_type=USER_TYPE_MERCHANT, 
                 last_login__gte=date_from
             ).count(),
             'new_merchants': User.objects.filter(
-                user_type=2,
+                user_type=USER_TYPE_MERCHANT,
                 date_joined__gte=date_from
             ).count(),
             'pending_payouts': Payout.objects.filter(status='pending').count(),
@@ -270,11 +272,11 @@ class MerchantVerificationAPIView(APIView):
     """
     API endpoint for merchant verification
     """
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     
     def post(self, request, merchant_id):
         try:
-            merchant = User.objects.get(pk=merchant_id, user_type=2)
+            merchant = User.objects.get(pk=merchant_id, user_type=USER_TYPE_MERCHANT)
             merchant.is_verified = True
             merchant.save()
             
@@ -297,7 +299,7 @@ class AdminUserSearchView(APIView):
     """
     Search and filter users for admin dashboard
     """
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
     def get(self, request):
         query = request.GET.get('q', '')
@@ -332,7 +334,7 @@ class AdminUserBulkUpdateView(APIView):
     """
     Bulk update user status
     """
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
     def post(self, request):
         user_ids = request.data.get('user_ids', [])
@@ -363,7 +365,7 @@ class AdminUserDetailView(APIView):
     """
     Individual user management
     """
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
     def get(self, request, user_id):
         try:
@@ -405,7 +407,7 @@ class AdminVerificationListView(APIView):
     """
     List pending verifications
     """
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
     def get(self, request):
         from ..api.serializers import UserSerializer
@@ -420,7 +422,7 @@ class AdminVerificationActionView(APIView):
     """
     Approve or reject verifications
     """
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
     def post(self, request, action, verification_id):
         try:
@@ -463,7 +465,7 @@ class AdminExportView(APIView):
     """
     Export users data
     """
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
     def get(self, request):
         format_type = request.GET.get('format', 'csv')
@@ -513,7 +515,7 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     Allows admins to create, read, update, delete, and search users.
     """
     serializer_class = AdminUserSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
     queryset = User.objects.all().order_by('-date_joined')
     
     def get_queryset(self):

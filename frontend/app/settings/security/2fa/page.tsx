@@ -73,7 +73,7 @@ export default function TwoFactorAuthPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
-            <div className="p-3 bg-gradient-to-br from-purple-600 to-pink-500 rounded-full">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full">
               <Shield className="h-6 w-6 text-white" />
             </div>
           </div>
@@ -167,7 +167,7 @@ export default function TwoFactorAuthPage() {
                 <Button
                   onClick={handleEnable}
                   disabled={isLoading}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800"
                 >
                   {isLoading ? 'Setting up...' : 'Enable 2FA'}
                 </Button>
@@ -221,7 +221,7 @@ export default function TwoFactorAuthPage() {
                 <Button
                   onClick={handleVerify}
                   disabled={isLoading}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800"
                 >
                   {isLoading ? 'Verifying...' : 'Verify & Enable'}
                 </Button>

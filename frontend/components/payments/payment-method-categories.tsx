@@ -16,11 +16,13 @@ import {
   Edit,
   Trash2,
   Shield,
-  CheckCircle
+  CheckCircle,
+  QrCode
 } from 'lucide-react'
 import Image from 'next/image'
 import { useToast } from '@/hooks/use-toast'
 import { createPaymentMethod, getPaymentMethods, getCardType, deletePaymentMethod } from '@/lib/api/payments'
+import { PaymentMethod } from '@/lib/types/payments'
 import { getMobileProvider } from '@/lib/utils/payment-methods'
 
 interface PaymentMethodCategoriesProps {
@@ -34,14 +36,6 @@ interface PaymentMethodCategoriesProps {
   currency?: string
   showManagement?: boolean
   transactionType?: string
-}
-
-interface PaymentMethod {
-  id: string
-  method_type: string
-  details?: any
-  is_default: boolean
-  created_at?: string
 }
 
 const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
@@ -140,36 +134,18 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
     if (onMethodSelect) {
       onMethodSelect(methodId)
     }
-    // Auto-proceed to payment when method is selected
-    if (onPaymentTrigger) {
-      console.log('Auto-triggering payment for selected method:', methodId)
-      onPaymentTrigger()
-    }
   }
 
   const handleAddPaymentMethod = async () => {
-    console.log('handleAddPaymentMethod started')
     try {
-      console.log('Starting validation...')
       let details: any = {}
-      let methodType: 'card' | 'mobile_money' | 'bank_account' | 'bank' | 'mtn_momo' | 'telecel' | 'airtel_tigo' = 'card'
+      let methodType: 'card' | 'bank' | 'mtn_momo' | 'telecel' | 'airtel_tigo' | 'g_money' = 'card'
 
       switch (selectedFormCategory) {
         case 'card':
-          console.log('Validating card form...')
-          methodType = 'card'
-          if (!cardForm.cardNumber || !cardForm.expiryMonth || !cardForm.expiryYear || !cardForm.cvv) {
-            console.log('Card validation failed:', { cardNumber: !!cardForm.cardNumber, expiryMonth: !!cardForm.expiryMonth, expiryYear: !!cardForm.expiryYear, cvv: !!cardForm.cvv })
-            throw new Error('Please fill all card details')
-          }
-          details = {
-            number: cardForm.cardNumber.replace(/\s/g, ''),
-            exp_month: parseInt(cardForm.expiryMonth),
-            exp_year: parseInt(cardForm.expiryYear),
-            cvc: cardForm.cvv,
-            name: cardForm.cardholderName
-          }
-          console.log('Card details prepared:', details)
+          // Card payments now handled by StripeCardForm component
+          // This should not be reached - use StripeCardForm instead
+          throw new Error('Please use Stripe card form for secure card payments')
           break
 
         case 'bank':
@@ -190,10 +166,11 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
           if (!provider || !mobileForm.phoneNumber) {
             throw new Error('Please select provider and enter phone number')
           }
-          methodType = provider as 'mtn_momo' | 'telecel' | 'airtel_tigo'
+          methodType = provider as 'mtn_momo' | 'telecel' | 'airtel_tigo' | 'g_money'
           const backendProvider = provider === 'mtn_momo' ? 'mtn' : 
                                  provider === 'telecel' ? 'telecel' : 
-                                 provider === 'airtel_tigo' ? 'airtel_tigo' : provider
+                                 provider === 'airtel_tigo' ? 'airtel_tigo' : 
+                                 provider === 'g_money' ? 'g_money' : provider
           details = {
             provider: backendProvider,
             phone_number: mobileForm.phoneNumber
@@ -201,17 +178,16 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
           break
       }
 
-      console.log('Making API call to createPaymentMethod...')
       // Calculate backend provider for mobile money
       const backendProvider = methodType === 'mtn_momo' ? 'mtn' : 
                              methodType === 'telecel' ? 'telecel' : 
-                             methodType === 'airtel_tigo' ? 'airtel_tigo' : null
+                             methodType === 'airtel_tigo' ? 'airtel_tigo' : 
+                             methodType === 'g_money' ? 'g_money' : null
       const newMethod = await createPaymentMethod({
         method_type: methodType,
         ...(backendProvider && { provider: backendProvider }),  // Only add provider for mobile money
         details
       })
-      console.log('API call successful, new method:', newMethod)
 
       setPaymentMethods([...paymentMethods, newMethod])
       setShowAddForm(false)
@@ -222,24 +198,12 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
         onMethodSelect(newMethod.id)
       }
 
-      // Auto-proceed to payment
-      if (onPaymentTrigger) {
-        console.log('Triggering auto-payment...')
-        onPaymentTrigger()
-      }
-
-      console.log('Showing success toast...')
       toast({
         title: 'Success',
         description: 'Payment method added successfully'
       })
     } catch (error: any) {
-      console.log('Error in handleAddPaymentMethod:', error)
-      console.log('Error message:', error.message)
-      console.log('Error response:', error.response)
-      console.log('Error response data:', error.response?.data)
-      console.log('Error response status:', error.response?.status)
-      
+      console.error('Add payment method failed:', error.message)
       // Show detailed backend error if available
       const backendError = error.response?.data?.detail || 
                           error.response?.data?.message || 
@@ -335,15 +299,17 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'card':
-        return <CreditCard className="h-6 w-6" />
+        return <CreditCard className="h-6 w-6 text-blue-600" />
       case 'bank':
-        return <Building2 className="h-6 w-6" />
+        return <Building2 className="h-6 w-6 text-green-600" />
       case 'mobile':
-        return <Smartphone className="h-6 w-6" />
+        return <Smartphone className="h-6 w-6 text-yellow-600" />
+      case 'qr':
+        return <QrCode className="h-6 w-6 text-green-600" />
       case 'wallet':
-        return <Wallet className="h-6 w-6" />
+        return <Wallet className="h-6 w-6 text-blue-600" />
       default:
-        return <CreditCard className="h-6 w-6" />
+        return <CreditCard className="h-6 w-6 text-gray-600" />
     }
   }
 
@@ -355,6 +321,8 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
         return 'Bank Transfer'
       case 'mobile':
         return 'Mobile Money'
+      case 'qr':
+        return 'QR Code Payment'
       case 'wallet':
         return 'SikaRemit Wallet'
       default:
@@ -365,15 +333,15 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
   const getMethodDisplay = (method: PaymentMethod) => {
     switch (method.method_type) {
       case 'card':
-        return `•••• ${method.details.last4 || '****'}`
+        return `•••• ${method.details?.last4 || '****'}`
       case 'bank':
-        return `${method.details.bank_name} - ${method.details.account_number?.slice(-4) || '****'}`
-      case 'mobile_money':
+        return `${method.details?.bank_name || 'Bank'} - ${method.details?.account_number?.slice(-4) || '****'}`
       case 'mtn_momo':
       case 'telecel':
       case 'airtel_tigo':
-        const provider = method.details.provider
-        return `${provider?.toUpperCase()} - ${method.details.phone_number?.slice(-4) || '****'}`
+      case 'g_money':
+        const provider = method.details?.provider
+        return `${provider?.toUpperCase() || method.method_type.replace('_', ' ').toUpperCase()} - ${method.details?.phone_number?.slice(-4) || '****'}`
       default:
         return method.method_type
     }
@@ -389,6 +357,9 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
         return '/logos/airteltigo-money.jpg'
       case 'telecel':
         return '/logos/telecel-cash.jpg'
+      case 'g_money':
+      case 'gmoney':
+        return '/logos/g-money.svg'
       default:
         return null
     }
@@ -398,6 +369,7 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
     { id: 'card', label: 'Credit/Debit Cards', icon: CreditCard },
     { id: 'bank', label: 'Bank Transfer', icon: Building2 },
     { id: 'mobile', label: 'Mobile Money', icon: Smartphone },
+    { id: 'qr', label: 'QR Code Payment', icon: QrCode },
     ...(transactionType && !transactionType.includes('topup') ? [{ id: 'wallet', label: 'SikaRemit Wallet', icon: Wallet }] : [])
   ]
 
@@ -432,6 +404,7 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
                       {category.id === 'card' && 'Visa, Mastercard, etc.'}
                       {category.id === 'bank' && 'Direct bank account'}
                       {category.id === 'mobile' && 'MTN, AirtelTigo, Telecel'}
+                      {category.id === 'qr' && 'Scan to pay merchants'}
                       {category.id === 'wallet' && 'SikaRemit balance'}
                     </p>
                   </div>
@@ -452,99 +425,12 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {selectedCategory === 'card' && (
-              <div className="space-y-4">
-                {/* Existing Cards */}
-                <RadioGroup value={selectedMethod} onValueChange={handleMethodSelect}>
-                  {paymentMethods.filter(m => m.method_type === 'card').map((method) => (
-                    <div key={method.id} className="flex items-center space-x-2">
-                      <RadioGroupItem value={method.id} id={method.id} />
-                      <Label htmlFor={method.id} className="flex-1 cursor-pointer">
-                        <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                          <div className="flex items-center gap-3">
-                            <div className="flex gap-1">
-                              <Image src="/logos/cards/visa.svg" alt="Visa" width={32} height={20} className="object-contain" unoptimized />
-                              <Image src="/logos/cards/mastercard.svg" alt="Mastercard" width={32} height={20} className="object-contain" unoptimized />
-                            </div>
-                            <span>{getMethodDisplay(method)}</span>
-                            {method.is_default && <CheckCircle className="h-4 w-4 text-green-600" />}
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeletePaymentMethod(method.id); }}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-
-                {/* Add New Card */}
-                {showManagement && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowAddForm(true)}
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add New Card
-                  </Button>
-                )}
-              </div>
-            )}
-
-            {selectedCategory === 'bank' && (
-              <div className="space-y-4">
-                {/* Existing Bank Accounts */}
-                <RadioGroup value={selectedMethod} onValueChange={handleMethodSelect}>
-                  {paymentMethods.filter(m => m.method_type === 'bank').map((method) => (
-                    <div key={method.id} className="flex items-center space-x-2">
-                      <RadioGroupItem value={method.id} id={method.id} />
-                      <Label htmlFor={method.id} className="flex-1 cursor-pointer">
-                        <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                          <div className="flex items-center gap-3">
-                            <Building2 className="h-5 w-5 text-gray-600" />
-                            <span>{getMethodDisplay(method)}</span>
-                            {method.is_default && <CheckCircle className="h-4 w-4 text-green-600" />}
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeletePaymentMethod(method.id); }}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-
-                {/* Add New Bank Account */}
-                {showManagement && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowAddForm(true)}
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Bank Account
-                  </Button>
-                )}
-              </div>
-            )}
-
             {selectedCategory === 'mobile' && (
               <div className="space-y-4">
                 {/* Existing Mobile Money */}
                 <RadioGroup value={selectedMethod} onValueChange={handleMethodSelect}>
-                  {paymentMethods.filter(m => ['mobile_money', 'mtn_momo', 'telecel', 'airtel_tigo'].includes(m.method_type)).map((method) => {
-                    const logo = getProviderLogo(method.details.provider)
+                  {paymentMethods.filter(m => ['mtn_momo', 'telecel', 'airtel_tigo', 'g_money'].includes(m.method_type)).map((method) => {
+                    const logo = getProviderLogo(method.details?.provider || method.method_type)
                     return (
                       <div key={method.id} className="flex items-center space-x-2">
                         <RadioGroupItem value={method.id} id={method.id} />
@@ -554,7 +440,7 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
                               {logo && (
                                 <Image
                                   src={logo}
-                                  alt={method.details.provider}
+                                  alt={method.details?.provider || method.method_type}
                                   width={32}
                                   height={32}
                                   className="object-contain rounded"
@@ -593,6 +479,26 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
               </div>
             )}
 
+            {selectedCategory === 'qr' && (
+              <div className="space-y-4">
+                <div className="p-4 border rounded-lg bg-green-50">
+                  <div className="flex items-center gap-3">
+                    <QrCode className="h-6 w-6 text-green-600" />
+                    <div>
+                      <h4 className="font-semibold">QR Code Payment</h4>
+                      <p className="text-sm text-muted-foreground">Scan QR codes to pay merchants instantly</p>
+                    </div>
+                  </div>
+                  <Button
+                    className="w-full mt-4 bg-green-600 hover:bg-green-700"
+                    onClick={() => onPaymentTrigger && onPaymentTrigger()}
+                  >
+                    Open QR Scanner
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {selectedCategory === 'wallet' && (
               <div className="space-y-4">
                 <div className="p-4 border rounded-lg bg-blue-50">
@@ -625,6 +531,13 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
           </CardHeader>
           <CardContent className="space-y-4">
             {selectedFormCategory === 'card' && (
+              // Use Stripe Elements for PCI-compliant card handling
+              <div className="text-sm text-muted-foreground">
+                <p>For security, card payments use Stripe Elements.</p>
+                <p className="mt-2">Import and use StripeCardForm component instead of this form.</p>
+              </div>
+            )}
+            {selectedFormCategory === 'card_old' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <Label htmlFor="cardNumber">Card Number</Label>
@@ -742,7 +655,8 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
                     {[
                       { id: 'mtn_momo', name: 'MTN Mobile Money', logo: '/logos/mtn-momo.png' },
                       { id: 'airtel_tigo', name: 'AirtelTigo Money', logo: '/logos/airteltigo-money.jpg' },
-                      { id: 'telecel', name: 'Telecel Cash', logo: '/logos/telecel-cash.jpg' }
+                      { id: 'telecel', name: 'Telecel Cash', logo: '/logos/telecel-cash.jpg' },
+                      { id: 'g_money', name: 'G-Money', logo: '/logos/g-money.svg' }
                     ].map((provider) => (
                       <div key={provider.id} className="flex items-center space-x-2">
                         <RadioGroupItem value={provider.id} id={provider.id} />
@@ -791,14 +705,7 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
               <Button variant="outline" onClick={() => setShowAddForm(false)}>
                 Cancel
               </Button>
-              <Button onClick={() => {
-                console.log('Add payment method button clicked')
-                console.log('selectedFormCategory:', selectedFormCategory)
-                console.log('cardForm:', cardForm)
-                console.log('bankForm:', bankForm)
-                console.log('mobileForm:', mobileForm)
-                handleAddPaymentMethod()
-              }}>
+              <Button onClick={() => handleAddPaymentMethod()}>
                 Add Payment Method
               </Button>
             </div>

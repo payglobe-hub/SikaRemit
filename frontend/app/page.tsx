@@ -62,23 +62,15 @@ export default function Home() {
     <TooltipProvider>
       <div className="min-h-screen bg-white">
           {/* Navigation */}
-          <nav style={{ 
-            position: 'sticky', 
-            top: 0, 
-            zIndex: 100, 
-            backgroundColor: '#ffffff', 
-            borderBottom: '1px solid #e5e7eb',
-            padding: scrolled ? '8px 0' : '16px 0',
-            boxShadow: scrolled ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none'
-          }}>
-            <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '48px' }}>
+          <nav className={`sticky top-0 z-[100] bg-white border-b border-gray-200 transition-all duration-300 ${scrolled ? 'py-2 shadow-md' : 'py-4 shadow-none'}`}>
+            <div className="max-w-[1280px] mx-auto px-4">
+              <div className="flex items-center justify-between h-12">
                 {/* Logo */}
-                <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
-                  <div style={{ width: '36px', height: '36px', background: 'linear-gradient(to bottom right, #3b82f6, #2563eb)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
-                    <img src="/logos/SikaRemit.jpeg" alt="SikaRemit" style={{ width: '28px', height: '28px', objectFit: 'cover', borderRadius: '6px' }} />
+                <Link href="/" className="flex items-center gap-2 no-underline">
+                  <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-[10px] flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <img src="/logos/SikaRemit.jpeg" alt="SikaRemit" className="w-7 h-7 object-cover rounded-md" />
                   </div>
-                  <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#111827', whiteSpace: 'nowrap', position: 'relative', zIndex: 10 }}>
+                  <span className="text-lg font-bold text-gray-900 whitespace-nowrap relative z-10">
                     SikaRemit
                   </span>
                 </Link>
@@ -130,11 +122,10 @@ export default function Home() {
 
               {/* Mobile Menu Button */}
               <button
-                style={{ display: 'block', padding: '8px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer' }}
-                className="lg:hidden"
+                className="lg:hidden p-2 rounded-lg border-none bg-transparent cursor-pointer"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                {mobileMenuOpen ? <X style={{ width: '24px', height: '24px', color: '#374151' }} /> : <Menu style={{ width: '24px', height: '24px', color: '#374151' }} />}
+                {mobileMenuOpen ? <X className="w-6 h-6 text-gray-700" /> : <Menu className="w-6 h-6 text-gray-700" />}
               </button>
             </div>
           </div>
@@ -142,13 +133,13 @@ export default function Home() {
 
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
-          <div className="lg:hidden" style={{ position: 'fixed', top: '80px', left: 0, right: 0, backgroundColor: '#ffffff', borderBottom: '1px solid #e5e7eb', zIndex: 99, padding: '16px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Link href="#features" style={{ padding: '12px 16px', color: '#4b5563', textDecoration: 'none', borderRadius: '8px' }}>Features</Link>
-              <Link href="#pricing" style={{ padding: '12px 16px', color: '#4b5563', textDecoration: 'none', borderRadius: '8px' }}>Pricing</Link>
-              <Link href="#about" style={{ padding: '12px 16px', color: '#4b5563', textDecoration: 'none', borderRadius: '8px' }}>About</Link>
-              <Link href="/contact" style={{ padding: '12px 16px', color: '#4b5563', textDecoration: 'none', borderRadius: '8px' }}>Contact</Link>
-              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="lg:hidden fixed top-20 left-0 right-0 bg-white border-b border-gray-200 z-[99] p-4">
+            <div className="flex flex-col gap-2">
+              <Link href="#features" className="px-4 py-3 text-gray-600 no-underline rounded-lg hover:bg-gray-50">Features</Link>
+              <Link href="#pricing" className="px-4 py-3 text-gray-600 no-underline rounded-lg hover:bg-gray-50">Pricing</Link>
+              <Link href="#about" className="px-4 py-3 text-gray-600 no-underline rounded-lg hover:bg-gray-50">About</Link>
+              <Link href="/contact" className="px-4 py-3 text-gray-600 no-underline rounded-lg hover:bg-gray-50">Contact</Link>
+              <div className="border-t border-gray-200 pt-4 mt-2 flex flex-col gap-2">
                 <Link href="/auth/login">
                   <Button variant="ghost" className="w-full justify-center">Sign In</Button>
                 </Link>

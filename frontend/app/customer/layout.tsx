@@ -3,7 +3,8 @@
 import { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
 import { DollarSign } from 'lucide-react'
-import CustomerHeader from '@/components/customer/header'
+import AppLayout from '@/components/shared/AppLayout'
+import { CUSTOMER_NAVIGATION } from '@/lib/navigation/customer'
 import { useAuth } from '@/lib/auth/context'
 import { useSession } from '@/lib/auth/session-provider'
 
@@ -20,7 +21,7 @@ export default function CustomerLayout({ children }: CustomerLayoutProps) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-6">
-          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-revolut mx-auto animate-pulse">
+          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-soft mx-auto animate-pulse">
             <DollarSign className="w-8 h-8 text-primary-foreground" />
           </div>
           <div className="space-y-3">
@@ -56,14 +57,11 @@ export default function CustomerLayout({ children }: CustomerLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <CustomerHeader />
-
-      <main className="min-h-[calc(100vh-3.5rem)] sm:min-h-[calc(100vh-4rem)]">
-        <div className="px-3 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8">
-          {children}
-        </div>
-      </main>
-    </div>
+    <AppLayout
+      userType="customer"
+      navigation={CUSTOMER_NAVIGATION}
+    >
+      {children}
+    </AppLayout>
   )
 }

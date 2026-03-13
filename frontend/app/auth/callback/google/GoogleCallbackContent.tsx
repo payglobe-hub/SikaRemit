@@ -1,10 +1,11 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { googleOAuthCallback } from '@/lib/api/auth'
 import { useToast } from '@/hooks/use-toast'
 import { Loader2 } from 'lucide-react'
+import { authTokens, authState } from '@/lib/utils/cookie-auth'
 
 export function GoogleCallbackContent() {
   const router = useRouter()
@@ -33,14 +34,16 @@ export function GoogleCallbackContent() {
           throw new Error('No authorization code received')
         }
 
-        console.log('Exchanging Google OAuth code for tokens...')
+        
         
         // Exchange the code for tokens using the API function
         const tokens = await googleOAuthCallback(code)
-        localStorage.setItem('access_token', tokens.access)
-        localStorage.setItem('refresh_token', tokens.refresh)
-
-        // Set user data in auth context
+        
+        // Store tokens using cookie-based auth system (SSR-safe)
+        authTokens.setAccessToken(tokens.access)
+        authTokens.setRefreshToken(tokens.refresh)
+        
+        // Store user data using cookie utilities
         const userData = {
           id: tokens.user.id,
           email: tokens.user.email,
@@ -48,6 +51,13 @@ export function GoogleCallbackContent() {
           last_name: tokens.user.last_name,
           role: tokens.user.role,
         }
+        
+        const userTypeInfo = {
+          user_type: tokens.user.role === 'customer' ? 6 : tokens.user.role === 'merchant' ? 5 : 1,
+          role: tokens.user.role,
+        }
+        
+        authState.setAuthState(tokens.access, tokens.refresh, userData, userTypeInfo)
 
         // Trigger login in auth context (this will update the user state)
         // Note: We'll refresh the page to trigger auth context update
@@ -106,3 +116,4 @@ export function GoogleCallbackContent() {
     </div>
   )
 }
+

@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from users.models import User, Merchant
+from shared.constants import USER_TYPE_MERCHANT
 
 class Command(BaseCommand):
     help = 'Create a test merchant user account'
@@ -19,7 +20,7 @@ class Command(BaseCommand):
                 password=password,
                 first_name='John',
                 last_name='Merchant',
-                user_type=2  # Merchant
+                user_type=USER_TYPE_MERCHANT  # Merchant
             )
 
             # Update merchant profile (should already exist from signals)

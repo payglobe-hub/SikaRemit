@@ -1,46 +1,49 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
 from users.models import Customer, Merchant
-import logging
+from shared.constants import (
+    USER_TYPE_SUPER_ADMIN, USER_TYPE_BUSINESS_ADMIN, USER_TYPE_OPERATIONS_ADMIN,
+    USER_TYPE_VERIFICATION_ADMIN, USER_TYPE_MERCHANT, USER_TYPE_CUSTOMER,
+    ADMIN_HIERARCHY_LEVELS
+)
+from accounts.models import BlacklistedToken, Session
+from django.utils import timezone
 from django.conf import settings
 from .models import AdminActivity
 from payments.models.transaction import Transaction as PaymentTransaction
 from payments.models.payment_log import PaymentLog
 import stripe
-from django.utils import timezone
 from .tasks import send_payment_receipt
+import logging
 import time
 import requests
+
+logger = logging.getLogger(__name__)
 from django.core.cache import cache
 import json
 from .mfa import MFAService
 
 User = get_user_model()
-logger = logging.getLogger(__name__)
 
 class AuthService:
     @staticmethod
     def auto_identify_user_type(email, current_user_type=None):
         """
-        Auto-identify user type based on email patterns and other attributes
-        Returns suggested user_type (1=Admin, 2=merchant, 3=customer)
+        Auto-identify user type based on email patterns and other attributes.
         
         SECURITY: Admin accounts can ONLY be created via Django admin or management commands.
-        Public registration always defaults to Customer (3).
+        Public registration always defaults to Customer.
         """
-        # SECURITY: Never allow admin creation via public registration
-        # Admin accounts must be created by existing admins via Django admin panel
-        if current_user_type == 1:
+        if current_user_type in ADMIN_HIERARCHY_LEVELS:
             logger.warning(f"Attempted admin registration blocked for email: {email}")
-            return 3  # Force to customer
+            return USER_TYPE_CUSTOMER
         
-        # If a valid non-admin type is provided, use it
-        if current_user_type in [2, 3]:
+        if current_user_type in [USER_TYPE_MERCHANT, USER_TYPE_CUSTOMER]:
             return current_user_type
 
-        # Default to Customer for public registration
-        return 3  # Customer
+        return USER_TYPE_CUSTOMER
 
     @staticmethod
     def get_user_type_display_info(user_type):
@@ -48,24 +51,45 @@ class AuthService:
         Get display information for user types including labels, colors, and icons
         """
         type_info = {
-            1: {  # Admin
-                'label': 'Admin',
-                'color': '#dc2626',  # red-600
-                'bgColor': '#fef2f2',  # red-50
+            USER_TYPE_SUPER_ADMIN: {
+                'label': 'Super Admin',
+                'color': '#dc2626',
+                'bgColor': '#fef2f2',
                 'icon': '👑',
                 'description': 'Full system access'
             },
-            2: {  # Merchant
+            USER_TYPE_BUSINESS_ADMIN: {
+                'label': 'Business Admin',
+                'color': '#ea580c',
+                'bgColor': '#fff7ed',
+                'icon': '📊',
+                'description': 'KYC, compliance, risk'
+            },
+            USER_TYPE_OPERATIONS_ADMIN: {
+                'label': 'Operations Admin',
+                'color': '#9333ea',
+                'bgColor': '#faf5ff',
+                'icon': '🛠️',
+                'description': 'Customer support'
+            },
+            USER_TYPE_VERIFICATION_ADMIN: {
+                'label': 'Verification Admin',
+                'color': '#0891b2',
+                'bgColor': '#ecfeff',
+                'icon': '✅',
+                'description': 'Document verification'
+            },
+            USER_TYPE_MERCHANT: {
                 'label': 'Merchant',
-                'color': '#2563eb',  # blue-600
-                'bgColor': '#eff6ff',  # blue-50
+                'color': '#2563eb',
+                'bgColor': '#eff6ff',
                 'icon': '🏪',
                 'description': 'Business operations'
             },
-            3: {  # Customer
+            USER_TYPE_CUSTOMER: {
                 'label': 'Customer',
-                'color': '#16a34a',  # green-600
-                'bgColor': '#f0fdf4',  # green-50
+                'color': '#16a34a',
+                'bgColor': '#f0fdf4',
                 'icon': '👤',
                 'description': 'End user'
             }
@@ -103,9 +127,9 @@ class AuthService:
             )
             
             # Create role-specific profile
-            if user_type == 2:  # merchant
+            if user_type == USER_TYPE_MERCHANT:  # merchant
                 Merchant.objects.create(user=user)
-            elif user_type == 3:  # customer
+            elif user_type == USER_TYPE_CUSTOMER:  # customer
                 # Check if Customer already exists (defensive programming)
                 if not hasattr(user, 'customer_profile'):
                     Customer.objects.create(user=user)
@@ -120,9 +144,12 @@ class AuthService:
             
             # Map user_type to role for frontend compatibility
             role_mapping = {
-                1: 'admin',
-                2: 'merchant', 
-                3: 'customer'
+                USER_TYPE_SUPER_ADMIN: 'super_admin',
+                USER_TYPE_BUSINESS_ADMIN: 'business_admin',
+                USER_TYPE_OPERATIONS_ADMIN: 'operations_admin',
+                USER_TYPE_VERIFICATION_ADMIN: 'verification_admin',
+                USER_TYPE_MERCHANT: 'merchant',
+                USER_TYPE_CUSTOMER: 'customer',
             }
             
             return {
@@ -132,7 +159,7 @@ class AuthService:
                 'user_type': user.user_type,
                 'role': role_mapping.get(user.user_type, 'customer'),
                 'is_verified': user.is_verified,
-                'expires_in': 900  # 15 minutes in seconds
+                'expires_in': 900
             }
         except Exception as e:
             logger.error(f"Failed to generate tokens for user {user.email if user else 'unknown'}: {str(e)}")
@@ -145,11 +172,13 @@ class AuthService:
             refresh = RefreshToken(refresh_token)
             user = refresh.user
             
-            # Map user_type to role for frontend compatibility
             role_mapping = {
-                1: 'admin',
-                2: 'merchant', 
-                3: 'customer'
+                USER_TYPE_SUPER_ADMIN: 'super_admin',
+                USER_TYPE_BUSINESS_ADMIN: 'business_admin',
+                USER_TYPE_OPERATIONS_ADMIN: 'operations_admin',
+                USER_TYPE_VERIFICATION_ADMIN: 'verification_admin',
+                USER_TYPE_MERCHANT: 'merchant',
+                USER_TYPE_CUSTOMER: 'customer',
             }
             
             return {
@@ -177,7 +206,10 @@ class AuthService:
         if isinstance(payload, bytes):
             payload = json.loads(payload.decode('utf-8'))
         
-        secret = settings.MOBILE_MONEY_WEBHOOK_SECRET or 'test-secret'
+        secret = getattr(settings, 'MOBILE_MONEY_WEBHOOK_SECRET', None)
+        if not secret:
+            logger.error("MOBILE_MONEY_WEBHOOK_SECRET is not configured — rejecting webhook")
+            raise ValidationError('Webhook verification unavailable: secret not configured')
         expected_signature = hmac.new(
             secret.encode(),
             json.dumps(payload, sort_keys=True).encode(),
@@ -210,14 +242,27 @@ class AuthService:
 
     @staticmethod
     def get_account_balance(user):
-        """Get account balance for user"""
+        """Get account balance for user from WalletBalance model"""
+        from payments.models.currency import WalletBalance, Currency
         try:
-            # For now, return a mock balance since we don't have a balance model yet
-            # In production, this would query the user's account balance
+            default_currency_code = getattr(settings, 'DEFAULT_CURRENCY', 'GHS')
+            wallet = WalletBalance.objects.filter(
+                user=user,
+                currency__code=default_currency_code
+            ).select_related('currency').first()
+
+            if wallet:
+                return {
+                    'available': float(wallet.available_balance),
+                    'pending': float(wallet.pending_balance),
+                    'currency': wallet.currency.code,
+                    'lastUpdated': wallet.last_updated.isoformat()
+                }
+
             return {
-                'available': 1250.75,
-                'pending': 150.00,
-                'currency': 'USD',
+                'available': 0.00,
+                'pending': 0.00,
+                'currency': default_currency_code,
                 'lastUpdated': timezone.now().isoformat()
             }
         except Exception as e:
@@ -225,7 +270,7 @@ class AuthService:
             return {
                 'available': 0.00,
                 'pending': 0.00,
-                'currency': 'USD',
+                'currency': 'GHS',
                 'lastUpdated': timezone.now().isoformat()
             }
     
@@ -327,12 +372,297 @@ class AuthService:
             return {
                 'secret': secret,
                 'otp_uri': otp_uri,
-                'qr_code': qr_code.decode('utf-8') if qr_code else None,
+                'qr_code': qr_code.decode('latin-1') if qr_code else None,
                 'message': 'Scan the QR code with your authenticator app to set up 2FA'
             }
         except Exception as e:
             logger.error(f'Error setting up MFA for user {user.email}: {str(e)}')
             raise ValidationError(f'Failed to setup MFA: {str(e)}')
+
+    @staticmethod
+    def blacklist_token(token, user=None):
+        """Add a JWT token to the blacklist"""
+        try:
+            # Decode the token to get expiration time
+            refresh_token = RefreshToken(token)
+            expires_at = refresh_token.payload.get('exp')
+            
+            if expires_at:
+                expires_at = timezone.datetime.fromtimestamp(expires_at, tz=timezone.utc)
+            else:
+                # Default to 7 days from now if no expiration found
+                expires_at = timezone.now() + timezone.timedelta(days=7)
+            
+            # Get user from token if not provided
+            if not user:
+                user = refresh_token.user
+            
+            # Add to blacklist
+            BlacklistedToken.blacklist_token(token, user, expires_at)
+            
+            logger.info(f'Token blacklisted for user {user.email}')
+            return True
+            
+        except Exception as e:
+            logger.error(f'Error blacklisting token: {str(e)}')
+            return False
+    
+    @staticmethod
+    def is_token_blacklisted(token):
+        """Check if a JWT token is blacklisted"""
+        try:
+            return BlacklistedToken.is_blacklisted(token)
+        except Exception as e:
+            logger.error(f'Error checking if token is blacklisted: {str(e)}')
+            return False
+    
+    @staticmethod
+    def invalidate_user_sessions(user, exclude_session_key=None):
+        """Invalidate all sessions for a user except optionally one session"""
+        try:
+            invalidated_count = Session.invalidate_user_sessions(user, exclude_session_key)
+            logger.info(f'Invalidated {invalidated_count} sessions for user {user.email}')
+            return invalidated_count
+        except Exception as e:
+            logger.error(f'Error invalidating user sessions: {str(e)}')
+            return 0
+    
+    @staticmethod
+    def create_user_session(user, refresh_token, ip_address, user_agent='', device_id=''):
+        """Create a new user session with JWT token"""
+        try:
+            # Decode refresh token to get expiration
+            refresh_obj = RefreshToken(refresh_token)
+            expires_at = timezone.datetime.fromtimestamp(
+                refresh_obj.payload.get('exp'), 
+                tz=timezone.utc
+            )
+            
+            # Generate session key
+            import uuid
+            session_key = str(uuid.uuid4())
+            
+            # Create session
+            session = Session.create_jwt_session(
+                user=user,
+                session_key=session_key,
+                refresh_token=refresh_token,
+                expires_at=expires_at,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                device_id=device_id
+            )
+            
+            logger.info(f'Created session for user {user.email} from {ip_address}')
+            return session
+            
+        except Exception as e:
+            logger.error(f'Error creating user session: {str(e)}')
+            return None
+    
+    @staticmethod
+    def get_user_active_sessions(user):
+        """Get all active sessions for a user"""
+        try:
+            return Session.get_active_sessions(user)
+        except Exception as e:
+            logger.error(f'Error getting user active sessions: {str(e)}')
+            return []
+
+    @staticmethod
+    def generate_tokens(user):
+        """Alias for get_tokens_for_user for backward compatibility"""
+        return AuthService.get_tokens_for_user(user)
+
+    @staticmethod
+    def initiate_password_reset(email):
+        """Create a password reset token and send email"""
+        import secrets
+        from .models import PasswordResetToken
+
+        user = User.objects.filter(email=email).first()
+        if not user:
+            # Return silently to prevent email enumeration
+            logger.info(f"Password reset requested for non-existent email: {email}")
+            return
+
+        # Invalidate any existing tokens
+        PasswordResetToken.objects.filter(user=user, used=False).update(used=True)
+
+        # Create new token
+        token = secrets.token_hex(16)
+        expires_at = timezone.now() + timezone.timedelta(hours=1)
+        PasswordResetToken.objects.create(
+            user=user,
+            token=token,
+            expires_at=expires_at
+        )
+
+        # Send password reset email
+        try:
+            from django.core.mail import send_mail
+            reset_url = f"{getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')}/auth/reset-password?token={token}"
+            send_mail(
+                subject='SikaRemit - Password Reset Request',
+                message=f'Click the link to reset your password: {reset_url}\n\nThis link expires in 1 hour.\n\nIf you did not request this, please ignore this email.',
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@sikaremit.com'),
+                recipient_list=[email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            logger.error(f"Failed to send password reset email to {email}: {str(e)}")
+            # Don't raise - token is still valid, user can retry
+
+        logger.info(f"Password reset initiated for {email}")
+
+    @staticmethod
+    def complete_password_reset(token, new_password):
+        """Complete password reset using token"""
+        from .models import PasswordResetToken
+
+        reset_token = PasswordResetToken.objects.filter(
+            token=token,
+            used=False,
+            expires_at__gt=timezone.now()
+        ).select_related('user').first()
+
+        if not reset_token:
+            raise ValidationError('Invalid or expired reset token')
+
+        # Validate password strength
+        is_valid, message = AuthService.validate_password_policy(new_password)
+        if not is_valid:
+            raise ValidationError(message)
+
+        # Set new password
+        user = reset_token.user
+        user.set_password(new_password)
+        user.save()
+
+        # Mark token as used
+        reset_token.used = True
+        reset_token.save()
+
+        # Invalidate all sessions for security
+        AuthService.invalidate_user_sessions(user)
+
+        logger.info(f"Password reset completed for {user.email}")
+
+    @staticmethod
+    def get_password_policy():
+        """Return current password policy configuration"""
+        return {
+            'min_length': 8,
+            'require_uppercase': True,
+            'require_lowercase': True,
+            'require_digit': True,
+            'require_special_char': False,
+            'max_length': 128,
+        }
+
+    @staticmethod
+    def validate_password_policy(password):
+        """Validate a password against the policy. Returns (is_valid, message)."""
+        policy = AuthService.get_password_policy()
+
+        if len(password) < policy['min_length']:
+            return False, f"Password must be at least {policy['min_length']} characters"
+        if len(password) > policy['max_length']:
+            return False, f"Password must be at most {policy['max_length']} characters"
+        if policy['require_uppercase'] and not any(c.isupper() for c in password):
+            return False, 'Password must contain at least one uppercase letter'
+        if policy['require_lowercase'] and not any(c.islower() for c in password):
+            return False, 'Password must contain at least one lowercase letter'
+        if policy['require_digit'] and not any(c.isdigit() for c in password):
+            return False, 'Password must contain at least one digit'
+        if policy['require_special_char']:
+            import re
+            if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+                return False, 'Password must contain at least one special character'
+
+        return True, 'Password meets policy requirements'
+
+    @staticmethod
+    def logout_user(user):
+        """Logout user by invalidating all sessions and blacklisting tokens"""
+        try:
+            invalidated = AuthService.invalidate_user_sessions(user)
+            logger.info(f"Logged out user {user.email}, invalidated {invalidated} sessions")
+            return invalidated
+        except Exception as e:
+            logger.error(f"Error logging out user {user.email}: {str(e)}")
+            return 0
+
+    @staticmethod
+    def send_email_verification(email):
+        """Send email verification link to user"""
+        import secrets
+
+        user = User.objects.filter(email=email).first()
+        if not user:
+            logger.info(f"Email verification requested for non-existent email: {email}")
+            return
+
+        if user.is_verified:
+            raise ValidationError('Email is already verified')
+
+        # Generate verification token and store in cache
+        token = secrets.token_hex(16)
+        cache.set(f'email_verify_{token}', user.id, timeout=86400)  # 24 hours
+
+        try:
+            from django.core.mail import send_mail
+            verify_url = f"{getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')}/auth/verify-email?token={token}"
+            send_mail(
+                subject='SikaRemit - Verify Your Email',
+                message=f'Click the link to verify your email: {verify_url}\n\nThis link expires in 24 hours.',
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@sikaremit.com'),
+                recipient_list=[email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            logger.error(f"Failed to send verification email to {email}: {str(e)}")
+
+        logger.info(f"Email verification sent for {email}")
+
+    @staticmethod
+    def verify_email_token(token):
+        """Verify email using token"""
+        user_id = cache.get(f'email_verify_{token}')
+        if not user_id:
+            raise ValidationError('Invalid or expired verification token')
+
+        user = User.objects.filter(id=user_id).first()
+        if not user:
+            raise ValidationError('User not found')
+
+        user.is_verified = True
+        user.save()
+
+        # Clean up token
+        cache.delete(f'email_verify_{token}')
+
+        logger.info(f"Email verified for {user.email}")
+
+    @staticmethod
+    def verify_backup_code(email, verification_code):
+        """Verify backup code for account recovery, returns a recovery token"""
+        import secrets
+
+        user = User.objects.filter(email=email).first()
+        if not user:
+            raise ValidationError('Invalid email or backup code')
+
+        # Use MFAService to verify and consume the backup code
+        if not MFAService.verify_backup_code(user, verification_code):
+            raise ValidationError('Invalid email or backup code')
+
+        # Generate recovery token
+        recovery_token = secrets.token_hex(16)
+        cache.set(f'recovery_{recovery_token}', user.id, timeout=3600)  # 1 hour
+
+        logger.info(f"Backup code verified for {user.email}")
+        return recovery_token
 
 
 class PaymentService:
@@ -371,7 +701,7 @@ class PaymentService:
         user.save()
         
         # Log admin activity for merchant upgrades
-        if user.user_type == 2:  # merchant
+        if user.user_type == USER_TYPE_MERCHANT:  # merchant
             AdminActivity.objects.create(
                 admin=user,
                 action_type='SUBSCRIPTION_UPGRADE',
@@ -385,47 +715,103 @@ class PaymentService:
 
     @staticmethod
     def process_remittance(payment):
-        """Process remittance payment"""
-        # Implement remittance processing logic
-        # Could integrate with banking APIs or other remittance services
+        """Process remittance payment through the cross-border remittance service"""
         payment.status = 'processing'
         payment.save()
-        
-        # In a real implementation, this would call external APIs
-        # For now, we'll simulate successful processing
-        payment.status = 'completed'
-        payment.save()
-        
+
+        try:
+            from payments.services.payment_processing_service import PaymentProcessingService
+            processing_service = PaymentProcessingService()
+
+            # Determine the payment method from payment metadata
+            payment_method_type = (payment.metadata or {}).get('payment_method', 'mobile_money')
+            provider = (payment.metadata or {}).get('provider', 'mtn_momo')
+
+            result = processing_service._process_mobile_payment(
+                phone_number=(payment.metadata or {}).get('phone_number', ''),
+                amount=float(payment.amount),
+                provider=provider,
+                currency=payment.currency or 'GHS',
+                metadata={'type': 'remittance', 'payment_id': str(payment.id)}
+            )
+
+            if result.get('success'):
+                payment.status = 'pending'  # Awaiting provider webhook confirmation
+                payment.metadata = payment.metadata or {}
+                payment.metadata['gateway_transaction_id'] = result.get('transaction_id')
+            else:
+                payment.status = 'failed'
+                payment.metadata = payment.metadata or {}
+                payment.metadata['failure_reason'] = result.get('error', 'Remittance processing failed')
+            payment.save()
+
+        except Exception as e:
+            logger.error(f"Remittance processing failed for payment {payment.id}: {str(e)}")
+            payment.status = 'failed'
+            payment.metadata = payment.metadata or {}
+            payment.metadata['failure_reason'] = str(e)
+            payment.save()
+
         # Send notification
         send_payment_receipt.delay(
-            payment.user.id, 
+            payment.user.id,
             f"REMITTANCE_{payment.id}"
         )
-        
+
         return payment
 
     @staticmethod
     def process_bill_payment(payment):
-        """Process bill payment"""
-        # Implement bill payment processing logic
+        """Process bill payment through the payment processing service"""
         payment.status = 'processing'
         payment.save()
-        
-        # Simulate API call to biller
-        if payment.bill_due_date and payment.bill_due_date < timezone.now().date():
+
+        # Validate bill due date
+        if hasattr(payment, 'bill_due_date') and payment.bill_due_date and payment.bill_due_date < timezone.now().date():
             payment.status = 'failed'
+            payment.metadata = payment.metadata or {}
+            payment.metadata['failure_reason'] = 'Bill payment is overdue'
             payment.save()
             raise Exception('Bill payment is overdue')
-            
-        payment.status = 'completed'
-        payment.save()
-        
+
+        try:
+            from payments.services.payment_processing_service import PaymentProcessingService
+            processing_service = PaymentProcessingService()
+
+            provider = (payment.metadata or {}).get('provider', 'mtn_momo')
+            phone_number = (payment.metadata or {}).get('phone_number', '')
+
+            result = processing_service._process_mobile_payment(
+                phone_number=phone_number,
+                amount=float(payment.amount),
+                provider=provider,
+                currency=payment.currency or 'GHS',
+                metadata={'type': 'bill_payment', 'payment_id': str(payment.id)}
+            )
+
+            if result.get('success'):
+                payment.status = 'pending'  # Awaiting provider webhook confirmation
+                payment.metadata = payment.metadata or {}
+                payment.metadata['gateway_transaction_id'] = result.get('transaction_id')
+            else:
+                payment.status = 'failed'
+                payment.metadata = payment.metadata or {}
+                payment.metadata['failure_reason'] = result.get('error', 'Bill payment failed')
+            payment.save()
+
+        except Exception as e:
+            logger.error(f"Bill payment processing failed for payment {payment.id}: {str(e)}")
+            payment.status = 'failed'
+            payment.metadata = payment.metadata or {}
+            payment.metadata['failure_reason'] = str(e)
+            payment.save()
+
         # Send notification
         send_payment_receipt.delay(
-            payment.user.id, 
+            payment.user.id,
             f"BILL_{payment.id}"
         )
-        
+
         return payment
 
     @staticmethod
@@ -636,10 +1022,25 @@ class PaymentService:
                 confirm=True
             )
             
-            payment.stripe_payment_intent_id = intent.id
-            payment.status = 'completed'
-            payment.redirect_url = f'{settings.FRONTEND_URL}/checkout/success?id={payment.id}'
-            payment.save()
+            try:
+                from django.db import transaction as db_transaction
+                with db_transaction.atomic():
+                    payment.stripe_payment_intent_id = intent.id
+                    payment.status = 'completed'
+                    payment.redirect_url = f'{settings.FRONTEND_URL}/checkout/success?id={payment.id}'
+                    payment.save()
+            except Exception as db_err:
+                logger.error(f"DB save failed after Google Pay charge, issuing refund: {db_err}")
+                try:
+                    stripe.Refund.create(payment_intent=intent.id)
+                except Exception as refund_err:
+                    logger.critical(
+                        f"REFUND ALSO FAILED for Google Pay intent {intent.id}, "
+                        f"amount={data['amount']}: {refund_err}"
+                    )
+                payment.status = 'failed'
+                payment.save()
+                raise Exception('Google Pay charged but recording failed. Refund initiated.')
             
             return payment
             
@@ -664,10 +1065,25 @@ class PaymentService:
                 confirm=True
             )
             
-            payment.stripe_payment_intent_id = intent.id
-            payment.status = 'completed'
-            payment.redirect_url = f'{settings.FRONTEND_URL}/checkout/success?id={payment.id}'
-            payment.save()
+            try:
+                from django.db import transaction as db_transaction
+                with db_transaction.atomic():
+                    payment.stripe_payment_intent_id = intent.id
+                    payment.status = 'completed'
+                    payment.redirect_url = f'{settings.FRONTEND_URL}/checkout/success?id={payment.id}'
+                    payment.save()
+            except Exception as db_err:
+                logger.error(f"DB save failed after Apple Pay charge, issuing refund: {db_err}")
+                try:
+                    stripe.Refund.create(payment_intent=intent.id)
+                except Exception as refund_err:
+                    logger.critical(
+                        f"REFUND ALSO FAILED for Apple Pay intent {intent.id}, "
+                        f"amount={data['amount']}: {refund_err}"
+                    )
+                payment.status = 'failed'
+                payment.save()
+                raise Exception('Apple Pay charged but recording failed. Refund initiated.')
             
             return payment
             
@@ -692,14 +1108,34 @@ class PaymentService:
                 metadata={'qr_code': data.get('qr_code')}
             )
             
-            if result.get('success'):
-                payment.status = 'completed'
-                payment.transaction_id = result.get('transaction_id')
-            else:
+            if not result.get('success'):
                 payment.status = 'failed'
                 payment.error_message = result.get('error')
-            
-            payment.save()
+                payment.save()
+                return payment
+
+            try:
+                from django.db import transaction as db_transaction
+                with db_transaction.atomic():
+                    payment.status = 'completed'
+                    payment.transaction_id = result.get('transaction_id')
+                    payment.save()
+            except Exception as db_err:
+                logger.error(f"DB save failed after QR charge, issuing refund: {db_err}")
+                try:
+                    qr_gateway.refund_payment(
+                        transaction_id=result.get('transaction_id'),
+                        amount=float(payment.amount),
+                        reason='DB save failed after QR charge'
+                    )
+                except Exception as refund_err:
+                    logger.critical(
+                        f"REFUND ALSO FAILED for QR payment {payment.id}, "
+                        f"gateway_tx={result.get('transaction_id')}, "
+                        f"amount={payment.amount}: {refund_err}"
+                    )
+                raise Exception('Payment charged but recording failed. Refund initiated.')
+
             return payment
             
         except Exception as e:

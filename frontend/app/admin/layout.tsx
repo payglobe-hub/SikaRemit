@@ -1,29 +1,32 @@
 'use client'
 
-import { useState } from 'react'
+import { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
-import { Globe, Menu, Bell } from 'lucide-react'
-import AdminSidebar from '@/components/admin/AdminSidebar'
-import AdminHeader from '@/components/admin/AdminHeader'
+import AppLayout from '@/components/shared/AppLayout'
+import { ADMIN_NAVIGATION } from '@/lib/navigation/admin'
 import { useAuth } from '@/lib/auth/context'
-import { useSession } from '@/lib/auth/session-provider'
-import { Button } from '@/components/ui/button'
-import { AdminNotificationBell } from '@/components/admin/AdminNotificationBell'
+import { PermissionsProvider } from '@/lib/permissions/context'
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+interface AdminLayoutProps {
+  children: ReactNode
+}
+
+// Check if user has any admin role
+const isAdminRole = (role: string): boolean => {
+  const adminRoles = ['super_admin', 'business_admin', 'operations_admin', 'verification_admin']
+  return adminRoles.includes(role)
+}
+
+export default function AdminLayout({ children }: AdminLayoutProps) {
   const { user, loading } = useAuth()
-  const session = useSession()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // Show loading state while checking authentication
-  if (loading || session.status === 'loading') {
+  // Loading state
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="relative z-10 text-center space-y-6">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-revolut animate-pulse">
-              <Globe className="w-8 h-8 text-primary-foreground" />
-            </div>
+        <div className="text-center space-y-6">
+          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto animate-pulse">
+            <div className="w-8 h-8 bg-primary-foreground rounded-lg animate-pulse" />
           </div>
           <div className="space-y-3">
             <h1 className="text-2xl font-bold text-foreground">SikaRemit Admin</h1>
@@ -39,49 +42,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     )
   }
 
-  // Check if user is authenticated
-  if (session.status === 'unauthenticated' || !user) {
+  // Authentication check
+  if (!user) {
     redirect('/auth')
     return null
   }
 
-  // Check if user has admin role
-  if (user.role !== 'admin') {
+  // Admin role check
+  if (!isAdminRole(user.role)) {
+    // Redirect based on user role
     const roleRedirects = {
-      merchant: '/merchant/dashboard',
       customer: '/customer/dashboard',
-      admin: '/admin/overview' // This shouldn't happen but just in case
+      merchant: '/merchant/dashboard',
+      admin: '/admin/overview'
     }
-    const redirectPath = roleRedirects[user.role as keyof typeof roleRedirects] || '/customer/dashboard'
+    const redirectPath = roleRedirects[user.role as keyof typeof roleRedirects] || '/auth'
     redirect(redirectPath)
     return null
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      <AdminHeader
-        onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-        sidebarOpen={sidebarOpen}
-      />
-
-      <div className="lg:pl-64">
-
-        <main className="min-h-[calc(100vh-3.5rem)] sm:min-h-[calc(100vh-4rem)] lg:min-h-screen">
-          <div className="px-3 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8">
-            {children}
-          </div>
-        </main>
-      </div>
-    </div>
+    <PermissionsProvider>
+      <AppLayout
+        userType="admin"
+        navigation={ADMIN_NAVIGATION}
+      >
+        {children}
+      </AppLayout>
+    </PermissionsProvider>
   )
 }

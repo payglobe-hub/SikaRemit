@@ -3,10 +3,8 @@ import axios from 'axios'
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 function getAuthHeaders() {
-  const token = localStorage.getItem('access_token')
-  return {
-    Authorization: `Bearer ${token}`
-  }
+  // Auth headers will be added by axios interceptor
+  return {}
 }
 
 export async function sendSMSVerification(phoneNumber: string) {

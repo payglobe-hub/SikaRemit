@@ -1,12 +1,13 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser, AllowAny
+from rest_framework.permissions import AllowAny
+from users.permissions import IsAdminUser
 from django.utils import timezone
 from django.db import models
 from decimal import Decimal
-from ..models import ExchangeRate, Currency
-from ..serializers import ExchangeRateSerializer
+from ..models.currency import ExchangeRate, Currency
+from ..serializers.exchange_rate_serializers import ExchangeRateSerializer
 
 
 class ExchangeRateViewSet(viewsets.ModelViewSet):
@@ -28,6 +29,9 @@ class ExchangeRateViewSet(viewsets.ModelViewSet):
         from_code = request.data.get('from_currency')
         to_code = request.data.get('to_currency')
         rate_value = request.data.get('rate')
+        valid_from = request.data.get('valid_from')
+        valid_to = request.data.get('valid_to')
+        source = request.data.get('source', 'admin')
 
         try:
             from_currency = Currency.objects.get(code=from_code)
@@ -35,12 +39,14 @@ class ExchangeRateViewSet(viewsets.ModelViewSet):
         except Currency.DoesNotExist as e:
             return Response({'error': f'Currency not found: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Create new rate (will automatically mark previous as not latest)
+        # Create new rate
         rate = ExchangeRate.objects.create(
             from_currency=from_currency,
             to_currency=to_currency,
             rate=Decimal(str(rate_value)),
-            source='admin',
+            source=source,
+            valid_from=valid_from or timezone.now(),
+            valid_to=valid_to,
             is_latest=True
         )
 
@@ -51,18 +57,27 @@ class ExchangeRateViewSet(viewsets.ModelViewSet):
         """Update an existing exchange rate"""
         instance = self.get_object()
         rate_value = request.data.get('rate')
+        valid_from = request.data.get('valid_from')
+        valid_to = request.data.get('valid_to')
+        source = request.data.get('source')
 
         if rate_value:
             instance.rate = Decimal(str(rate_value))
-            instance.source = 'admin'
-            instance.save()
+        if valid_from:
+            instance.valid_from = valid_from
+        if valid_to is not None:
+            instance.valid_to = valid_to
+        if source:
+            instance.source = source
+            
+        instance.save()
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def current_rates(self, request):
-        """Get all currently active (latest) exchange rates"""
+        """Get all currently active exchange rates"""
         rates = ExchangeRate.objects.filter(is_latest=True).select_related('from_currency', 'to_currency')
         serializer = self.get_serializer(rates, many=True)
         return Response(serializer.data)
@@ -78,13 +93,14 @@ class ExchangeRateViewSet(viewsets.ModelViewSet):
                 from_currency = Currency.objects.get(code=rate_data['from_currency'])
                 to_currency = Currency.objects.get(code=rate_data['to_currency'])
 
-                # Create new rate (marks previous as not latest)
+                # Create new rate
                 rate = ExchangeRate.objects.create(
                     from_currency=from_currency,
                     to_currency=to_currency,
                     rate=Decimal(str(rate_data['rate'])),
                     source='admin_bulk',
-                    is_latest=True
+                    is_latest=True,
+                    valid_from=timezone.now()
                 )
                 updated_rates.append(rate)
             except Currency.DoesNotExist:
@@ -97,7 +113,7 @@ class ExchangeRateViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
-        """Mark a specific exchange rate as the latest/active one"""
+        """Mark a specific exchange rate as the latest one"""
         rate = self.get_object()
         
         # Mark all other rates for this pair as not latest
@@ -107,6 +123,7 @@ class ExchangeRateViewSet(viewsets.ModelViewSet):
             is_latest=True
         ).exclude(pk=rate.pk).update(is_latest=False)
         
+        # Mark this rate as latest
         rate.is_latest = True
         rate.save()
 

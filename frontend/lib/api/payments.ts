@@ -1,10 +1,9 @@
-import api from './axios'
-import axios from 'axios'
+﻿import api from './axios'
 import { getCardType } from '@/lib/utils/payment-methods'
+import { PaymentMethod } from '@/lib/types/payments'
 
 export { getCardType }
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+export type { PaymentMethod }
 
 export interface CheckoutData {
   merchant_id: string
@@ -14,30 +13,21 @@ export interface CheckoutData {
   description?: string
 }
 
-export interface PaymentMethod {
-  id: string
-  type: string
-  method_type: 'card' | 'mobile_money' | 'bank_account' | 'bank' | 'mtn_momo' | 'telecel' | 'airtel_tigo' | 'sikaremit_balance' | 'qr'
-  last4?: string
-  phone?: string
-  provider?: string
-  account_number?: string
-  is_default: boolean
-  details?: {
-    verified?: boolean
-    [key: string]: any
-  }
-  created_at?: string
-}
-
 export interface Transaction {
   id: string
   amount: number
   currency: string
   status: string
   description?: string
+  type?: string
+  billDetails?: {
+    billType: string
+    billerName: string
+    billReference: string
+  }
   created_at: string
   updated_at: string
+  completed_at?: string
 }
 
 export interface DataPlan {
@@ -84,9 +74,9 @@ export async function getPaymentMethods(): Promise<PaymentMethod[]> {
       }
     } 
     // For bank accounts, check by account number
-    else if (method.method_type === 'bank_account' || method.method_type === 'bank') {
+    else if (method.method_type === 'bank') {
       const existingIndex = unique.findIndex(m => 
-        (m.method_type === 'bank_account' || m.method_type === 'bank') && 
+        m.method_type === 'bank' && 
         m.account_number === method.account_number
       )
       
@@ -133,19 +123,11 @@ export async function getPaymentMethods(): Promise<PaymentMethod[]> {
     return unique
   }, [])
   
-  console.log(`📊 Payment methods: ${methods.length} total, ${deduplicatedMethods.length} after deduplication`)
-  
-  // Log duplicates found
-  const duplicates = methods.length - deduplicatedMethods.length
-  if (duplicates > 0) {
-    console.warn(`⚠️ Found ${duplicates} duplicate payment methods that were hidden`)
-  }
-  
   return deduplicatedMethods
 }
 
 export interface CreatePaymentMethod {
-  method_type: 'card' | 'mobile_money' | 'bank_account' | 'bank' | 'mtn_momo' | 'telecel' | 'airtel_tigo'
+  method_type: 'card' | 'bank' | 'mtn_momo' | 'telecel' | 'airtel_tigo' | 'g_money'
   details: Record<string, any>
   is_default?: boolean
   provider?: string
@@ -192,14 +174,14 @@ export async function createPaymentMethod(data: CreatePaymentMethod): Promise<Pa
   }
   
   // Check for bank account duplicates
-  if (data.method_type === 'bank_account' || data.method_type === 'bank') {
+  if (data.method_type === 'bank') {
     const accountNumber = data.details?.account_number
     if (!accountNumber) {
       throw new Error('Account number is required for bank payments')
     }
     
     const duplicate = existingMethods.find(m => 
-      (m.method_type === 'bank_account' || m.method_type === 'bank') && 
+      m.method_type === 'bank' && 
       m.account_number === accountNumber
     )
     
@@ -290,17 +272,17 @@ export async function getWalletBalance() {
 }
 
 export async function getCurrencies() {
-  const response = await axios.get(`${API_BASE_URL}/api/v1/payments/currencies/`)
+  const response = await api.get('/api/v1/payments/currencies/')
   return response.data.results || response.data
 }
 
 export async function getExchangeRates() {
-  const response = await axios.get(`${API_BASE_URL}/api/v1/payments/exchange-rates/`)
+  const response = await api.get('/api/v1/payments/exchange-rates/')
   return response.data
 }
 
 export async function convertCurrency(amount: number, fromCurrency: string, toCurrency: string) {
-  const response = await axios.post(`${API_BASE_URL}/api/v1/payments/convert-currency/`, {
+  const response = await api.post('/api/v1/payments/convert-currency/', {
     amount,
     from_currency: fromCurrency,
     to_currency: toCurrency
@@ -344,76 +326,14 @@ export async function verifyPaymentMethod(methodId: string, verificationData: an
 }
 
 export async function deletePaymentMethod(methodId: string): Promise<void> {
-  console.log('🔧 deletePaymentMethod called, NODE_ENV:', process.env.NODE_ENV)
   try {
     await api.delete(`/api/v1/payments/methods/${methodId}/`)
   } catch (error: any) {
-    // Log detailed error information for debugging
-    try {
-      console.error('Delete payment method error details:', JSON.stringify({
-        error: error?.message || error,
-        status: error?.response?.status,
-        statusText: error?.response?.statusText,
-        data: error?.response?.data,
-        headers: error?.response?.headers,
-        methodId,
-        hasResponse: !!error?.response,
-        responseDataString: typeof error.response?.data === 'string' ? error.response.data.substring(0, 200) : 'not a string'
-      }, null, 2))
-    } catch (serializeError) {
-      console.error('Delete payment method error (serialization failed):', {
-        error: error?.message || 'Unknown error',
-        status: error?.response?.status,
-        statusText: error?.response?.statusText,
-        methodId,
-        hasResponse: !!error?.response
-      })
-    }
+    console.error('Delete payment method failed:', error?.message, 'status:', error?.response?.status)
     
     // If it's a 404, the payment method doesn't exist - treat as success
     if (error.response?.status === 404) {
-      console.warn(`Payment method ${methodId} not found, assuming already deleted`)
       return
-    }
-    
-    // Check if we're in development mode and this is a constraint error
-    // Use multiple methods to detect development environment
-    const isDevelopment = process.env.NODE_ENV === 'development' || 
-                        typeof window !== 'undefined' && window.location.hostname === 'localhost' ||
-                        typeof window !== 'undefined' && window.location.hostname === '127.0.0.1'
-    
-    const isConstraintError = error.response?.status === 500 && 
-                             (typeof error.response?.data === 'string' && 
-                              (error.response?.data.includes('ProtectedError') ||
-                               error.response?.data.includes('foreign key') ||
-                               error.response?.data.includes('DomesticTransfer.payment_method')))
-    
-    // Debug logging
-    console.log('🔍 Debug info:', {
-      NODE_ENV: process.env.NODE_ENV,
-      isDevelopment,
-      errorStatus: error.response?.status,
-      errorDataType: typeof error.response?.data,
-      hasProtectedError: typeof error.response?.data === 'string' && error.response?.data.includes('ProtectedError'),
-      hasDomesticTransfer: typeof error.response?.data === 'string' && error.response?.data.includes('DomesticTransfer.payment_method'),
-      isConstraintError
-    })
-    
-    // In development, allow deletion with warning for constraint errors
-    if (isDevelopment && isConstraintError) {
-      console.warn('⚠️ Development Mode: Overriding foreign key constraint for payment method deletion')
-      console.warn('This would NOT be allowed in production for data integrity reasons')
-      
-      // Try to delete with cascade or force delete (backend would need to support this)
-      try {
-        await api.delete(`/api/v1/payments/methods/${methodId}/?force=true`)
-        console.log('✅ Development: Successfully deleted payment method with force flag')
-        return
-      } catch (forceError: any) {
-        console.warn('Force delete failed, but continuing in development mode')
-        // In development, we'll just return success anyway for testing
-        return
-      }
     }
     
     // If it's a 500 server error, provide more specific error information
@@ -654,7 +574,7 @@ export async function sendDomesticTransfer(data: {
     recipient: data.recipient,
     payment_method: typeof data.payment_method_id === 'string' ? parseInt(data.payment_method_id, 10) : data.payment_method_id
   }
-  console.log('sendDomesticTransfer request data:', JSON.stringify(requestData, null, 2))
+  )
   try {
     const response = await api.post('/api/v1/payments/domestic-transfers/', requestData)
     return response.data
@@ -918,7 +838,7 @@ export const getDashboardStats = async () => {
 
 export interface WithdrawMobileMoneyRequest {
   amount: number
-  provider: 'MTN' | 'Telecel' | 'AirtelTigo'
+  provider: 'MTN' | 'Telecel' | 'AirtelTigo' | 'G-Money'
   phone_number: string
   currency?: string
 }
@@ -1136,3 +1056,4 @@ export async function lookupSikaRemitUser(identifier: string): Promise<{
     }
   }
 }
+

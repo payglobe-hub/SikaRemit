@@ -2,15 +2,28 @@ from pathlib import Path
 import os
 import sys
 from datetime import timedelta
+from celery.schedules import crontab
 import warnings
+import logging
 
 warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API", category=UserWarning)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load .env file for local development (ignored on Cloud Run where env vars are set via Secret Manager)
 from dotenv import load_dotenv
 load_dotenv(BASE_DIR / '.env')
+
+# GCP Secret Manager: Load secrets when running on Cloud Run
+# Cloud Run sets GOOGLE_CLOUD_PROJECT and K_SERVICE automatically
+_gcp_project = os.environ.get('GOOGLE_CLOUD_PROJECT')
+_on_cloud_run = os.environ.get('K_SERVICE') is not None
+
+if _gcp_project and _on_cloud_run:
+    # Secrets are injected as env vars by Cloud Run --set-secrets flag
+    # No need to call Secret Manager API directly — Cloud Run handles it
+    pass
 
 import dj_database_url
 
@@ -26,17 +39,29 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 # Environment detection
 IS_PRODUCTION = os.environ.get('ENVIRONMENT', 'development').lower() == 'production'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,sikaremit-api.onrender.com').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
 ]
+
+# Add production CSRF trusted origins from environment
+_csrf_production_origins = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if _csrf_production_origins:
+    CSRF_TRUSTED_ORIGINS.extend([o.strip() for o in _csrf_production_origins.split(',') if o.strip()])
+elif IS_PRODUCTION:
+    CSRF_TRUSTED_ORIGINS.extend([
+        'https://sikaremit.com',
+        'https://www.sikaremit.com',
+        'https://sikaremit.netlify.app',
+        'https://api.sikaremit.com',
+    ])
 
 # Application definition
 INSTALLED_APPS = [
@@ -71,7 +96,9 @@ INSTALLED_APPS = [
     'ussd',
     'kyc',
     'invoice',
-    'fcm_django',  # Add this line
+    'fcm_django',
+    'ecommerce',
+    'django_celery_beat',
 ]
 
 # Django Allauth Configuration
@@ -102,8 +129,11 @@ SPECTACULAR_SETTINGS = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'core.middleware.security.SecurityHeadersMiddleware',
+    'core.middleware.security.SSLRedirectMiddleware',
+    'core.middleware.security.RateLimitMiddleware',
+    'core.middleware.security.SecurityAuditMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'core.middleware.security_middleware.SecurityHeadersMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -150,8 +180,8 @@ ASGI_APPLICATION = 'core.asgi.application'
 # Database
 use_sqlite = os.environ.get('DJANGO_USE_SQLITE', 'true').lower() in {'1', 'true', 'yes'}
 
-if 'test' in sys.argv or 'pytest' in sys.argv[0]:
-    # Use SQLite for testing
+if use_sqlite and ('test' in sys.argv or 'pytest' in sys.argv[0]):
+    # Explicit SQLite for testing (only when DJANGO_USE_SQLITE is set)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -219,6 +249,10 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Media files (Product images, uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -275,7 +309,6 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3002",
     "https://sikaremit.netlify.app",
     "https://sikaremit.com",
-    "https://api.sikaremit.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -299,14 +332,23 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-# Email settings
-EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+# Email settings - SendGrid for production
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
+
+if IS_PRODUCTION and SENDGRID_API_KEY:
+    # Use SendGrid in production
+    EMAIL_BACKEND = 'core.email_backend.SendGridBackend'
+else:
+    # Use console backend for development/testing
+    EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+
+# Fallback SMTP settings (if not using SendGrid)
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.sendgrid.net')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@SikaRemit.local')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'apikey')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', SENDGRID_API_KEY)
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@sikaremit.com')
 
 # Default country for mobile money operations
 BASE_COUNTRY = os.environ.get('BASE_COUNTRY', 'GHA')  # Ghana
@@ -346,14 +388,38 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'payments.tasks.process_scheduled_payments',
         'schedule': 300.0,  # Every 5 minutes
     },
+    'update-exchange-rates': {
+        'task': 'payments.tasks.update_exchange_rates',
+        'schedule': 900.0,  # Every 15 minutes
+    },
+    'daily-reconciliation': {
+        'task': 'payments.tasks.daily_reconciliation',
+        'schedule': crontab(hour=3, minute=0),  # Daily at 3am
+    },
+    'daily-merchant-settlements': {
+        'task': 'payments.tasks.run_merchant_settlements',
+        'schedule': crontab(hour=2, minute=0),  # Daily at 2am
+    },
 }
 
 # Channels configuration for WebSocket support
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
-    },
-}
+_channels_redis_url = os.environ.get('REDIS_URL')
+if _channels_redis_url:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [_channels_redis_url],
+            },
+        },
+    }
+else:
+    # Fallback for local dev without Redis (single-worker only)
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
+    }
 
 # Sentry Configuration for Error Monitoring
 SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
@@ -366,14 +432,6 @@ REST_FRAMEWORK['DEFAULT_VERSIONING_CLASS'] = 'core.versioning.SikaRemitAPIVersio
 REST_FRAMEWORK['DEFAULT_VERSION'] = 'v1'
 REST_FRAMEWORK['ALLOWED_VERSIONS'] = ['v1', 'v2']
 REST_FRAMEWORK['VERSION_PARAM'] = 'version'
-
-# Webhook Security
-STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
-
-# Stripe Payments Configuration
-STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
-STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY')
-STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
 # Currency settings for Stripe (amounts in cents)
 STRIPE_CURRENCY_PRECISION = {
@@ -416,14 +474,23 @@ PAYMENT_CALLBACK_URL = os.environ.get('PAYMENT_CALLBACK_URL')  # e.g., https://a
 GOOGLE_OAUTH_CLIENT_ID = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
 GOOGLE_OAUTH_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET')
 
+# Exchange Rate API Configuration (for live FX rates)
+EXCHANGE_RATE_API_KEY = os.environ.get('EXCHANGE_RATE_API_KEY', '')
+EXCHANGE_RATE_API_URL = os.environ.get('EXCHANGE_RATE_API_URL', 'https://v6.exchangerate-api.com/v6/')
+
 # Stripe Payments Configuration
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY')
-STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+
+# G-Money Payment Gateway Configuration (GCB Bank Ghana)
+G_MONEY_API_KEY = os.environ.get('G_MONEY_API_KEY')
+G_MONEY_API_SECRET = os.environ.get('G_MONEY_API_SECRET')
+G_MONEY_API_URL = os.environ.get('G_MONEY_API_URL', 'https://api.gcb.com.gh/nexus')
+G_MONEY_WEBHOOK_SECRET = os.environ.get('G_MONEY_WEBHOOK_SECRET')
 
 # MFA Configuration
 MFA_ISSUER_NAME = os.environ.get('MFA_ISSUER_NAME', 'SikaRemit')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@SikaRemit.com')
 
 # SMS Configuration (AfricasTalking - Default)
 SMS_PROVIDER = os.environ.get('SMS_PROVIDER', 'africastalking')
@@ -505,6 +572,14 @@ else:
 
 # Compliance settings
 COMPLIANCE_REPORTING_ENABLED = os.environ.get('COMPLIANCE_REPORTING_ENABLED', 'False').lower() == 'true'
+
+# System checks configuration
+SYSTEM_CHECKS = [
+    'users.system_checks.check_user_type_hardcoded_values',
+    'users.system_checks.check_user_type_constants_import', 
+    'users.system_checks.check_user_type_signal_consistency',
+    'core.startup_checks.check_production_configuration',
+]
 
 # Initialize Sentry if DSN is configured
 if SENTRY_DSN:

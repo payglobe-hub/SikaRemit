@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { formatDistanceToNow, format } from 'date-fns'
 import { toast } from 'sonner'
+import api from '@/lib/api/axios'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -25,37 +26,28 @@ interface AdminNotification {
 }
 
 async function fetchAllNotifications(filters: { level?: string; is_read?: string }): Promise<AdminNotification[]> {
-  const token = localStorage.getItem('access_token')
+  // Use API directly - auth headers will be added by axios interceptor
   const params: Record<string, any> = {}
   if (filters.level && filters.level !== 'all') params.level = filters.level
   if (filters.is_read && filters.is_read !== 'all') params.is_read = filters.is_read === 'unread' ? 'false' : 'true'
   
-  const response = await axios.get(`${API_URL}/api/v1/notifications/`, {
-    headers: { Authorization: `Bearer ${token}` },
-    params
-  })
+  const response = await api.get('/api/v1/notifications/', { params })
   return response.data.results || response.data || []
 }
 
 async function markAsRead(notificationId: number): Promise<void> {
-  const token = localStorage.getItem('access_token')
-  await axios.patch(`${API_URL}/api/v1/notifications/${notificationId}/read/`, {}, {
-    headers: { Authorization: `Bearer ${token}` }
-  })
+  // Use API directly - auth headers will be added by axios interceptor
+  await api.patch(`/api/v1/notifications/${notificationId}/read/`, {})
 }
 
 async function markAllAsRead(): Promise<void> {
-  const token = localStorage.getItem('access_token')
-  await axios.patch(`${API_URL}/api/v1/notifications/mark_all_read/`, {}, {
-    headers: { Authorization: `Bearer ${token}` }
-  })
+  // Use API directly - auth headers will be added by axios interceptor
+  await api.patch('/api/v1/notifications/mark_all_read/', {})
 }
 
 async function deleteNotification(notificationId: number): Promise<void> {
-  const token = localStorage.getItem('access_token')
-  await axios.delete(`${API_URL}/api/v1/notifications/${notificationId}/`, {
-    headers: { Authorization: `Bearer ${token}` }
-  })
+  // Use API directly - auth headers will be added by axios interceptor
+  await api.delete(`/api/v1/notifications/${notificationId}/`)
 }
 
 function getNotificationIcon(type: string, level: string) {
@@ -63,7 +55,7 @@ function getNotificationIcon(type: string, level: string) {
     return <FileCheck className="h-5 w-5 text-blue-500" />
   }
   if (type?.includes('user') || type?.includes('account') || type?.includes('merchant')) {
-    return <Users className="h-5 w-5 text-purple-500" />
+    return <Users className="h-5 w-5 text-indigo-500" />
   }
   if (type?.includes('payment') || type?.includes('transaction') || type?.includes('withdrawal')) {
     return <CreditCard className="h-5 w-5 text-green-500" />
@@ -151,8 +143,8 @@ export default function AdminNotificationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 bg-clip-text text-transparent flex items-center gap-3">
-            <Bell className="h-8 w-8 text-purple-600" />
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 bg-clip-text text-transparent flex items-center gap-3">
+            <Bell className="h-8 w-8 text-blue-600" />
             Notifications
           </h1>
           <p className="text-slate-600 mt-1 text-base">
@@ -163,8 +155,7 @@ export default function AdminNotificationsPage() {
           <Button
             onClick={() => markAllReadMutation.mutate()}
             disabled={markAllReadMutation.isPending}
-            className="bg-gradient-to-r from-purple-600 to-pink-500 text-white"
-          >
+            className="bg-gradient-to-r from-blue-600 to-indigo-500 text-white">
             <CheckCheck className="h-4 w-4 mr-2" />
             Mark all as read ({unreadCount})
           </Button>
@@ -239,7 +230,7 @@ export default function AdminNotificationsPage() {
                   key={notification.id}
                   className={`p-4 rounded-lg border transition-all hover:shadow-md ${
                     !notification.is_read 
-                      ? 'bg-white border-purple-200 shadow-sm' 
+                      ? 'bg-white border-blue-200 shadow-sm' 
                       : 'bg-gray-50/50 border-gray-200'
                   }`}
                 >

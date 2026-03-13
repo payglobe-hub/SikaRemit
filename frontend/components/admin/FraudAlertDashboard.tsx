@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import api from '@/lib/api/axios'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -80,8 +81,8 @@ export function FraudAlertDashboard() {
   const fetchAlerts = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/fraud/alerts/?status=${activeTab}`)
-      const data = await response.json()
+      const response = await api.get('/api/v1/fraud/alerts/', { params: { status: activeTab } })
+      const data = response.data
       
       if (data.success) {
         setAlerts(data.alerts)
@@ -96,8 +97,8 @@ export function FraudAlertDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/fraud/stats/')
-      const data = await response.json()
+      const response = await api.get('/api/v1/fraud/stats/')
+      const data = response.data
       
       if (data.success) {
         setStats(data.stats)
@@ -109,16 +110,12 @@ export function FraudAlertDashboard() {
 
   const handleReview = async (alertId: number, action: 'approve' | 'block' | 'false_positive') => {
     try {
-      const response = await fetch(`/api/fraud/alerts/${alertId}/review/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action,
-          notes: reviewNotes
-        })
+      const response = await api.post(`/api/v1/fraud/alerts/${alertId}/review/`, {
+        action,
+        notes: reviewNotes
       })
 
-      const data = await response.json()
+      const data = response.data
       
       if (data.success) {
         toast({ title: 'Success', description: `Alert ${action}ed successfully` })

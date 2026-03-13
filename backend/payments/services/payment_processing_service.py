@@ -47,7 +47,7 @@ class PaymentServiceWithKYC:
                 amount=amount,
                 payment_method=payment_method_obj,
                 status='pending',
-                currency='GHS' if payment_method_obj.method_type in ['mtn_momo', 'telecel', 'airtel_tigo'] else 'USD'  # Dynamic currency default
+                currency='GHS' if payment_method_obj.method_type in PaymentMethodModel.MOBILE_MONEY_TYPES else 'USD'
             )
             logger.info(f"Created transaction {transaction.id} for user {user.id}")
 
@@ -71,12 +71,30 @@ class PaymentServiceWithKYC:
                     except Exception as e:
                         logger.warning(f"Stripe gateway failed: {e}")
 
-                elif payment_method_obj.method_type in [PaymentMethodModel.MTN_MOMO, PaymentMethodModel.TELECEL, PaymentMethodModel.AIRTEL_TIGO]:
+                elif payment_method_obj.method_type in PaymentMethodModel.MOBILE_MONEY_TYPES:
                     # Use direct mobile money gateway for Ghanaian mobile money
                     logger.info(f"Routing to mobile money gateway for transaction {transaction.id}")
                     try:
-                        from ..gateways.mobile_money import MobileMoneyGateway
-                        gateway = MobileMoneyGateway()
+                        # Import specific gateways
+                        from ..gateways.mobile_money import MTNMoMoGateway, TelecelCashGateway, AirtelTigoMoneyGateway, GMoneyGateway
+                        
+                        # Get provider from payment method details
+                        provider = payment_method_obj.details.get('provider', '').lower()
+                        
+                        # Select appropriate gateway based on provider
+                        if provider == 'mtn':
+                            gateway = MTNMoMoGateway()
+                        elif provider == 'telecel':
+                            gateway = TelecelCashGateway()
+                        elif provider == 'airtel_tigo':
+                            gateway = AirtelTigoMoneyGateway()
+                        elif provider == 'g_money':
+                            gateway = GMoneyGateway()
+                        else:
+                            # Fallback to generic mobile money gateway
+                            from ..gateways.mobile_money import MobileMoneyGateway
+                            gateway = MobileMoneyGateway()
+                        
                         gateway_result = gateway.process_payment(
                             amount=amount,
                             currency='GHS',  # Ghanaian payments default to GHS
@@ -104,27 +122,40 @@ class PaymentServiceWithKYC:
                         )
                     except Exception as e:
                         logger.warning(f"Bank transfer gateway failed: {e}")
+
+                elif payment_method_obj.method_type == PaymentMethodModel.SIKAREMIT_BALANCE:
+                    # Use internal wallet balance gateway — instant, zero fees
+                    logger.info(f"Routing to SikaRemit balance gateway for transaction {transaction.id}")
+                    try:
+                        from ..gateways.sikaremit_balance import SikaRemitBalanceGateway
+                        gateway = SikaRemitBalanceGateway()
+                        gateway_result = gateway.process_payment(
+                            amount=amount,
+                            currency=transaction.currency,
+                            payment_method=payment_method_obj,
+                            customer=user.customer_profile,
+                            merchant=None,
+                            metadata={'transaction_id': transaction.id}
+                        )
+                    except Exception as e:
+                        logger.warning(f"SikaRemit balance gateway failed: {e}")
                 else:
                     logger.error(f"Unsupported payment method type: {payment_method_obj.method_type}")
                     raise ValueError(f"Unsupported payment method: {payment_method_obj.method_type}")
             except Exception as e:
-                logger.warning(f"Real gateway failed for {payment_method_obj.method_type}: {e}")
-                # Fallback to mock gateway
-                try:
-                    from ..gateways.mock_gateway import MockPaymentGateway
-                    mock_gateway = MockPaymentGateway()
-                    logger.info(f"Using mock gateway for transaction {transaction.id}")
-                    gateway_result = mock_gateway.process_payment(
-                        amount=amount,
-                        currency='GHS' if payment_method_obj.method_type in ['mtn_momo', 'telecel', 'airtel_tigo'] else 'USD',
-                        payment_method=payment_method_obj,
-                        customer=user.customer_profile,
-                        merchant=None,
-                        metadata={'transaction_id': transaction.id}
-                    )
-                except Exception as mock_error:
-                    logger.error(f"Mock gateway also failed: {mock_error}")
-                    raise ValueError(f"All payment gateways failed for transaction {transaction.id}")
+                logger.error(f"Real gateway failed for {payment_method_obj.method_type}: {e}")
+                logger.error(f"Transaction ID: {transaction.id}")
+                logger.error(f"Payment Method: {payment_method_obj.method_type}")
+                logger.error(f"Amount: {amount} {currency}")
+                
+                # CRITICAL: No mock fallback in production - fail gracefully
+                transaction.status = 'failed'
+                transaction.failure_reason = f"Payment processing unavailable: {str(e)}"
+                transaction.save()
+                
+                error_msg = f"Payment processing failed for {payment_method_obj.method_type}. Please try again later or contact support."
+                logger.error(f"Payment processing failed for transaction {transaction.id}: {error_msg}")
+                raise ValueError(error_msg)
 
             # Update transaction status based on gateway result
             if gateway_result.get('success'):
@@ -135,41 +166,59 @@ class PaymentServiceWithKYC:
                 if gateway_result.get('authorization_url'):
                     transaction.metadata['authorization_url'] = gateway_result['authorization_url']
                 logger.info(f"Payment successful for transaction {transaction.id}")
+
+                try:
+                    transaction.save()
+                except Exception as db_err:
+                    logger.error(f"DB save failed after gateway charge for tx {transaction.id}, issuing refund: {db_err}")
+                    try:
+                        gateway.refund_payment(
+                            transaction_id=gateway_result.get('transaction_id'),
+                            amount=float(amount),
+                            reason='DB save failed after charge'
+                        )
+                    except Exception as refund_err:
+                        logger.critical(
+                            f"REFUND ALSO FAILED for tx {transaction.id}, "
+                            f"gateway_tx={gateway_result.get('transaction_id')}, "
+                            f"amount={amount}: {refund_err}"
+                        )
+                    raise ValueError('Payment charged but recording failed. Refund initiated.')
             else:
                 transaction.status = 'failed'
                 transaction.failure_reason = gateway_result.get('error', 'Payment failed')
                 logger.error(f"Payment failed for transaction {transaction.id}: {gateway_result.get('error')}")
-
-            transaction.save()
-            return transaction
-
-            # Perform fraud detection analysis
-            fraud_analysis = self._perform_fraud_analysis(transaction)
-            
-            # Update transaction with fraud analysis results
-            if fraud_analysis.get('auto_block'):
-                transaction.status = 'failed'
-                transaction.metadata = transaction.metadata or {}
-                transaction.metadata['fraud_blocked'] = True
-                transaction.metadata['fraud_score'] = fraud_analysis.get('fraud_score')
                 transaction.save()
-                logger.warning(f"Transaction {transaction.id} blocked by fraud detection")
-                
-                return {
-                    'success': False,
-                    'transaction_id': transaction.transaction_id,
-                    'status': transaction.status,
-                    'error': 'Transaction blocked by fraud detection',
-                    'fraud_analysis': fraud_analysis
-                }
 
-            return {
-                'success': result.get('success', False),
-                'transaction_id': transaction.transaction_id,
-                'status': transaction.status,
-                'gateway_response': result,
-                'fraud_analysis': fraud_analysis
-            }
+            # Perform fraud detection analysis on completed transactions
+            if transaction.status == 'completed':
+                try:
+                    fraud_analysis = self._perform_fraud_analysis(transaction)
+
+                    if fraud_analysis.get('auto_block'):
+                        transaction.status = 'failed'
+                        transaction.metadata = transaction.metadata or {}
+                        transaction.metadata['fraud_blocked'] = True
+                        transaction.metadata['fraud_score'] = fraud_analysis.get('fraud_score')
+                        transaction.save()
+                        logger.warning(f"Transaction {transaction.id} blocked by fraud detection")
+
+                        return {
+                            'success': False,
+                            'transaction_id': transaction.transaction_id,
+                            'status': transaction.status,
+                            'error': 'Transaction blocked by fraud detection',
+                            'fraud_analysis': fraud_analysis
+                        }
+
+                    # Attach fraud analysis to successful transaction metadata
+                    transaction.metadata = transaction.metadata or {}
+                    transaction.metadata['fraud_score'] = fraud_analysis.get('fraud_score')
+                    transaction.save()
+                except Exception as fraud_err:
+                    logger.error(f"Fraud analysis failed for transaction {transaction.id}: {fraud_err}")
+
+            return transaction
 
         except ValueError as e:
             logger.warning(f"Payment validation error for user {user.id}: {str(e)}")
@@ -258,12 +307,12 @@ class PaymentServiceWithKYC:
             
             gateway = StripeGateway()
             
-            # Create a mock payment method object for the gateway
-            class MockPaymentMethod:
+            # Adapter to pass card token to the gateway interface
+            class CardPaymentMethod:
                 def __init__(self, token):
                     self.details = {'payment_method_id': token}
             
-            payment_method = MockPaymentMethod(token)
+            payment_method = CardPaymentMethod(token)
             
             result = gateway.process_payment(
                 amount=amount,
@@ -317,28 +366,20 @@ class PaymentServiceWithKYC:
             
             gateway = gateway_class()
             
-            # Create mock payment method object
-            class MockPaymentMethod:
+            # Adapter classes to pass mobile payment data to gateway interface
+            class MobilePaymentMethod:
                 def __init__(self, phone):
                     self.details = {'phone_number': phone}
-                    self.id = f"mock_{phone}"
+                    self.id = f"mobile_{phone}"
             
-            class MockCustomer:
-                def __init__(self):
-                    self.id = 'mock_customer'
-            
-            class MockMerchant:
-                def __init__(self):
-                    self.business_name = 'SikaRemit'
-            
-            payment_method = MockPaymentMethod(phone_number)
+            payment_method = MobilePaymentMethod(phone_number)
             
             result = gateway.process_payment(
                 amount=amount,
                 currency=currency,
                 payment_method=payment_method,
-                customer=MockCustomer(),
-                merchant=MockMerchant(),
+                customer=None,
+                merchant=None,
                 metadata=metadata or {}
             )
             
@@ -382,7 +423,7 @@ class PaymentServiceWithKYC:
             payout_method = merchant.default_payout_method
             if payout_method.method_type == PaymentMethod.BANK:
                 result = PaymentService._process_bank_payout(merchant, amount)
-            elif payout_method.method_type == PaymentMethod.MOBILE_MONEY:
+            elif payout_method.method_type in PaymentMethod.MOBILE_MONEY_TYPES:
                 result = PaymentService._process_mobile_payout(merchant, amount)
             else:
                 raise ValueError(f"Unsupported payout method: {payout_method.method_type}")
@@ -413,19 +454,32 @@ class PaymentServiceWithKYC:
     @staticmethod
     def _process_bank_payout(merchant, amount, currency='GHS'):
         """
-        Process bank transfer payout using direct bank integration
+        Process bank transfer payout using BankTransferGateway
         """
         try:
-            # For now, return a mock response
-            # In production, integrate with direct banking partners
-            import uuid
-            return {
-                'success': True,
-                'transaction_id': f"BANK-{uuid.uuid4().hex[:12].upper()}",
-                'reference': f"PAYOUT-{uuid.uuid4().hex[:12].upper()}",
-                'status': 'processing',
-                'message': 'Bank transfer payout initiated via direct integration'
-            }
+            from payments.gateways.bank_transfer import BankTransferGateway
+
+            gateway = BankTransferGateway()
+            if not gateway.default_provider:
+                return {'success': False, 'error': 'Bank transfer gateway not configured'}
+
+            payout_method = merchant.default_payout_method
+            bank_details = getattr(payout_method, 'details', {}) if payout_method else {}
+
+            result = gateway.disburse_funds(
+                amount=float(amount),
+                currency=currency,
+                bank_code=bank_details.get('bank_code', ''),
+                account_number=bank_details.get('account_number', ''),
+                account_name=bank_details.get('account_name', merchant.business_name),
+                recipient_name=merchant.business_name,
+                recipient_email=getattr(merchant, 'email', ''),
+                metadata={
+                    'type': 'merchant_payout',
+                    'merchant_id': str(merchant.id),
+                }
+            )
+            return result
         except Exception as e:
             logger.error(f"Bank payout failed: {str(e)}")
             return {'success': False, 'error': str(e)}
@@ -433,18 +487,39 @@ class PaymentServiceWithKYC:
     @staticmethod
     def _process_mobile_payout(merchant, amount, currency='GHS'):
         """
-        Process mobile money payout using direct integration
+        Process mobile money payout using mobile money gateway
         """
         try:
-            # For now, return a mock response
-            # In production, integrate with direct mobile money operators
-            import uuid
-            return {
-                'success': True,
-                'transaction_id': f"MOMO-{uuid.uuid4().hex[:12].upper()}",
-                'reference': f"MOMO-{uuid.uuid4().hex[:12].upper()}",
-                'message': 'Mobile money payout initiated via direct integration'
+            from payments.gateways.mobile_money import (
+                MTNMoMoGateway, TelecelCashGateway, AirtelTigoMoneyGateway, GMoneyGateway
+            )
+
+            payout_method = merchant.default_payout_method
+            method_type = getattr(payout_method, 'method_type', 'mtn_momo') if payout_method else 'mtn_momo'
+            phone_number = getattr(payout_method, 'details', {}).get('phone_number', '') if payout_method else ''
+
+            gateway_map = {
+                'mtn_momo': MTNMoMoGateway,
+                'telecel': TelecelCashGateway,
+                'airtel_tigo': AirtelTigoMoneyGateway,
+                'g_money': GMoneyGateway,
             }
+
+            gateway_class = gateway_map.get(method_type, MTNMoMoGateway)
+            gateway = gateway_class()
+
+            result = gateway.process_payment(
+                amount=float(amount),
+                currency=currency,
+                phone_number=phone_number,
+                customer=None,
+                merchant=merchant,
+                metadata={
+                    'type': 'merchant_payout',
+                    'merchant_id': str(merchant.id),
+                }
+            )
+            return result
         except Exception as e:
             logger.error(f"Mobile payout failed: {str(e)}")
             return {'success': False, 'error': str(e)}
@@ -569,13 +644,24 @@ class PaymentServiceWithKYC:
                 }
             
             # Process payment based on method type
-            if payment_method.method_type == 'mobile_money':
+            if payment_method.method_type in PaymentMethod.MOBILE_MONEY_TYPES:
                 result = PaymentService._process_mobile_payment(sender.phone_number, amount)
             elif payment_method.method_type == 'credit_card':
                 # For P2P, card payments might be handled differently
                 result = PaymentService._process_card_payment(None, amount)
             elif payment_method.method_type == 'bank_transfer':
                 result = {'success': True, 'transaction_id': f"BANK-{int(time.time())}"}
+            elif payment_method.method_type == PaymentMethod.SIKAREMIT_BALANCE:
+                from payments.gateways.sikaremit_balance import SikaRemitBalanceGateway
+                gateway = SikaRemitBalanceGateway()
+                result = gateway.process_payment(
+                    amount=amount,
+                    currency='GHS',
+                    payment_method=payment_method,
+                    customer=sender,
+                    merchant=recipient if hasattr(recipient, 'user') else None,
+                    metadata={'type': 'p2p_transfer'}
+                )
             else:
                 return {
                     'success': False,

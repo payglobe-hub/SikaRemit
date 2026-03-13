@@ -17,10 +17,10 @@ class TelecomService:
                 'api_url': getattr(settings, 'MTN_DATA_PACKAGES_API_URL', None),
                 'api_key': getattr(settings, 'MTN_DATA_PACKAGES_API_KEY', None),
             },
-            'vodafone': {
-                'name': 'Vodafone',
-                'api_url': getattr(settings, 'VODAFONE_DATA_PACKAGES_API_URL', None),
-                'api_key': getattr(settings, 'VODAFONE_DATA_PACKAGES_API_KEY', None),
+            'telecel': {
+                'name': 'Telecel',
+                'api_url': getattr(settings, 'TELECEL_DATA_PACKAGES_API_URL', None),
+                'api_key': getattr(settings, 'TELECEL_DATA_PACKAGES_API_KEY', None),
             },
             'airteltigo': {
                 'name': 'AirtelTigo',

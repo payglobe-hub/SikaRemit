@@ -10,6 +10,10 @@ from ..serializers import WalletBalanceSerializer, CurrencySerializer, CurrencyP
 from django.utils import timezone
 import logging
 import uuid
+from ..exceptions import (
+    InvalidAmountException, InsufficientFundsException, PaymentGatewayException,
+    InvalidPaymentMethodException, TransactionLimitExceededException
+)
 
 
 logger = logging.getLogger(__name__)
@@ -425,27 +429,18 @@ def deposit_mobile_money(request):
         
         # Validate required fields
         if not all([amount, provider, phone_number]):
-            return Response(
-                {'error': 'amount, provider, and phone_number are required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            raise InvalidAmountException("amount, provider, and phone_number are required")
         
         try:
             amount = Decimal(str(amount))
             if amount <= 0:
-                raise ValueError("Amount must be positive")
+                raise InvalidAmountException("Amount must be positive")
         except (ValueError, TypeError):
-            return Response(
-                {'error': 'Invalid amount format'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            raise InvalidAmountException("Invalid amount format")
         
         # Minimum deposit amount
         if amount < Decimal('1.00'):
-            return Response(
-                {'error': 'Minimum deposit amount is 1.00'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            raise TransactionLimitExceededException("Minimum deposit amount is 1.00")
         
         # Create deposit transaction
         with db_transaction.atomic():
@@ -465,9 +460,92 @@ def deposit_mobile_money(request):
                 }
             )
             
-            # TODO: Integrate with actual Mobile Money provider API
-            # For now, mark as pending (awaiting payment confirmation)
-            # In production, this would initiate a payment request to the user's phone
+            # REAL MOBILE MONEY INTEGRATION
+            # Initiate payment request to user's phone via provider API
+            try:
+                from ..gateways.mobile_money import MTNMoMoGateway, TelecelCashGateway, AirtelTigoMoneyGateway, GMoneyGateway
+                
+                # Select appropriate gateway based on provider
+                if provider.upper() == 'MTN':
+                    gateway = MTNMoMoGateway()
+                elif provider.upper() == 'TELECEL':
+                    gateway = TelecelCashGateway()
+                elif provider.upper() in ['AIRTELTIGO', 'AIRTEL_TIGO']:
+                    gateway = AirtelTigoMoneyGateway()
+                elif provider.upper() in ['G_MONEY', 'G-MONEY']:
+                    gateway = GMoneyGateway()
+                else:
+                    raise ValueError(f"Unsupported mobile money provider: {provider}")
+                
+                # Check if gateway is properly configured
+                if not gateway.is_configured():
+                    tx.status = 'failed'
+                    tx.failure_reason = f"{provider} gateway not configured"
+                    tx.save()
+                    return Response({
+                        'error': f'{provider} payment service is temporarily unavailable. Please try again later.'
+                    }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                
+                # Process mobile money payment request
+                payment_result = gateway.process_payment(
+                    amount=float(amount),
+                    currency=currency_code,
+                    phone_number=phone_number,
+                    customer=request.user.customer_profile,
+                    merchant=None,  # Self-deposit
+                    metadata={
+                        'transaction_reference': tx.reference,
+                        'deposit_type': 'mobile_money',
+                        'user_id': request.user.id
+                    }
+                )
+                
+                if payment_result.get('success'):
+                    tx.status = 'pending'
+                    tx.metadata.update({
+                        'provider_reference': payment_result.get('transaction_id'),
+                        'provider': provider,
+                        'payment_request_sent': True,
+                        'instructions': payment_result.get('instructions', f'Please enter your {provider} PIN to confirm')
+                    })
+                    tx.save()
+                    
+                    return Response({
+                        'success': True,
+                        'message': f'Deposit request initiated successfully via {provider}.',
+                        'transaction_id': tx.reference,
+                        'amount': float(amount),
+                        'currency': currency_code,
+                        'provider': provider,
+                        'phone_number': phone_number,
+                        'status': tx.status,
+                        'instructions': payment_result.get('instructions', f'A payment request has been sent to {phone_number}. Please enter your PIN to confirm.'),
+                        'provider_reference': payment_result.get('transaction_id')
+                    }, status=status.HTTP_201_CREATED)
+                else:
+                    tx.status = 'failed'
+                    tx.failure_reason = payment_result.get('error', 'Payment request failed')
+                    tx.save()
+                    return Response({
+                        'error': payment_result.get('error', f'Failed to initiate {provider} payment. Please try again.')
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                    
+            except ImportError as e:
+                logger.error(f"Mobile money gateway not available: {str(e)}")
+                tx.status = 'failed'
+                tx.failure_reason = 'Mobile money service unavailable'
+                tx.save()
+                return Response({
+                    'error': 'Mobile money payment service is temporarily unavailable. Please try again later.'
+                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            except Exception as e:
+                logger.error(f"Mobile money payment failed: {str(e)}")
+                tx.status = 'failed'
+                tx.failure_reason = str(e)
+                tx.save()
+                return Response({
+                    'error': f'Payment processing failed: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return Response({
             'success': True,
@@ -546,7 +624,26 @@ def deposit_bank_transfer(request):
                 }
             )
         
-        # Return bank account details
+        # Return bank account details from settings
+        from django.conf import settings as django_settings
+        bank_details = {
+            'bank_name': getattr(django_settings, 'SIKAREMIT_BANK_NAME', ''),
+            'account_name': getattr(django_settings, 'SIKAREMIT_BANK_ACCOUNT_NAME', ''),
+            'account_number': getattr(django_settings, 'SIKAREMIT_BANK_ACCOUNT_NUMBER', ''),
+            'branch': getattr(django_settings, 'SIKAREMIT_BANK_BRANCH', ''),
+            'swift_code': getattr(django_settings, 'SIKAREMIT_BANK_SWIFT_CODE', ''),
+            'reference': tx.reference  # User must include this as payment reference
+        }
+
+        if not bank_details['account_number']:
+            tx.status = 'failed'
+            tx.failure_reason = 'Bank deposit details not configured'
+            tx.save()
+            return Response(
+                {'error': 'Bank deposit service is temporarily unavailable. Please try another method.'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+
         return Response({
             'success': True,
             'message': 'Please transfer the amount to the bank account below',
@@ -554,14 +651,7 @@ def deposit_bank_transfer(request):
             'amount': float(amount),
             'currency': currency_code,
             'status': tx.status,
-            'bank_details': {
-                'bank_name': 'Ghana Commercial Bank',
-                'account_name': 'SikaRemit Ltd',
-                'account_number': '1234567890',
-                'branch': 'Accra Main Branch',
-                'swift_code': 'GHCBGHAC',
-                'reference': tx.reference  # User must include this as payment reference
-            },
+            'bank_details': bank_details,
             'instructions': f'Please transfer exactly {currency_code} {amount} and include reference {tx.reference} in your payment description.'
         }, status=status.HTTP_201_CREATED)
         
@@ -631,24 +721,118 @@ def deposit_card(request):
                 }
             )
             
-            # TODO: Integrate with payment processor (Paystack, Stripe, etc.)
-            # For now, simulate successful card charge
-            tx.status = 'completed'
-            tx.save()
-            
-            # Add funds to wallet
-            currency = CurrencyService.get_currency_by_code(currency_code)
-            if currency:
-                WalletService.add_to_wallet(request.user, currency, amount, 'available')
-        
-        return Response({
-            'success': True,
-            'message': 'Card deposit successful',
-            'transaction_id': tx.reference,
-            'amount': float(amount),
-            'currency': currency_code,
-            'status': tx.status
-        }, status=status.HTTP_201_CREATED)
+            # REAL CARD PAYMENT INTEGRATION
+            # Process card payment via Stripe or other payment processor
+            try:
+                from ..gateways.stripe import StripeGateway
+                
+                # Initialize Stripe gateway
+                stripe_gateway = StripeGateway()
+                
+                # Create a mock payment method object for the gateway
+                class CardPaymentMethod:
+                    def __init__(self, token):
+                        self.method_type = 'card'
+                        self.details = {'payment_method_id': token}
+                        self.id = f"card_{token[:8]}"
+                
+                payment_method = CardPaymentMethod(card_token)
+                
+                # Process card payment
+                payment_result = stripe_gateway.process_payment(
+                    amount=float(amount),
+                    currency=currency_code.lower(),  # Stripe expects lowercase
+                    payment_method=payment_method,
+                    customer=request.user.customer_profile,
+                    merchant=None,  # Self-deposit
+                    metadata={
+                        'transaction_reference': tx.reference,
+                        'deposit_type': 'card',
+                        'user_id': request.user.id
+                    }
+                )
+                
+                if payment_result.get('success'):
+                    # Record transaction + credit wallet atomically; refund if DB fails
+                    try:
+                        from django.db import transaction as db_transaction
+                        with db_transaction.atomic():
+                            tx.status = 'completed'
+                            tx.metadata.update({
+                                'provider_reference': payment_result.get('transaction_id'),
+                                'provider': 'stripe',
+                                'payment_completed': True,
+                                'card_last4': payment_result.get('card_last4'),
+                                'card_brand': payment_result.get('card_brand')
+                            })
+                            tx.save()
+
+                            # Add funds to user's wallet
+                            currency = CurrencyService.get_currency_by_code(currency_code)
+                            if currency:
+                                wallet_balance, created = WalletBalance.objects.get_or_create(
+                                    user=request.user,
+                                    currency=currency,
+                                    defaults={
+                                        'available_balance': Decimal('0'),
+                                        'pending_balance': Decimal('0')
+                                    }
+                                )
+                                wallet_balance.available_balance += amount
+                                wallet_balance.save()
+                    except Exception as db_err:
+                        logger.error(f"DB save failed after card deposit charge, issuing refund: {db_err}")
+                        try:
+                            stripe_gateway.refund_payment(
+                                transaction_id=payment_result.get('transaction_id'),
+                                amount=float(amount),
+                                reason='DB save failed after card deposit charge'
+                            )
+                        except Exception as refund_err:
+                            logger.critical(
+                                f"REFUND ALSO FAILED for card deposit tx {tx.reference}, "
+                                f"gateway_tx={payment_result.get('transaction_id')}, "
+                                f"amount={amount}: {refund_err}"
+                            )
+                        return Response({
+                            'error': 'Deposit charged but recording failed. A refund has been initiated.'
+                        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    
+                    return Response({
+                        'success': True,
+                        'message': f'Card deposit of {currency_code} {amount} processed successfully.',
+                        'transaction_id': tx.reference,
+                        'amount': float(amount),
+                        'currency': currency_code,
+                        'status': tx.status,
+                        'provider_reference': payment_result.get('transaction_id'),
+                        'card_last4': payment_result.get('card_last4'),
+                        'card_brand': payment_result.get('card_brand')
+                    }, status=status.HTTP_201_CREATED)
+                else:
+                    tx.status = 'failed'
+                    tx.failure_reason = payment_result.get('error', 'Card payment failed')
+                    tx.save()
+                    return Response({
+                        'error': payment_result.get('error', 'Card payment failed. Please try again.')
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                    
+            except ImportError as e:
+                logger.error(f"Card payment gateway not available: {str(e)}")
+                tx.status = 'failed'
+                tx.failure_reason = 'Card payment service unavailable'
+                tx.save()
+                return Response({
+                    'error': 'Card payment service is temporarily unavailable. Please try again later.'
+                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            except Exception as e:
+                logger.error(f"Card payment failed: {str(e)}")
+                tx.status = 'failed'
+                tx.failure_reason = str(e)
+                tx.save()
+                return Response({
+                    'error': f'Card payment processing failed: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
     except Exception as e:
         logger.error(f"Error processing card deposit: {str(e)}")
@@ -766,10 +950,127 @@ def withdraw_mobile_money(request):
             wallet_balance.pending_balance += total_deduction
             wallet_balance.save()
             
-            # TODO: Integrate with actual Mobile Money provider API
-            # For now, mark as processing (awaiting disbursement)
-            tx.status = 'processing'
-            tx.save()
+            # REAL MOBILE MONEY WITHDRAWAL INTEGRATION
+            # Process disbursement to user's phone via provider API
+            try:
+                from ..gateways.mobile_money import MTNMoMoGateway, TelecelCashGateway, AirtelTigoMoneyGateway, GMoneyGateway
+                
+                # Select appropriate gateway based on provider
+                if provider.upper() == 'MTN':
+                    gateway = MTNMoMoGateway()
+                elif provider.upper() == 'TELECEL':
+                    gateway = TelecelCashGateway()
+                elif provider.upper() in ['AIRTELTIGO', 'AIRTEL_TIGO']:
+                    gateway = AirtelTigoMoneyGateway()
+                elif provider.upper() in ['G_MONEY', 'G-MONEY']:
+                    gateway = GMoneyGateway()
+                else:
+                    raise ValueError(f"Unsupported mobile money provider: {provider}")
+                
+                # Check if gateway is properly configured
+                if not gateway.is_configured():
+                    # Refund the pending balance back to available
+                    wallet_balance.available_balance += total_deduction
+                    wallet_balance.pending_balance -= total_deduction
+                    wallet_balance.save()
+                    
+                    tx.status = 'failed'
+                    tx.failure_reason = f"{provider} gateway not configured"
+                    tx.save()
+                    return Response({
+                        'error': f'{provider} withdrawal service is temporarily unavailable. Please try again later.'
+                    }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                
+                # Process mobile money disbursement
+                disbursement_result = gateway.disburse_funds(
+                    amount=float(amount),
+                    currency=currency_code,
+                    phone_number=phone_number,
+                    recipient_name=request.user.get_full_name() or request.user.email,
+                    metadata={
+                        'transaction_reference': tx.reference,
+                        'withdrawal_type': 'mobile_money',
+                        'user_id': request.user.id,
+                        'fee': float(fee)
+                    }
+                )
+                
+                if disbursement_result.get('success'):
+                    try:
+                        from django.db import transaction as db_transaction
+                        with db_transaction.atomic():
+                            tx.status = 'processing'
+                            tx.metadata.update({
+                                'provider_reference': disbursement_result.get('transaction_id'),
+                                'provider': provider,
+                                'disbursement_initiated': True,
+                                'estimated_time': disbursement_result.get('estimated_time', '1-5 minutes')
+                            })
+                            tx.save()
+                    except Exception as db_err:
+                        logger.critical(
+                            f"DB save failed after withdrawal disbursement for tx {tx.reference}, "
+                            f"gateway_tx={disbursement_result.get('transaction_id')}, "
+                            f"amount={amount}, pending_balance not cleared. "
+                            f"Manual reconciliation required: {db_err}"
+                        )
+                        return Response({
+                            'error': 'Withdrawal sent but recording failed. Please contact support with your reference.'
+                        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    
+                    return Response({
+                        'success': True,
+                        'message': f'Withdrawal initiated successfully via {provider}.',
+                        'transaction_id': tx.reference,
+                        'amount': float(amount),
+                        'fee': float(fee),
+                        'total_deduction': float(total_deduction),
+                        'currency': currency_code,
+                        'provider': provider,
+                        'phone_number': phone_number,
+                        'status': tx.status,
+                        'estimated_time': disbursement_result.get('estimated_time', '1-5 minutes'),
+                        'provider_reference': disbursement_result.get('transaction_id')
+                    }, status=status.HTTP_201_CREATED)
+                else:
+                    # Refund the pending balance back to available
+                    wallet_balance.available_balance += total_deduction
+                    wallet_balance.pending_balance -= total_deduction
+                    wallet_balance.save()
+                    
+                    tx.status = 'failed'
+                    tx.failure_reason = disbursement_result.get('error', 'Disbursement failed')
+                    tx.save()
+                    return Response({
+                        'error': disbursement_result.get('error', f'Failed to process {provider} withdrawal. Please try again.')
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                    
+            except ImportError as e:
+                logger.error(f"Mobile money gateway not available: {str(e)}")
+                # Refund the pending balance back to available
+                wallet_balance.available_balance += total_deduction
+                wallet_balance.pending_balance -= total_deduction
+                wallet_balance.save()
+                
+                tx.status = 'failed'
+                tx.failure_reason = 'Mobile money service unavailable'
+                tx.save()
+                return Response({
+                    'error': 'Mobile money withdrawal service is temporarily unavailable. Please try again later.'
+                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            except Exception as e:
+                logger.error(f"Mobile money withdrawal failed: {str(e)}")
+                # Refund the pending balance back to available
+                wallet_balance.available_balance += total_deduction
+                wallet_balance.pending_balance -= total_deduction
+                wallet_balance.save()
+                
+                tx.status = 'failed'
+                tx.failure_reason = str(e)
+                tx.save()
+                return Response({
+                    'error': f'Withdrawal processing failed: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return Response({
             'success': True,
@@ -902,10 +1203,138 @@ def withdraw_bank_transfer(request):
             wallet_balance.pending_balance += total_deduction
             wallet_balance.save()
             
-            # TODO: Integrate with actual Bank Transfer API
-            # For now, mark as processing
-            tx.status = 'processing'
-            tx.save()
+            # REAL BANK TRANSFER INTEGRATION
+            # Process withdrawal via bank transfer API
+            try:
+                from ..gateways.bank_transfer import BankTransferGateway
+                
+                gateway = BankTransferGateway()
+                
+                # Check if any bank transfer providers are configured
+                if not gateway.default_provider:
+                    # Refund the pending balance back to available
+                    wallet_balance.available_balance += total_deduction
+                    wallet_balance.pending_balance -= total_deduction
+                    wallet_balance.save()
+                    
+                    tx.status = 'failed'
+                    tx.failure_reason = 'Bank transfer service not configured'
+                    tx.save()
+                    return Response({
+                        'error': 'Bank transfer service is temporarily unavailable. Please try again later.'
+                    }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                
+                # Create a mock payment method for the bank transfer
+                class BankTransferPaymentMethod:
+                    def __init__(self, bank_code, account_number, account_name):
+                        self.method_type = 'bank_transfer'
+                        self.details = {
+                            'bank_code': bank_code,
+                            'account_number': account_number,
+                            'account_name': account_name
+                        }
+                        self.id = f"bank_{bank_code}_{account_number}"
+                
+                payment_method = BankTransferPaymentMethod(bank_code, account_number, account_name)
+                
+                # Process bank transfer disbursement
+                disbursement_result = gateway.disburse_funds(
+                    amount=float(amount),
+                    currency=currency_code,
+                    bank_code=bank_code,
+                    account_number=account_number,
+                    account_name=account_name,
+                    recipient_name=request.user.get_full_name() or request.user.email,
+                    recipient_email=request.user.email,
+                    metadata={
+                        'transaction_reference': tx.reference,
+                        'withdrawal_type': 'bank_transfer',
+                        'user_id': request.user.id,
+                        'fee': float(fee)
+                    }
+                )
+                
+                if disbursement_result.get('success'):
+                    try:
+                        from django.db import transaction as db_transaction
+                        with db_transaction.atomic():
+                            tx.status = 'processing'
+                            tx.metadata.update({
+                                'provider_reference': disbursement_result.get('transaction_id'),
+                                'bank_code': bank_code,
+                                'account_number': account_number,
+                                'account_name': account_name,
+                                'disbursement_initiated': True,
+                                'estimated_time': disbursement_result.get('estimated_time', '1-3 business days'),
+                                'instructions': disbursement_result.get('instructions')
+                            })
+                            tx.save()
+                    except Exception as db_err:
+                        logger.critical(
+                            f"DB save failed after bank withdrawal disbursement for tx {tx.reference}, "
+                            f"gateway_tx={disbursement_result.get('transaction_id')}, "
+                            f"amount={amount}, pending_balance not cleared. "
+                            f"Manual reconciliation required: {db_err}"
+                        )
+                        return Response({
+                            'error': 'Withdrawal sent but recording failed. Please contact support with your reference.'
+                        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    
+                    return Response({
+                        'success': True,
+                        'message': f'Bank transfer initiated successfully to {account_name} ({bank_code}).',
+                        'transaction_id': tx.reference,
+                        'amount': float(amount),
+                        'fee': float(fee),
+                        'total_deduction': float(total_deduction),
+                        'currency': currency_code,
+                        'bank_code': bank_code,
+                        'account_number': account_number,
+                        'account_name': account_name,
+                        'status': tx.status,
+                        'estimated_time': disbursement_result.get('estimated_time', '1-3 business days'),
+                        'provider_reference': disbursement_result.get('transaction_id'),
+                        'instructions': disbursement_result.get('instructions')
+                    }, status=status.HTTP_201_CREATED)
+                else:
+                    # Refund the pending balance back to available
+                    wallet_balance.available_balance += total_deduction
+                    wallet_balance.pending_balance -= total_deduction
+                    wallet_balance.save()
+                    
+                    tx.status = 'failed'
+                    tx.failure_reason = disbursement_result.get('error', 'Bank transfer failed')
+                    tx.save()
+                    return Response({
+                        'error': disbursement_result.get('error', 'Failed to process bank transfer. Please try again.')
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                    
+            except ImportError as e:
+                logger.error(f"Bank transfer gateway not available: {str(e)}")
+                # Refund the pending balance back to available
+                wallet_balance.available_balance += total_deduction
+                wallet_balance.pending_balance -= total_deduction
+                wallet_balance.save()
+                
+                tx.status = 'failed'
+                tx.failure_reason = 'Bank transfer service unavailable'
+                tx.save()
+                return Response({
+                    'error': 'Bank transfer service is temporarily unavailable. Please try again later.'
+                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            except Exception as e:
+                logger.error(f"Bank transfer withdrawal failed: {str(e)}")
+                # Refund the pending balance back to available
+                wallet_balance.available_balance += total_deduction
+                wallet_balance.pending_balance -= total_deduction
+                wallet_balance.save()
+                
+                tx.status = 'failed'
+                tx.failure_reason = str(e)
+                tx.save()
+                return Response({
+                    'error': f'Bank transfer processing failed: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return Response({
             'success': True,

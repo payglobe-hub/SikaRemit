@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useState, useEffect } from 'react'
+import api from '@/lib/api/axios'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
@@ -205,11 +206,10 @@ export function ExchangeRateChart({
     setLoading(true)
     try {
       // Fetch real historical data from API
-      const response = await fetch(`/api/currencies/historical/?from_currency=${fromCurrency}&to_currency=${toCurrency}&days=30`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch historical data')
-      }
-      const data = await response.json()
+      const response = await api.get('/api/v1/currencies/historical/', {
+        params: { from_currency: fromCurrency, to_currency: toCurrency, days: 30 }
+      })
+      const data = response.data
       
       // Transform API response to chart format
       const chartData = data.data.map((item: any) => ({

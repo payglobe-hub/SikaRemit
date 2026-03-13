@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core.validators import MaxValueValidator
 import uuid
 from shared.constants import (
-    USER_TYPE_CHOICES, USER_TYPE_ADMIN, USER_TYPE_MERCHANT, USER_TYPE_CUSTOMER,
+    USER_TYPE_CHOICES, USER_TYPE_SUPER_ADMIN, USER_TYPE_BUSINESS_ADMIN, USER_TYPE_OPERATIONS_ADMIN, USER_TYPE_VERIFICATION_ADMIN, USER_TYPE_MERCHANT, USER_TYPE_CUSTOMER,
     KYC_DOCUMENT_TYPES, KYC_DOCUMENT_STATUS_CHOICES, KYC_STATUS_CHOICES,
     MERCHANT_CUSTOMER_STATUS_CHOICES, PRIORITY_CHOICES,
     STATUS_PENDING, KYC_STATUS_NOT_STARTED, KYC_STATUS_APPROVED, KYC_STATUS_REJECTED,
@@ -71,7 +71,7 @@ class User(AbstractUser):
     @property
     def is_admin(self):
         """Check if user is an admin"""
-        return self.user_type == USER_TYPE_ADMIN
+        return self.user_type in [USER_TYPE_SUPER_ADMIN, USER_TYPE_BUSINESS_ADMIN, USER_TYPE_OPERATIONS_ADMIN, USER_TYPE_VERIFICATION_ADMIN]
     
     @property
     def is_merchant(self):
@@ -82,6 +82,19 @@ class User(AbstractUser):
     def is_customer(self):
         """Check if user is a customer"""
         return self.user_type == USER_TYPE_CUSTOMER
+    
+    @property
+    def role(self):
+        """Get string representation of user role"""
+        role_mapping = {
+            USER_TYPE_SUPER_ADMIN: 'super_admin',
+            USER_TYPE_BUSINESS_ADMIN: 'business_admin',
+            USER_TYPE_OPERATIONS_ADMIN: 'operations_admin',
+            USER_TYPE_VERIFICATION_ADMIN: 'verification_admin',
+            USER_TYPE_MERCHANT: 'merchant',
+            USER_TYPE_CUSTOMER: 'customer'
+        }
+        return role_mapping.get(self.user_type, 'customer')
 
 class KYCDocument(models.Model):
     """

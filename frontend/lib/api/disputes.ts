@@ -1,11 +1,4 @@
-import axios from 'axios'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-
-function getAuthHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
+import api from './axios'
 
 export interface Dispute {
   id: string
@@ -40,40 +33,47 @@ export async function getDisputes(params?: {
   limit?: number
 }): Promise<{ results: Dispute[], count: number }> {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/v1/payments/admin/disputes/`, {
-      headers: getAuthHeaders(),
+    const response = await api.get('/api/v1/payments/admin/disputes/', {
       params
     })
     return response.data
   } catch (error: any) {
+    // Log error for monitoring
+    console.error('Disputes API error:', error)
+    
     // Only fallback for 404 (endpoint not found), not for auth errors
     if (error?.response?.status === 404) {
-      console.warn('Disputes endpoint not found, using fallback')
-      // Fallback: get disputes from transactions endpoint
-      const txResponse = await axios.get(`${API_BASE_URL}/api/v1/payments/admin/transactions/`, {
-        headers: getAuthHeaders(),
-        params: { has_dispute: true, ...params }
-      })
-      const transactions = txResponse.data.results || txResponse.data || []
-      const disputes: Dispute[] = transactions
-        .filter((tx: any) => tx.dispute_id || tx.dispute_status)
-        .map((tx: any) => ({
-          id: tx.dispute_id || tx.id,
-          transaction_id: tx.id,
-          transaction_amount: tx.amount,
-          transaction_currency: tx.currency,
-          customer_name: tx.customer_name,
-          customer_email: tx.customer_email,
-          merchant_name: tx.merchant_name,
-          reason: tx.dispute_reason || 'No reason provided',
-          status: tx.dispute_status || 'open',
-          resolution: tx.dispute_resolution,
-          created_at: tx.dispute_created_at || tx.created_at,
-          updated_at: tx.updated_at,
-          resolved_at: tx.dispute_resolved_at,
-          resolved_by: tx.dispute_resolved_by
-        }))
-      return { results: disputes, count: disputes.length }
+      console.warn('Disputes endpoint not found, checking transactions endpoint for dispute data')
+      try {
+        // Fallback: get disputes from transactions endpoint
+        const txResponse = await api.get('/api/v1/payments/admin/transactions/', {
+          params: { has_dispute: true, ...params }
+        })
+        const transactions = txResponse.data.results || txResponse.data || []
+        const disputes: Dispute[] = transactions
+          .filter((tx: any) => tx.dispute_id || tx.dispute_status)
+          .map((tx: any) => ({
+            id: tx.dispute_id || tx.id,
+            transaction_id: tx.id,
+            transaction_amount: tx.amount,
+            transaction_currency: tx.currency,
+            customer_name: tx.customer_name,
+            customer_email: tx.customer_email,
+            merchant_name: tx.merchant_name,
+            reason: tx.dispute_reason || 'No reason provided',
+            status: tx.dispute_status || 'open',
+            resolution: tx.dispute_resolution,
+            created_at: tx.dispute_created_at || tx.created_at,
+            updated_at: tx.updated_at,
+            resolved_at: tx.dispute_resolved_at,
+            resolved_by: tx.dispute_resolved_by
+          }))
+        return { results: disputes, count: disputes.length }
+      } catch (fallbackError) {
+        console.error('Fallback disputes endpoint also failed:', fallbackError)
+        // Return empty result rather than throwing
+        return { results: [], count: 0 }
+      }
     }
     throw error
   }
@@ -82,9 +82,7 @@ export async function getDisputes(params?: {
 // Get dispute statistics
 export async function getDisputeStats(): Promise<DisputeStats> {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/v1/payments/admin/disputes/stats/`, {
-      headers: getAuthHeaders()
-    })
+    const response = await api.get('/api/v1/payments/admin/disputes/stats/')
     return response.data
   } catch (error: any) {
     // Return default stats if endpoint doesn't exist
@@ -107,18 +105,15 @@ export async function getDisputeStats(): Promise<DisputeStats> {
 
 // Get single dispute
 export async function getDispute(id: string): Promise<Dispute> {
-  const response = await axios.get(`${API_BASE_URL}/api/v1/payments/admin/disputes/${id}/`, {
-    headers: getAuthHeaders()
-  })
+  const response = await api.get(`/api/v1/payments/admin/disputes/${id}/`)
   return response.data
 }
 
 // Update dispute status (mark as under review)
 export async function updateDisputeStatus(id: string, status: string): Promise<Dispute> {
-  const response = await axios.patch(
-    `${API_BASE_URL}/api/v1/payments/admin/disputes/${id}/`,
-    { status },
-    { headers: getAuthHeaders() }
+  const response = await api.patch(
+    `/api/v1/payments/admin/disputes/${id}/`,
+    { status }
   )
   return response.data
 }
@@ -129,20 +124,18 @@ export async function resolveDispute(
   resolution: string, 
   action: 'refund' | 'complete' | 'close'
 ): Promise<any> {
-  const response = await axios.post(
-    `${API_BASE_URL}/api/v1/payments/admin/transactions/${transactionId}/resolve_dispute/`,
-    { resolution, action },
-    { headers: getAuthHeaders() }
+  const response = await api.post(
+    `/api/v1/payments/admin/transactions/${transactionId}/resolve_dispute/`,
+    { resolution, action }
   )
   return response.data
 }
 
 // Create dispute for a transaction
 export async function createDispute(transactionId: string, reason: string): Promise<any> {
-  const response = await axios.post(
-    `${API_BASE_URL}/api/v1/payments/admin/transactions/${transactionId}/create_dispute/`,
-    { reason },
-    { headers: getAuthHeaders() }
+  const response = await api.post(
+    `/api/v1/payments/admin/transactions/${transactionId}/create_dispute/`,
+    { reason }
   )
   return response.data
 }

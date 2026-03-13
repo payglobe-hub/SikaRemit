@@ -1,16 +1,16 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from shared.constants import USER_TYPE_ADMIN
+from shared.constants import USER_TYPE_SUPER_ADMIN
 
 
 class Command(BaseCommand):
     help = 'Create an admin user for SikaRemit'
 
     def add_arguments(self, parser):
-        parser.add_argument('--email', type=str, default='admin@sikaremit.com')
-        parser.add_argument('--password', type=str, default='Admin@123!')
-        parser.add_argument('--first_name', type=str, default='Admin')
-        parser.add_argument('--last_name', type=str, default='User')
+        parser.add_argument('--email', type=str, required=True, help='Admin email address')
+        parser.add_argument('--password', type=str, required=True, help='Admin password')
+        parser.add_argument('--first_name', type=str, required=True, help='Admin first name')
+        parser.add_argument('--last_name', type=str, required=True, help='Admin last name')
 
     def handle(self, *args, **options):
         User = get_user_model()
@@ -24,7 +24,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(f'User with email {email} already exists'))
             user = User.objects.get(email=email)
             user.set_password(password)
-            user.user_type = USER_TYPE_ADMIN
+            user.user_type = USER_TYPE_SUPER_ADMIN
             user.is_staff = True
             user.is_superuser = True
             user.is_verified = True

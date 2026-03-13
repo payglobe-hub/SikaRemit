@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { getExchangeRates, getCurrencies } from '@/lib/api/currency'
 import { useAuth } from '@/lib/auth/context'
+import { cookieUtils } from '@/lib/utils/cookie-auth'
 
 export type Currency = string // Currency code like 'GHS', 'USD', etc.
 
@@ -32,7 +33,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrency] = useState<Currency>('GHS') // Start with GHS as default
   const [availableCurrencies, setAvailableCurrencies] = useState<Currency[]>([])
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({})
-  const [baseCurrency, setBaseCurrency] = useState<string>('USD')
+  const [baseCurrency, setBaseCurrency] = useState<string>('GHS')
   const [lastRateUpdate, setLastRateUpdate] = useState<Date | null>(null)
   const [isLoadingRates, setIsLoadingRates] = useState(false)
 
@@ -56,15 +57,38 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
 
         // Load exchange rates
         const response = await getExchangeRates({ base: baseCurrency }) as any
-        const ratesWithBase = { ...response.rates, [baseCurrency]: 1.0 }
+        let ratesWithBase = { ...response.rates, [baseCurrency]: 1.0 }
+        
+        // If no rates are available, add some fallback rates for common currencies
+        if (Object.keys(ratesWithBase).length === 1) { // Only base currency
+          const fallbackRates = {
+            'USD': baseCurrency === 'GHS' ? 0.083 : 12.0,  // GHS to USD or USD to GHS
+            'EUR': baseCurrency === 'GHS' ? 0.076 : 13.2,  // GHS to EUR or EUR to GHS  
+            'GBP': baseCurrency === 'GHS' ? 0.065 : 15.4,  // GHS to GBP or GBP to GHS
+          }
+          ratesWithBase = { ...ratesWithBase, ...fallbackRates }
+          console.warn('Using fallback exchange rates - no rates available from API')
+        }
+        
         setExchangeRates(ratesWithBase)
         setLastRateUpdate(new Date())
 
         // Apply custom merchant rates if available
-        const customRatesStr = localStorage.getItem('merchant-currency-rates')
-        if (customRatesStr) {
+        const customRatesValue = cookieUtils.getCookie('merchant-currency-rates')
+        if (customRatesValue) {
           try {
-            const customRates = JSON.parse(customRatesStr)
+            let customRates: Record<string, number>
+            
+            // Handle both string (JSON) and object formats
+            if (typeof customRatesValue === 'string') {
+              customRates = JSON.parse(customRatesValue)
+            } else if (typeof customRatesValue === 'object' && customRatesValue !== null) {
+              customRates = customRatesValue as Record<string, number>
+            } else {
+              console.warn('Invalid custom rates format:', customRatesValue)
+              return
+            }
+            
             setExchangeRates(prev => ({ ...prev, ...customRates }))
           } catch (error) {
             console.error('Failed to apply custom rates:', error)
@@ -100,7 +124,19 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     setIsLoadingRates(true)
     try {
       const response = await getExchangeRates({ base: baseCurrency }) as any
-      const ratesWithBase = { ...response.rates, [baseCurrency]: 1.0 }
+      let ratesWithBase = { ...response.rates, [baseCurrency]: 1.0 }
+      
+      // If no rates are available, add some fallback rates for common currencies
+      if (Object.keys(ratesWithBase).length === 1) { // Only base currency
+        const fallbackRates = {
+          'USD': baseCurrency === 'GHS' ? 0.083 : 12.0,  // GHS to USD or USD to GHS
+          'EUR': baseCurrency === 'GHS' ? 0.076 : 13.2,  // GHS to EUR or EUR to GHS  
+          'GBP': baseCurrency === 'GHS' ? 0.065 : 15.4,  // GHS to GBP or GBP to GHS
+        }
+        ratesWithBase = { ...ratesWithBase, ...fallbackRates }
+        console.warn('Using fallback exchange rates - no rates available from API')
+      }
+      
       setExchangeRates(ratesWithBase)
       setLastRateUpdate(new Date())
     } catch (error) {

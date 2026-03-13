@@ -6,7 +6,7 @@ export interface MobileMoneyPaymentRequest {
   amount: number
   currency: string
   phoneNumber: string
-  provider: 'mtn' | 'airtel' | 'telecel'
+  provider: 'mtn' | 'airtel' | 'telecel' | 'g_money'
   description?: string
 }
 
@@ -17,7 +17,7 @@ export interface MobileMoneyPaymentResponse {
 }
 
 export interface MobileMoneyProvider {
-  value: 'mtn' | 'airtel' | 'telecel'
+  value: 'mtn' | 'airtel' | 'telecel' | 'g_money'
   label: string
   prefix: string[]
 }
@@ -38,6 +38,11 @@ class MobileMoneyService {
       value: 'telecel',
       label: 'Telecel Cash',
       prefix: ['020', '050']
+    },
+    {
+      value: 'g_money',
+      label: 'G-Money',
+      prefix: ['023', '053']
     }
   ]
 
@@ -45,7 +50,7 @@ class MobileMoneyService {
     return this.providers
   }
 
-  validatePhoneNumber(phoneNumber: string, provider: 'mtn' | 'airtel' | 'telecel'): boolean {
+  validatePhoneNumber(phoneNumber: string, provider: 'mtn' | 'airtel' | 'telecel' | 'g_money'): boolean {
     // Remove all non-digit characters
     const cleaned = phoneNumber.replace(/\D/g, '')
     

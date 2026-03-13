@@ -123,8 +123,8 @@ class PerformanceAlertViewSet(viewsets.ReadOnlyModelViewSet):
             return PerformanceAlert.objects.filter(is_active=True)
 
     def get_serializer_class(self):
-        # TODO: Create proper serializers
-        return None
+        from payments.serializers.analytics import PerformanceAlertSerializer
+        return PerformanceAlertSerializer
 
     @action(detail=True, methods=['post'])
     def acknowledge(self, request, pk=None):
@@ -219,7 +219,12 @@ def analytics_overview(request):
         },
         'geographic_distribution': list(country_distribution),
         'daily_trends': daily_trends,
-        'top_payment_methods': [],  # TODO: Implement payment method analytics
+        'top_payment_methods': list(
+            transactions.values('payment_method_type').annotate(
+                count=Count('id'),
+                total=Sum('amount')
+            ).order_by('-count')[:5]
+        ),
         'alerts_count': PerformanceAlert.objects.filter(is_active=True).count(),
     })
 

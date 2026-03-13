@@ -35,7 +35,7 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
         details = data.get('details', {})
         
         # Mobile money validation
-        if method_type in [PaymentMethod.MTN_MOMO, PaymentMethod.TELECEL, PaymentMethod.AIRTEL_TIGO]:
+        if method_type in PaymentMethod.MOBILE_MONEY_TYPES:
             if 'provider' not in data and 'provider' not in details:
                 raise serializers.ValidationError({
                     'provider': 'Required field for mobile money'

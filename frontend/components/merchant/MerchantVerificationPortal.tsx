@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import api from '@/lib/api/axios'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -66,8 +67,8 @@ export function MerchantVerificationPortal({ merchantId }: MerchantVerificationP
 
   const fetchVerificationStatus = async () => {
     try {
-      const response = await fetch(`/api/merchants/${merchantId}/trust/status/`)
-      const data = await response.json()
+      const response = await api.get(`/api/v1/merchants/${merchantId}/trust/status/`)
+      const data = response.data
       
       if (data.success) {
         setCurrentLevel(data.verification_status.trust_level)
@@ -81,8 +82,8 @@ export function MerchantVerificationPortal({ merchantId }: MerchantVerificationP
 
   const fetchDocuments = async () => {
     try {
-      const response = await fetch(`/api/merchants/${merchantId}/documents/`)
-      const data = await response.json()
+      const response = await api.get(`/api/v1/merchants/${merchantId}/documents/`)
+      const data = response.data
       
       if (data.success) {
         setDocuments(data.documents)
@@ -106,12 +107,11 @@ export function MerchantVerificationPortal({ merchantId }: MerchantVerificationP
       formData.append('document_type', selectedDocType)
       formData.append('merchant_id', merchantId.toString())
 
-      const response = await fetch('/api/merchants/documents/upload/', {
-        method: 'POST',
-        body: formData
+      const response = await api.post('/api/v1/merchants/documents/upload/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       })
 
-      const data = await response.json()
+      const data = response.data
       
       if (data.success) {
         fetchDocuments()

@@ -1,63 +1,57 @@
-import axios from 'axios'
+import api from './axios'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-
-function getAuthHeaders() {
-  const token = localStorage.getItem('access_token')
-  return {
-    Authorization: `Bearer ${token}`
-  }
-}
-
-export interface Session {
-  id: string
-  device: string
-  browser: string
-  os: string
+// Session Management Types
+export interface ActiveSession {
+  id: number
+  session_key: string
   ip_address: string
-  location: string
-  is_current: boolean
-  last_active: string
+  user_agent: string
+  device_id: string
   created_at: string
+  last_activity: string
+  expires_at: string
+  is_current: boolean
 }
 
-export interface SessionAnalytics {
+export interface LogoutResponse {
+  message: string
+  sessions_invalidated: number
+}
+
+export interface ActiveSessionsResponse {
+  sessions: ActiveSession[]
   total_sessions: number
-  active_sessions: number
-  devices: Array<{
-    device: string
-    count: number
-  }>
-  locations: Array<{
-    location: string
-    count: number
-  }>
 }
 
-export async function getSessions(): Promise<Session[]> {
-  const response = await axios.get(`${API_BASE_URL}/api/sessions/`, {
-    headers: getAuthHeaders()
-  })
-  return response.data.results || response.data
+// Session Management API Functions
+
+// Logout from all devices
+export async function logoutFromAllDevices(refreshToken: string): Promise<LogoutResponse> {
+  const response = await api.post('/api/v1/accounts/logout/', { refresh: refreshToken })
+  return response.data
 }
 
-export async function logoutSession(sessionId: string) {
-  const response = await axios.delete(`${API_BASE_URL}/api/sessions/${sessionId}/`, {
-    headers: getAuthHeaders()
+// Logout from other devices (keep current session active)
+export async function logoutFromOtherDevices(currentRefreshToken: string): Promise<LogoutResponse> {
+  const response = await api.post('/api/v1/accounts/logout/other-sessions/', {
+    current_refresh_token: currentRefreshToken
   })
   return response.data
 }
 
-export async function logoutOtherSessions() {
-  const response = await axios.post(`${API_BASE_URL}/api/sessions/logout-others/`, {}, {
-    headers: getAuthHeaders()
-  })
+// Get active sessions for the current user
+export async function getActiveSessions(): Promise<ActiveSessionsResponse> {
+  const response = await api.get('/api/v1/accounts/sessions/active/')
   return response.data
 }
 
-export async function getSessionAnalytics(): Promise<SessionAnalytics> {
-  const response = await axios.get(`${API_BASE_URL}/api/sessions/analytics/`, {
-    headers: getAuthHeaders()
-  })
-  return response.data
+// Enhanced logout function that supports logout from all devices
+export async function enhancedLogout(refreshToken: string, logoutFromAll: boolean = false): Promise<LogoutResponse> {
+  if (logoutFromAll) {
+    return await logoutFromAllDevices(refreshToken)
+  } else {
+    // Standard logout (current device only)
+    const response = await api.post('/api/v1/accounts/logout/', { refresh: refreshToken })
+    return response.data
+  }
 }

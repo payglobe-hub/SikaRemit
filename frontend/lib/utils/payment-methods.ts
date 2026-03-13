@@ -33,7 +33,7 @@ export function getMobileProvider(phoneNumber: string): string | null {
   // Remove spaces and non-numeric characters except +
   const cleanNumber = phoneNumber.replace(/[^+\d]/g, '')
 
-  // Extract the last 10 digits (Ghanaian mobile numbers are 10 digits)
+  // Extract digits after country code (Ghanaian mobile numbers are 10 digits)
   const last10Digits = cleanNumber.replace(/^\+?233/, '').slice(-10)
 
   if (last10Digits.length < 3) return null
@@ -41,22 +41,47 @@ export function getMobileProvider(phoneNumber: string): string | null {
   // Get the first 3 digits after removing country code
   const prefix = last10Digits.substring(0, 3)
 
-  // MTN prefixes: 024, 054, 055, 059, 025, 053, 056, 057
-  if (['024', '054', '055', '059', '025', '053', '056', '057'].includes(prefix)) {
+  // MTN prefixes (largest network in Ghana)
+  // 024, 025, 053, 054, 055, 056, 057, 059
+  if (['024', '025', '053', '054', '055', '056', '057', '059'].includes(prefix)) {
     return 'mtn_momo'
   }
 
-  // AirtelTigo prefixes: 026, 056, 027, 057, 058
-  // Note: 056 is shared between MTN and AirtelTigo, but we'll prioritize MTN for now
-  if (['026', '027', '057', '058'].includes(prefix)) {
-    return 'airtel_tigo'
-  }
-
-  // Telecel prefixes: 020, 023, 050, 053, 054
-  // Note: 053 and 054 are shared but we'll check Telecel after MTN
-  if (['020', '023', '050'].includes(prefix) || (['053', '054'].includes(prefix) && !['024', '054', '055', '059', '025', '053', '056', '057'].includes(prefix))) {
+  // Telecel (formerly Vodafone Ghana) prefixes
+  // 020, 050
+  if (['020', '050'].includes(prefix)) {
     return 'telecel'
   }
 
+  // AirtelTigo prefixes
+  // 026, 027, 056, 057 — Note: 056/057 are shared with MTN; MTN takes priority above
+  if (['026', '027', '058'].includes(prefix)) {
+    return 'airtel_tigo'
+  }
+
+  // G-Money prefixes
+  // 023, 025
+  if (['023', '025'].includes(prefix)) {
+    return 'g_money'
+  }
+
   return null
+}
+
+export function getPaymentMethodLogo(methodType: string): string | null {
+  switch (methodType?.toLowerCase()) {
+    case 'mtn':
+    case 'mtn_momo':
+      return '/logos/mtn-momo.png'
+    case 'telecel':
+      return '/logos/telecel-cash.jpg'
+    case 'airtel_tigo':
+    case 'airteltigo':
+      return '/logos/airteltigo-money.jpg'
+    case 'g_money':
+    case 'gmoney':
+      return '/logos/g-money.svg'
+    default:
+      return null
+  }
 }

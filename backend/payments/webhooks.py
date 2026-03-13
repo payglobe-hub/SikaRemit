@@ -181,21 +181,59 @@ def mobile_money_webhook(request):
             logger.error(f'Invalid provider: {provider}')
             return JsonResponse({'error': 'Invalid provider'}, status=400)
 
-        # Verify HMAC signature
+        webhook_secret = getattr(settings, 'MOBILE_MONEY_WEBHOOK_SECRETS', {}).get(provider)
+        if not webhook_secret:
+            logger.error(f'No webhook secret configured for provider: {provider}')
+            return JsonResponse({'error': 'Webhook configuration error'}, status=500)
+
         data = json.loads(request.body)
         expected_signature = hmac.new(
-            b'test-secret',
+            webhook_secret.encode('utf-8'),
             json.dumps(data, sort_keys=True, separators=(',', ':')).encode('utf-8'),
             hashlib.sha256
         ).hexdigest()
         
-        if not hmac.compare_digest(expected_signature, request.META.get('HTTP_X_SIGNATURE')):
+        signature = request.META.get('HTTP_X_SIGNATURE', '')
+        if not signature or not hmac.compare_digest(expected_signature, signature):
             logger.warning(f'Invalid signature from {provider}')
             return JsonResponse({'error': 'Invalid signature'}, status=401)
-        logger.debug(f'Processing webhook data: {data}')
-        
-        # For testing, return success without requiring payment
-        return JsonResponse({'status': 'success'})
+
+        logger.info(f'Processing verified webhook from {provider}: event={data.get("event_type", "unknown")}')
+
+        event_type = data.get('event_type', '')
+        transaction_ref = data.get('transaction_id') or data.get('reference')
+        status_value = data.get('status', '').lower()
+
+        if not transaction_ref:
+            logger.error(f'Missing transaction reference in webhook from {provider}')
+            return JsonResponse({'error': 'Missing transaction reference'}, status=400)
+
+        Transaction = apps.get_model('payments', 'Payment')
+        try:
+            transaction = Transaction.objects.get(reference=transaction_ref)
+        except Transaction.DoesNotExist:
+            logger.error(f'Transaction not found for reference: {transaction_ref}')
+            return JsonResponse({'error': 'Transaction not found'}, status=404)
+
+        status_map = {
+            'successful': 'completed',
+            'success': 'completed',
+            'completed': 'completed',
+            'failed': 'failed',
+            'cancelled': 'cancelled',
+            'reversed': 'refunded',
+            'pending': 'pending',
+        }
+        new_status = status_map.get(status_value, 'pending')
+
+        if transaction.status != new_status:
+            transaction.status = new_status
+            transaction.save(update_fields=['status', 'updated_at'])
+            logger.info(f'Transaction {transaction_ref} updated to {new_status}')
+
+            _send_mobile_money_notification(transaction, event_type, provider)
+
+        return JsonResponse({'status': 'success', 'transaction': transaction_ref})
             
     except Exception as e:
         logger.error(f"Webhook processing error: {str(e)}")

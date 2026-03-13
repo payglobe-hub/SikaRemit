@@ -104,37 +104,59 @@ class AmountAnomalyRule(FraudRule):
 
 
 class GeolocationRule(FraudRule):
-    """Detect suspicious location changes"""
+    """Detect suspicious location changes using IP geolocation"""
     
     def __init__(self):
         super().__init__('geolocation_check', weight=0.2, threshold=1000)  # km
     
+    @staticmethod
+    def _get_coordinates_from_ip(ip_address: str) -> Optional[Tuple[float, float]]:
+        """Resolve IP address to (latitude, longitude) using GeoIP2"""
+        try:
+            from django.contrib.gis.geoip2 import GeoIP2
+            g = GeoIP2()
+            result = g.lat_lon(ip_address)
+            if result and result[0] and result[1]:
+                return (float(result[0]), float(result[1]))
+        except Exception:
+            pass
+        return None
+
+    @staticmethod
+    def _haversine_distance(coord1: Tuple[float, float], coord2: Tuple[float, float]) -> float:
+        """Calculate distance in km between two (lat, lon) coordinates"""
+        import math
+        lat1, lon1 = math.radians(coord1[0]), math.radians(coord1[1])
+        lat2, lon2 = math.radians(coord2[0]), math.radians(coord2[1])
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+        return 6371 * 2 * math.asin(math.sqrt(a))
+
     def evaluate(self, transaction_data: Dict) -> Tuple[bool, float, str]:
         customer_id = transaction_data.get('customer_id')
         current_ip = transaction_data.get('ip_address')
         
-        # Get last transaction location
         cache_key = f"last_location:{customer_id}"
-        last_location = cache.get(cache_key)
+        last_coords = cache.get(cache_key)
         
-        if last_location and current_ip:
-            # In production, use IP geolocation service
-            # distance = calculate_distance(last_location, current_location)
-            
-            # Mock implementation
-            distance = 0  # Would calculate actual distance
+        current_coords = None
+        if current_ip:
+            current_coords = self._get_coordinates_from_ip(current_ip)
+        
+        if last_coords and current_coords:
+            distance = self._haversine_distance(last_coords, current_coords)
             
             if distance > self.threshold:
                 score = min(1.0, distance / (self.threshold * 2))
                 return (
                     True,
                     score * self.weight,
-                    f"Location changed by {distance}km in short time"
+                    f"Location changed by {distance:.0f}km in short time"
                 )
         
-        # Cache current location
-        if current_ip:
-            cache.set(cache_key, current_ip, 3600)
+        if current_coords:
+            cache.set(cache_key, current_coords, 3600)
         
         return (False, 0.0, "")
 

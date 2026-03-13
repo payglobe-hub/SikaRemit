@@ -11,6 +11,7 @@ from decimal import Decimal
 import logging
 import uuid
 from typing import Dict, Any, Optional
+from payments.models.payment_method import PaymentMethod
 
 logger = logging.getLogger(__name__)
 
@@ -79,13 +80,14 @@ class CrossBorderRemittanceService:
         except Exception as e:
             logger.warning(f"Stripe gateway not available: {e}")
         
-        # Initialize mock gateway for testing
-        try:
-            from payments.gateways.mock_gateway import MockPaymentGateway
-            self.mock_gateway = MockPaymentGateway()
-            logger.info("Mock gateway initialized for testing")
-        except Exception as e:
-            logger.error(f"Failed to initialize mock gateway: {e}")
+        # Only initialize mock gateway if explicitly enabled via settings
+        if getattr(settings, 'ENABLE_MOCK_GATEWAY', False):
+            try:
+                from payments.gateways.mock_gateway import MockPaymentGateway
+                self.mock_gateway = MockPaymentGateway()
+                logger.warning("Mock gateway enabled for development/testing only")
+            except Exception as e:
+                logger.error(f"Failed to initialize mock gateway: {e}")
 
     def calculate_fees(
         self,
@@ -283,9 +285,22 @@ class CrossBorderRemittanceService:
                 remittance.status = RemittanceStatus.COMPLETED if delivery_method == 'sikaremit_user' else RemittanceStatus.PROCESSING
                 remittance.updated_at = timezone.now()
             else:
-                # For testing, still mark as processing even if delivery fails
-                remittance.status = RemittanceStatus.PROCESSING
-                logger.warning(f"Delivery initiation failed but continuing: {delivery_result.get('error')}")
+                # Delivery failed — refund the sender payment
+                logger.error(f"Delivery failed for remittance {remittance.reference_number}: {delivery_result.get('error')}")
+                try:
+                    self._refund_sender_payment(remittance, payment_result.get('transaction_id'))
+                    remittance.status = RemittanceStatus.REFUNDED
+                except Exception as refund_err:
+                    logger.critical(
+                        f"REFUND ALSO FAILED for remittance {remittance.reference_number}, "
+                        f"gateway_tx={payment_result.get('transaction_id')}, "
+                        f"amount={amount}: {refund_err}"
+                    )
+                    remittance.status = RemittanceStatus.FAILED
+                    remittance.exemption_notes = (
+                        f"Delivery failed and refund failed. Manual intervention required. "
+                        f"Gateway tx: {payment_result.get('transaction_id')}"
+                    )
             
             remittance.save()
             
@@ -465,18 +480,19 @@ class CrossBorderRemittanceService:
                     )
                     return result
             
-            elif method_type in ['mtn_momo', 'telecel', 'airtel_tigo']:
+            elif method_type in PaymentMethod.MOBILE_MONEY_TYPES:
                 # Use mobile money gateway
                 gateway_result = None
                 try:
                     from payments.gateways.mobile_money import (
-                        MTNMoMoGateway, TelecelCashGateway, AirtelTigoMoneyGateway
+                        MTNMoMoGateway, TelecelCashGateway, AirtelTigoMoneyGateway, GMoneyGateway
                     )
                     
                     gateway_map = {
                         'mtn_momo': MTNMoMoGateway,
                         'telecel': TelecelCashGateway,
-                        'airtel_tigo': AirtelTigoMoneyGateway
+                        'airtel_tigo': AirtelTigoMoneyGateway,
+                        'g_money': GMoneyGateway,
                     }
                     
                     gateway_class = gateway_map.get(method_type)
@@ -495,17 +511,9 @@ class CrossBorderRemittanceService:
                 except Exception as e:
                     logger.warning(f"Mobile money gateway not available: {e}")
                 
-                # Fallback to mock gateway if real gateway failed or not available
-                if hasattr(self, 'mock_gateway') and (not gateway_result or not gateway_result.get('success')):
-                    logger.info(f"Using mock gateway for {method_type}")
-                    return self.mock_gateway.process_payment(
-                        amount=float(amount),
-                        currency=currency,
-                        payment_method=payment_method,
-                        customer=customer,
-                        merchant=None,
-                        metadata={'remittance_id': str(remittance.id), 'type': 'remittance'}
-                    )
+                # If gateway failed, return the error
+                if gateway_result and not gateway_result.get('success'):
+                    return gateway_result
                 
                 return {
                     'success': False,
@@ -513,9 +521,9 @@ class CrossBorderRemittanceService:
                 }
             
             elif method_type == 'bank_transfer':
-                # Use direct bank transfer gateway
-                if hasattr(self, 'mock_gateway'):
-                    result = self.mock_gateway.process_payment(
+                # Bank transfers require Stripe or direct bank integration
+                if self.stripe_gateway:
+                    result = self.stripe_gateway.process_payment(
                         amount=float(amount),
                         currency=currency,
                         payment_method=payment_method,
@@ -524,6 +532,10 @@ class CrossBorderRemittanceService:
                         metadata={'remittance_id': str(remittance.id), 'type': 'remittance'}
                     )
                     return result
+                return {
+                    'success': False,
+                    'error': 'Bank transfer gateway not configured. Contact support.'
+                }
             
             return {
                 'success': False,
@@ -536,6 +548,39 @@ class CrossBorderRemittanceService:
                 'success': False,
                 'error': str(e)
             }
+
+    def _refund_sender_payment(self, remittance, transaction_id: str) -> Dict[str, Any]:
+        """Refund the sender payment when delivery fails"""
+        method_type = remittance.payment_method
+
+        if method_type == 'card' or method_type == 'bank_transfer':
+            if self.stripe_gateway:
+                return self.stripe_gateway.refund_payment(
+                    transaction_id=transaction_id,
+                    amount=float(remittance.amount_sent),
+                    reason=f'Delivery failed for remittance {remittance.reference_number}'
+                )
+
+        elif method_type in ('mtn_momo', 'telecel', 'airtel_tigo', 'g_money'):
+            from payments.gateways.mobile_money import (
+                MTNMoMoGateway, TelecelCashGateway, AirtelTigoMoneyGateway, GMoneyGateway
+            )
+            gateway_map = {
+                'mtn_momo': MTNMoMoGateway,
+                'telecel': TelecelCashGateway,
+                'airtel_tigo': AirtelTigoMoneyGateway,
+                'g_money': GMoneyGateway,
+            }
+            gateway_class = gateway_map.get(method_type)
+            if gateway_class:
+                gateway = gateway_class()
+                return gateway.refund_payment(
+                    transaction_id=transaction_id,
+                    amount=float(remittance.amount_sent),
+                    reason=f'Delivery failed for remittance {remittance.reference_number}'
+                )
+
+        raise ValueError(f'Cannot refund: unsupported payment method {method_type}')
 
     def _initiate_delivery(self, remittance) -> Dict[str, Any]:
         """Initiate delivery to recipient based on delivery method"""
@@ -567,11 +612,9 @@ class CrossBorderRemittanceService:
                 return self._deliver_to_digital_wallet(remittance, delivery_details)
             
             else:
-                # Default to success for testing
                 return {
-                    'success': True,
-                    'delivery_reference': f"DEL-{remittance.reference_number}",
-                    'status': 'processing'
+                    'success': False,
+                    'error': f'Unsupported delivery method: {delivery_method}'
                 }
                 
         except Exception as e:
@@ -589,14 +632,28 @@ class CrossBorderRemittanceService:
         if not phone_number:
             return {'success': False, 'error': 'Recipient phone number required'}
         
-        # Use direct mobile money gateway for disbursement
-        if hasattr(self, 'mock_gateway'):
-            return {
-                'success': True,
-                'delivery_reference': f"MOCK-{remittance.reference}",
-                'status': 'processing',
-                'message': 'Mobile money delivery initiated via direct integration'
+        # Use real mobile money gateway for disbursement
+        try:
+            from payments.gateways.mobile_money import (
+                MTNMoMoGateway, TelecelCashGateway, AirtelTigoMoneyGateway, GMoneyGateway
+            )
+            gateway_map = {
+                'mtn_momo': MTNMoMoGateway,
+                'telecel': TelecelCashGateway,
+                'airtel_tigo': AirtelTigoMoneyGateway,
+                'g_money': GMoneyGateway,
             }
+            gateway_class = gateway_map.get(provider)
+            if gateway_class:
+                gateway = gateway_class()
+                return gateway.disburse(
+                    phone_number=phone_number,
+                    amount=float(remittance.recipient_amount),
+                    currency=remittance.destination_currency,
+                    reference=remittance.reference_number
+                )
+        except Exception as e:
+            logger.error(f"Mobile money disbursement failed: {e}")
         
         return {'success': False, 'error': 'No gateway available for mobile money delivery'}
 
@@ -609,14 +666,28 @@ class CrossBorderRemittanceService:
         if not account_number or not (bank_code or bank_name):
             return {'success': False, 'error': 'Bank account details required'}
         
-        # Use direct bank transfer gateway for delivery
-        if hasattr(self, 'mock_gateway'):
-            return {
-                'success': True,
-                'delivery_reference': f"BANK-{remittance.reference}",
-                'status': 'processing',
-                'message': 'Bank transfer initiated via direct integration'
-            }
+        # Use Stripe or banking partner for bank transfer delivery
+        if self.stripe_gateway:
+            try:
+                result = self.stripe_gateway.create_payout(
+                    amount=float(remittance.recipient_amount),
+                    currency=remittance.destination_currency,
+                    destination=account_number,
+                    metadata={
+                        'remittance_ref': remittance.reference_number,
+                        'bank_name': bank_name,
+                    }
+                )
+                if result.get('success'):
+                    return {
+                        'success': True,
+                        'delivery_reference': result.get('payout_id', f"BANK-{remittance.reference_number}"),
+                        'status': 'processing',
+                        'message': 'Bank transfer initiated'
+                    }
+                return result
+            except Exception as e:
+                logger.error(f"Bank transfer delivery failed: {e}")
         
         return {'success': False, 'error': 'No gateway available for bank transfers'}
 
@@ -677,17 +748,58 @@ class CrossBorderRemittanceService:
     def _deliver_to_digital_wallet(self, remittance, details: Dict) -> Dict[str, Any]:
         """Deliver funds to digital wallet (e.g., PayPal, Chipper)"""
         wallet_id = details.get('wallet_id')
-        wallet_provider = details.get('wallet_provider')
-        
+        wallet_provider = details.get('wallet_provider', '').lower()
+
         if not wallet_id:
             return {'success': False, 'error': 'Wallet ID required'}
-        
-        # For now, mark as processing - would integrate with specific wallet APIs
-        return {
-            'success': True,
-            'delivery_reference': f"WALLET-{remittance.reference}",
-            'status': 'processing'
-        }
+
+        if not wallet_provider:
+            return {'success': False, 'error': 'Wallet provider required'}
+
+        try:
+            if wallet_provider == 'sikaremit':
+                return self._deliver_to_sikaremit_user(remittance, {
+                    'email': wallet_id,
+                    'phone': wallet_id,
+                })
+            elif wallet_provider in ('mtn_momo', 'telecel', 'airtel_tigo', 'g_money'):
+                from payments.gateways.mobile_money import (
+                    MTNMoMoGateway, TelecelCashGateway, AirtelTigoMoneyGateway, GMoneyGateway
+                )
+                gateway_map = {
+                    'mtn_momo': MTNMoMoGateway,
+                    'telecel': TelecelCashGateway,
+                    'airtel_tigo': AirtelTigoMoneyGateway,
+                    'g_money': GMoneyGateway,
+                }
+                gateway_class = gateway_map.get(wallet_provider, MTNMoMoGateway)
+                gateway = gateway_class()
+                result = gateway.process_payment(
+                    amount=float(remittance.recipient_amount),
+                    currency=remittance.currency_received or 'GHS',
+                    phone_number=wallet_id,
+                    customer=None,
+                    merchant=None,
+                    metadata={
+                        'remittance_id': str(remittance.id),
+                        'type': 'wallet_delivery',
+                    }
+                )
+                if result.get('success'):
+                    return {
+                        'success': True,
+                        'delivery_reference': result.get('transaction_id', f"WALLET-{remittance.reference}"),
+                        'status': 'processing'
+                    }
+                return result
+            else:
+                return {
+                    'success': False,
+                    'error': f'Unsupported wallet provider: {wallet_provider}. Supported: sikaremit, mtn_momo, telecel, airtel_tigo, g_money'
+                }
+        except Exception as e:
+            logger.error(f"Digital wallet delivery failed: {str(e)}")
+            return {'success': False, 'error': str(e)}
 
     def _send_remittance_notifications(self, remittance, event_type: str):
         """Send notifications for remittance events"""
@@ -728,10 +840,83 @@ class CrossBorderRemittanceService:
     def _send_recipient_notification(self, remittance, event_type: str):
         """Send notification to recipient via SMS/Email"""
         try:
-            # TODO: Implement SMS/Email notification service
-            # For now, just log the notification
-            logger.info(f"Would send {event_type} notification to {remittance.recipient_phone}")
-                
+            from django.conf import settings
+
+            recipient_phone = getattr(remittance, 'recipient_phone', None)
+            recipient_email = getattr(remittance, 'recipient_email', None)
+
+            if event_type == 'remittance_completed':
+                message = (
+                    f"You have received {remittance.amount_received} {remittance.currency_received} "
+                    f"from {remittance.sender.get_full_name() if hasattr(remittance.sender, 'get_full_name') else 'SikaRemit user'}. "
+                    f"Reference: {remittance.reference_number}"
+                )
+                subject = "You've received money via SikaRemit"
+            elif event_type == 'remittance_initiated':
+                message = (
+                    f"A transfer of {remittance.amount_received} {remittance.currency_received} "
+                    f"is on its way to you. Reference: {remittance.reference_number}"
+                )
+                subject = "Money transfer incoming - SikaRemit"
+            else:
+                message = f"Remittance update ({event_type}). Reference: {remittance.reference_number}"
+                subject = f"SikaRemit Transfer Update"
+
+            # Send SMS if phone number available
+            if recipient_phone:
+                sms_provider = getattr(settings, 'SMS_PROVIDER', 'africastalking')
+                if sms_provider == 'africastalking':
+                    username = getattr(settings, 'AFRICASTALKING_USERNAME', None)
+                    api_key = getattr(settings, 'AFRICASTALKING_API_KEY', None)
+                    sender_id = getattr(settings, 'AFRICASTALKING_SENDER_ID', 'SikaRemit')
+                    if username and api_key:
+                        try:
+                            import africastalking
+                            africastalking.initialize(username, api_key)
+                            sms = africastalking.SMS
+                            sms.send(message, [recipient_phone], sender_id)
+                            logger.info(f"SMS sent to {recipient_phone} for {event_type}")
+                        except ImportError:
+                            logger.warning("africastalking SDK not installed — falling back to log-only")
+                        except Exception as sms_err:
+                            logger.error(f"SMS send failed to {recipient_phone}: {sms_err}")
+                    else:
+                        logger.warning(f"AfricasTalking not configured — skipping SMS to {recipient_phone}")
+                elif sms_provider == 'twilio':
+                    account_sid = getattr(settings, 'TWILIO_ACCOUNT_SID', None)
+                    auth_token = getattr(settings, 'TWILIO_AUTH_TOKEN', None)
+                    from_number = getattr(settings, 'TWILIO_PHONE_NUMBER', None)
+                    if account_sid and auth_token and from_number:
+                        try:
+                            from twilio.rest import Client
+                            client = Client(account_sid, auth_token)
+                            client.messages.create(body=message, from_=from_number, to=recipient_phone)
+                            logger.info(f"Twilio SMS sent to {recipient_phone} for {event_type}")
+                        except ImportError:
+                            logger.warning("twilio SDK not installed — falling back to log-only")
+                        except Exception as sms_err:
+                            logger.error(f"Twilio SMS send failed to {recipient_phone}: {sms_err}")
+                    else:
+                        logger.warning(f"Twilio not configured — skipping SMS to {recipient_phone}")
+
+            # Send email if email available
+            if recipient_email:
+                try:
+                    from django.core.mail import send_mail
+                    send_mail(
+                        subject=subject,
+                        message=message,
+                        from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@sikaremit.com'),
+                        recipient_list=[recipient_email],
+                        fail_silently=True,
+                    )
+                    logger.info(f"Email sent to {recipient_email} for {event_type}")
+                except Exception as email_err:
+                    logger.error(f"Email send failed to {recipient_email}: {email_err}")
+
+            if not recipient_phone and not recipient_email:
+                logger.warning(f"No contact info for recipient notification ({event_type}), remittance {remittance.reference_number}")
+
         except Exception as e:
             logger.error(f"Failed to send recipient notification: {str(e)}")
 
@@ -814,12 +999,32 @@ class CrossBorderRemittanceService:
             return {'success': False, 'error': str(e)}
 
     def _process_refund(self, remittance) -> Dict[str, Any]:
-        """Process refund for cancelled remittance"""
-        # In production, would reverse the original payment
-        return {
-            'success': True,
-            'refund_reference': f"REFUND-{remittance.reference}"
-        }
+        """Process refund for cancelled remittance by crediting sender's wallet"""
+        try:
+            from payments.models import WalletBalance
+            
+            # Credit the sender's wallet with the original amount (including fees)
+            wallet, created = WalletBalance.objects.get_or_create(
+                user=remittance.sender.user,
+                currency=remittance.currency_sent or 'GHS',
+                defaults={'available_balance': Decimal('0'), 'pending_balance': Decimal('0')}
+            )
+            wallet.available_balance += remittance.amount_sent
+            wallet.save()
+            
+            refund_ref = f"REFUND-{remittance.reference_number}"
+            logger.info(f"Refund processed: {refund_ref} - {remittance.amount_sent} {remittance.currency_sent} to {remittance.sender.user.email}")
+            
+            return {
+                'success': True,
+                'refund_reference': refund_ref
+            }
+        except Exception as e:
+            logger.error(f"Refund processing failed for {remittance.reference_number}: {str(e)}")
+            return {
+                'success': False,
+                'error': f'Refund failed: {str(e)}'
+            }
 
 
 # Import models at module level to avoid circular imports

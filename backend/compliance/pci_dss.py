@@ -139,21 +139,20 @@ class PCIDSSCompliance:
         }
     
     def _check_firewall(self) -> bool:
-        """Check if firewall is properly configured"""
-        # In production, verify actual firewall rules
-        return True
+        """Check if firewall is properly configured via settings flag"""
+        return getattr(settings, 'PCI_FIREWALL_CONFIGURED', False)
     
     def _check_dmz(self) -> bool:
-        """Check if DMZ is implemented"""
-        return True
+        """Check if DMZ is implemented via settings flag"""
+        return getattr(settings, 'PCI_DMZ_IMPLEMENTED', False)
     
     def _check_network_segmentation(self) -> bool:
-        """Check network segmentation"""
-        return True
+        """Check network segmentation via settings flag"""
+        return getattr(settings, 'PCI_NETWORK_SEGMENTED', False)
     
     def _check_wireless_security(self) -> bool:
-        """Check wireless network security"""
-        return True
+        """Check wireless network security via settings flag"""
+        return getattr(settings, 'PCI_WIRELESS_SECURED', False)
     
     def validate_access_controls(self) -> Dict:
         """
@@ -177,21 +176,28 @@ class PCIDSSCompliance:
     
     def _check_mfa_enabled(self) -> bool:
         """Check if MFA is enabled for admin access"""
-        # SikaRemit has MFA support
-        return True
+        return getattr(settings, 'MFA_REQUIRED', False)
     
     def _check_password_policy(self) -> bool:
-        """Check password policy compliance"""
-        # Verify minimum 12 characters, complexity requirements
-        return True
+        """Check password policy compliance — min 12 chars, complexity"""
+        validators = getattr(settings, 'AUTH_PASSWORD_VALIDATORS', [])
+        has_min_length = any(
+            v.get('OPTIONS', {}).get('min_length', 0) >= 12
+            for v in validators
+            if 'MinimumLengthValidator' in v.get('NAME', '')
+        )
+        return has_min_length and len(validators) >= 3
     
     def _check_session_timeout(self) -> bool:
-        """Check session timeout (15 minutes for admin)"""
-        return True
+        """Check session timeout (15 minutes = 900s for admin)"""
+        timeout = getattr(settings, 'SESSION_COOKIE_AGE', 86400)
+        return timeout <= 900
     
     def _check_access_logging(self) -> bool:
-        """Check if access is properly logged"""
-        return True
+        """Check if access logging is configured"""
+        logging_config = getattr(settings, 'LOGGING', {})
+        loggers = logging_config.get('loggers', {})
+        return 'django.security' in loggers or 'security' in loggers
     
     def generate_compliance_report(self) -> Dict:
         """

@@ -5,7 +5,9 @@ Provides REST endpoints for real-time analytics and dashboard data
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
+from accounts.permissions import IsAdminUser
+from shared.constants import USER_TYPE_SUPER_ADMIN, USER_TYPE_MERCHANT
 from django.utils import timezone
 from django.db.models import Count, Sum, Avg
 from datetime import timedelta
@@ -213,9 +215,9 @@ class MerchantAnalyticsViewSet(viewsets.ViewSet):
     def get_queryset(self):
         """Get merchants accessible to current user"""
         user = self.request.user
-        if user.user_type == 1:  # Admin
+        if user.user_type == USER_TYPE_SUPER_ADMIN:  # Admin
             return Merchant.objects.all()
-        elif user.user_type == 2:  # Merchant
+        elif user.user_type == USER_TYPE_MERCHANT:  # Merchant
             return Merchant.objects.filter(user=user)
         return Merchant.objects.none()
 

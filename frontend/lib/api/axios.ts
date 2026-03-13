@@ -1,4 +1,5 @@
-import axios from 'axios';
+import axios from 'axios'
+import { authTokens } from '@/lib/utils/cookie-auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -48,16 +49,19 @@ const processQueue = (error: any, token: string | null = null) => {
 api.interceptors.request.use(
   (config) => {
     if (!isPublicAuthRequest(config.url)) {
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('access_token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
+      const token = authTokens.getAccessToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        // Debug token presence
+        console.debug('API Request:', config.method?.toUpperCase(), config.url, 'Token present:', !!token);
+      } else {
+        console.warn('API Request:', config.method?.toUpperCase(), config.url, 'No token found');
       }
     }
     return config;
   },
   (error) => {
+    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -73,8 +77,11 @@ api.interceptors.response.use(
       !originalRequest._retry &&
       !isPublicAuthRequest(originalRequest.url)
     ) {
+      console.warn('401 Unauthorized for:', originalRequest.method?.toUpperCase(), originalRequest.url);
+      
       // If refresh is already in progress, queue the request
       if (isRefreshing) {
+        console.debug('Token refresh in progress, queuing request');
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then((token) => {
@@ -90,21 +97,23 @@ api.interceptors.response.use(
 
       try {
         if (typeof window !== 'undefined') {
-          const refreshToken = localStorage.getItem('refresh_token');
+          const refreshToken = authTokens.getRefreshToken();
           if (!refreshToken) {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
+            console.error('No refresh token available');
+            authTokens.clearTokens();
             window.location.href = '/auth';
             return Promise.reject(error);
           }
 
+          console.debug('Attempting token refresh...');
           const response = await axios.post(
             `${API_BASE_URL}/api/v1/accounts/refresh/`,
             { refresh: refreshToken }
           );
 
           const { access } = response.data;
-          localStorage.setItem('access_token', access);
+          authTokens.setAccessToken(access);
+          console.debug('Token refresh successful');
 
           originalRequest.headers.Authorization = `Bearer ${access}`;
           
@@ -114,9 +123,9 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
       } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
+          authTokens.clearTokens();
           processQueue(refreshError, null);
           window.location.href = '/auth';
         }

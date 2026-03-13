@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "SikaRemit Merchant",
+    "slug": "sikaremit-merchant",
+    "scheme": "sikaremit-merchant",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#7C3AED"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sikaremit.merchant",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "SikaRemit Merchant uses Face ID for secure authentication",
+        "NSCameraUsageDescription": "SikaRemit Merchant needs camera access to scan QR codes for payments"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#7C3AED"
+      },
+      "package": "com.sikaremit.merchant",
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "CAMERA",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.CAMERA"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-local-authentication",
+      "expo-camera"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      },
+      "apiUrl": "https://api.sikaremit.com",
+      "stripePublishableKey": "REPLACE_WITH_STRIPE_PUBLISHABLE_KEY"
+    }
+  }
+}

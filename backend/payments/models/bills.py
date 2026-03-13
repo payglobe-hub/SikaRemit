@@ -35,8 +35,9 @@ class Bill(models.Model):
     
     # Payment details
     payment_method = models.ForeignKey('PaymentMethod', on_delete=models.SET_NULL, null=True, blank=True)
+    transaction = models.ForeignKey('Transaction', on_delete=models.SET_NULL, null=True, blank=True, related_name='bill_payments')
     paid_at = models.DateTimeField(null=True, blank=True)
-    transaction_id = models.CharField(max_length=100, blank=True, null=True)
+    external_transaction_id = models.CharField(max_length=100, blank=True, null=True)  # Renamed to avoid clash
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

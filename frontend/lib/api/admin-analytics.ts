@@ -3,8 +3,8 @@ import axios from 'axios'
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 function getAuthHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-  return token ? { Authorization: `Bearer ${token}` } : {}
+  // Auth headers will be added by axios interceptor
+  return {}
 }
 
 export interface RealtimeMetrics {

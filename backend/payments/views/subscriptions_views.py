@@ -136,14 +136,73 @@ class SubscriptionViewSet(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # TODO: Implement plan change logic with prorated billing
-        # For now, just update the plan
         old_plan = subscription.plan
+
+        # Calculate prorated billing
+        now = timezone.now()
+        period_start = subscription.current_period_start
+        period_end = subscription.current_period_end
+        if period_start and period_end and period_end > period_start:
+            total_days = (period_end - period_start).days or 1
+            remaining_days = max((period_end - now).days, 0)
+            # Credit for unused portion of old plan
+            old_daily_rate = old_plan.price / total_days
+            credit = old_daily_rate * remaining_days
+            # Charge for remaining portion of new plan
+            new_daily_rate = new_plan.price / total_days
+            proration_charge = (new_daily_rate * remaining_days) - credit
+        else:
+            proration_charge = new_plan.price - old_plan.price
+
         subscription.plan = new_plan
         subscription.save()
 
+        # If upgrading (positive charge), process payment
+        if proration_charge > 0:
+            proration_payment = SubscriptionPayment.objects.create(
+                subscription=subscription,
+                amount=proration_charge,
+                currency=new_plan.currency,
+                billing_period_start=now,
+                billing_period_end=period_end,
+                payment_method=subscription.payment_method_id,
+            )
+            try:
+                import stripe
+                from django.conf import settings
+                stripe.api_key = settings.STRIPE_SECRET_KEY
+                charge = stripe.PaymentIntent.create(
+                    amount=int(proration_charge * 100),
+                    currency=new_plan.currency.lower(),
+                    payment_method=subscription.payment_method_id,
+                    confirm=True,
+                    automatic_payment_methods={'enabled': True, 'allow_redirects': 'never'},
+                    metadata={'subscription_id': str(subscription.id), 'type': 'proration'},
+                )
+                try:
+                    from django.db import transaction as db_transaction
+                    with db_transaction.atomic():
+                        proration_payment.mark_completed(charge.id)
+                except Exception as db_err:
+                    logger.error(f"DB save failed after proration charge, issuing refund: {db_err}")
+                    try:
+                        stripe.Refund.create(payment_intent=charge.id)
+                    except Exception as refund_err:
+                        logger.critical(
+                            f"REFUND ALSO FAILED for proration charge {charge.id}, "
+                            f"subscription={subscription.id}, "
+                            f"amount={proration_charge}: {refund_err}"
+                        )
+                    proration_payment.status = 'failed'
+                    proration_payment.save()
+            except Exception as e:
+                logger.error(f"Proration payment failed for subscription {subscription.id}: {e}")
+                proration_payment.status = 'failed'
+                proration_payment.save()
+
         return Response({
             'message': f'Plan changed from {old_plan.name} to {new_plan.name}',
+            'proration_charge': float(proration_charge) if proration_charge > 0 else 0,
             'subscription': SubscriptionSerializer(subscription).data
         })
 
@@ -368,9 +427,55 @@ def create_subscription(request):
                 payment_method=payment_method_id,
             )
 
-            # TODO: Process actual payment through payment gateway
-            # For now, mark as completed
-            payment.mark_completed(f"sub_payment_{payment.id}")
+            # Process payment through Stripe gateway
+            try:
+                import stripe
+                from django.conf import settings as django_settings
+                stripe.api_key = django_settings.STRIPE_SECRET_KEY
+                payment_intent = stripe.PaymentIntent.create(
+                    amount=int(final_price * 100),
+                    currency=plan.currency.lower(),
+                    payment_method=payment_method_id,
+                    confirm=True,
+                    automatic_payment_methods={'enabled': True, 'allow_redirects': 'never'},
+                    metadata={
+                        'subscription_id': str(subscription.id),
+                        'plan_id': str(plan.id),
+                        'type': 'subscription_initial',
+                    },
+                )
+                try:
+                    from django.db import transaction as db_transaction
+                    with db_transaction.atomic():
+                        payment.mark_completed(payment_intent.id)
+                except Exception as db_err:
+                    logger.error(f"DB save failed after subscription charge, issuing refund: {db_err}")
+                    try:
+                        stripe.Refund.create(payment_intent=payment_intent.id)
+                    except Exception as refund_err:
+                        logger.critical(
+                            f"REFUND ALSO FAILED for subscription charge {payment_intent.id}, "
+                            f"subscription={subscription.id}, "
+                            f"amount={final_price}: {refund_err}"
+                        )
+                    payment.status = 'failed'
+                    payment.save()
+                    subscription.status = 'payment_failed'
+                    subscription.save()
+                    return Response(
+                        {'error': 'Payment charged but recording failed. A refund has been initiated.'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+            except Exception as e:
+                logger.error(f"Subscription payment failed: {e}")
+                payment.status = 'failed'
+                payment.save()
+                subscription.status = 'payment_failed'
+                subscription.save()
+                return Response(
+                    {'error': f'Payment failed: {str(e)}'},
+                    status=status.HTTP_402_PAYMENT_REQUIRED
+                )
 
             # Activate subscription
             subscription.activate()

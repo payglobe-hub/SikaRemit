@@ -5,7 +5,7 @@ Provides monitoring and analytics for API rate limiting
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser
+from users.permissions import IsAdminUser
 from django.utils import timezone
 from payments.throttling import RateLimitAnalytics, AdvancedRateLimiter
 from payments.models import Transaction
@@ -122,13 +122,23 @@ class RateLimitingViewSet(viewsets.ViewSet):
             hours = int(request.query_params.get('hours', 24))
             limit = int(request.query_params.get('limit', 100))
 
-            # This would require logging rate limit violations
-            # For now, return structure for future implementation
+            # Query rate limit violation keys from cache
+            since = timezone.now() - timezone.timedelta(hours=hours)
+            violation_keys = cache.keys('rate_limit_violation:*') or []
             violations = []
+            for key in violation_keys[:limit]:
+                violation_data = cache.get(key)
+                if violation_data and isinstance(violation_data, dict):
+                    violations.append(violation_data)
+
+            # Also check blocked IPs/users
+            blocked_keys = cache.keys('rate_limit_blocked:*') or []
+            blocked_count = len(blocked_keys)
 
             return Response({
                 'violations': violations,
                 'total_violations': len(violations),
+                'blocked_entities': blocked_count,
                 'analysis_period_hours': hours,
                 'generated_at': timezone.now().isoformat()
             })
@@ -168,18 +178,22 @@ class RateLimitingViewSet(viewsets.ViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Update tier limits (this would require persistent storage)
-            # For now, this is a placeholder for future implementation
+            # Persist tier limits to cache (survives restarts with persistent cache backend)
+            cache_key = f'rate_limit_tier:{tier}'
+            tier_config = {
+                'tier': tier,
+                'sustained_limit': int(sustained_limit),
+                'burst_limit': int(burst_limit),
+                'window_seconds': int(window_seconds),
+                'updated_at': timezone.now().isoformat(),
+                'updated_by': request.user.id,
+            }
+            cache.set(cache_key, tier_config, timeout=None)  # No expiry
 
             return Response({
                 'message': f'Tier limits updated for {tier}',
-                'new_limits': {
-                    'tier': tier,
-                    'sustained_limit': sustained_limit,
-                    'burst_limit': burst_limit,
-                    'window_seconds': window_seconds
-                },
-                'updated_at': timezone.now().isoformat()
+                'new_limits': tier_config,
+                'updated_at': tier_config['updated_at']
             })
 
         except Exception as e:
@@ -195,28 +209,58 @@ class RateLimitingViewSet(viewsets.ViewSet):
         """
         try:
             # Get cache statistics
-            cache_keys = cache.keys('api_rate_limit:*')
+            rate_limit_keys = cache.keys('api_rate_limit:*') or []
+            violation_keys = cache.keys('rate_limit_violation:*') or []
+            blocked_keys = cache.keys('rate_limit_blocked:*') or []
+
+            # Calculate real hit/miss from cache counters
+            cache_hits = cache.get('rate_limit_stats:hits', 0)
+            cache_misses = cache.get('rate_limit_stats:misses', 0)
+            total_requests = cache_hits + cache_misses
+            cache_hit_ratio = round(cache_hits / total_requests, 4) if total_requests > 0 else 0.0
+
             cache_info = {
-                'total_cache_keys': len(cache_keys),
-                'cache_hit_ratio': 0.95,  # Placeholder - would calculate actual ratio
-                'average_response_time': 2.3,  # ms - placeholder
+                'total_cache_keys': len(rate_limit_keys),
+                'cache_hit_ratio': cache_hit_ratio,
+                'total_requests_tracked': total_requests,
             }
 
-            # Get throttling effectiveness
+            # Get throttling effectiveness from real data
             recent_transactions = Transaction.objects.filter(
                 created_at__gte=timezone.now() - timezone.timedelta(hours=1)
             ).count()
+            blocked_count = len(blocked_keys)
+            violation_count = len(violation_keys)
+
+            total_attempts = recent_transactions + blocked_count
+            throttling_efficiency = round(
+                (recent_transactions / total_attempts), 4
+            ) if total_attempts > 0 else 1.0
+
+            false_positive_rate = round(
+                violation_count / total_attempts, 4
+            ) if total_attempts > 0 else 0.0
 
             effectiveness = {
                 'requests_processed': recent_transactions,
-                'throttling_efficiency': 0.98,  # Placeholder
-                'false_positive_rate': 0.02,  # Placeholder
+                'requests_blocked': blocked_count,
+                'violations_logged': violation_count,
+                'throttling_efficiency': throttling_efficiency,
+                'false_positive_rate': false_positive_rate,
             }
+
+            # System health based on metrics
+            if throttling_efficiency < 0.5 or false_positive_rate > 0.1:
+                system_health = 'degraded'
+            elif blocked_count > 100:
+                system_health = 'under_attack'
+            else:
+                system_health = 'good'
 
             return Response({
                 'cache_performance': cache_info,
                 'throttling_effectiveness': effectiveness,
-                'system_health': 'good',  # Would be calculated based on metrics
+                'system_health': system_health,
                 'generated_at': timezone.now().isoformat()
             })
 

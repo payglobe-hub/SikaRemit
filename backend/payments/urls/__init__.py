@@ -1,17 +1,32 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from ..views import PaymentMethodViewSet, TransactionViewSet, AdminTransactionViewSet, process_payment, verify_mobile_payment, USSDCallbackView, USSDTransactionViewSet, PaymentViewSet, ScheduledPayoutViewSet, CrossBorderRemittanceViewSet, VerificationViewSet, P2PPaymentView, validate_qr_payment, process_qr_payment, send_remittance_view, initiate_payment_view, process_checkout_view, send_outbound_remittance_view, send_global_remittance_view, DomesticTransferViewSet
-from ..views.analytics_views import AnalyticsViewSet
-from ..views.dispute_views import DisputeViewSet
-from ..views.subscriptions_views import SubscriptionViewSet
-from ..views.rate_limiting_views import RateLimitingViewSet, RateLimitMonitoringViewSet
-from ..views.telecom_views import telecom_providers, telecom_packages, purchase_airtime, purchase_data_bundle
-from ..views.wallet_views import exchange_rates, convert_currency, WalletViewSet, deposit_mobile_money, deposit_bank_transfer, deposit_card, withdraw_mobile_money, withdraw_bank_transfer, get_withdrawal_limits, get_supported_banks, transfer_to_sikaremit_wallet, lookup_sikaremit_user
+from ..views import (
+    PaymentMethodViewSet, TransactionViewSet, AdminTransactionViewSet, process_payment, 
+    verify_mobile_payment, USSDCallbackView, USSDTransactionViewSet, PaymentViewSet, 
+    ScheduledPayoutViewSet, CrossBorderRemittanceViewSet, VerificationViewSet, P2PPaymentView, 
+    validate_qr_payment, process_qr_payment, generate_qr_code, send_remittance_view, 
+    initiate_payment_view, process_checkout_view, send_outbound_remittance_view, 
+    send_global_remittance_view, DomesticTransferViewSet
+)
 from ..views.currency_views import currencies_list, CurrencyViewSet, historical_rates, set_exchange_rates
 from ..views.country_views import countries_list, country_detail, CountryViewSet
+from ..views.telecom_views import telecom_providers, telecom_packages, purchase_airtime, purchase_data_bundle
+from ..views.wallet_views import (
+    exchange_rates, convert_currency, WalletViewSet, deposit_mobile_money, 
+    deposit_bank_transfer, deposit_card, withdraw_mobile_money, withdraw_bank_transfer, 
+    get_withdrawal_limits, get_supported_banks, transfer_to_sikaremit_wallet, lookup_sikaremit_user
+)
+from ..views.exchange_rate_views import ExchangeRateViewSet
+from ..views.bills_views import BillViewSet
+from ..views.merchant_dashboard import merchant_dashboard_stats, merchant_recent_transactions, merchant_analytics
+from ..views.analytics_views import AnalyticsViewSet
+from ..views.dispute_views import DisputeViewSet
+from ..views.customer_dispute_views import CustomerDisputeViewSet
+from ..views.merchant_dispute_views import MerchantDisputeViewSet
+from ..views.subscriptions_views import SubscriptionViewSet
+from ..views.rate_limiting_views import RateLimitingViewSet, RateLimitMonitoringViewSet
 from ..views.payment_methods_api import get_available_payment_methods
 from ..views.fees import FeeConfigurationViewSet
-from ..views.bills_views import BillViewSet
 from ..views.pos_views import POSDeviceViewSet, POSTransactionViewSet, register_pos_device, process_pos_transaction, generate_pos_receipt, get_pos_dashboard_data
 from .. import webhooks, reporting
 
@@ -22,27 +37,54 @@ from rest_framework.response import Response
 @api_view(['GET', 'PATCH'])
 @permission_classes([permissions.IsAuthenticated])
 def currency_preferences(request):
-    cache_key = f"user_currency_prefs:{request.user.id}"
-    cached_prefs = cache.get(cache_key)
+    from users.models import Customer
 
-    if request.method == 'GET' and cached_prefs:
-        return Response(cached_prefs)
+    cache_key = f"user_currency_prefs:{request.user.id}"
+    default_prefs = {
+        "display_currency": {"code": "USD"},
+        "show_symbol": True,
+        "show_code": False,
+        "decimal_places": 2,
+        "auto_update_rates": True,
+    }
 
     if request.method == 'GET':
-        # Return default preferences - in real implementation, get from user model
-        prefs = {
-            "display_currency": {"code": "USD"},
-            "show_symbol": True,
-            "show_code": False,
-            "decimal_places": 2,
-            "auto_update_rates": True
-        }
-        cache.set(cache_key, prefs, 3600)  # Cache for 1 hour
-        return Response(prefs)
+        cached_prefs = cache.get(cache_key)
+        if cached_prefs:
+            return Response(cached_prefs)
+
+        # Load from Customer profile
+        try:
+            customer = Customer.objects.get(user=request.user)
+            stored = (customer.address or {}).get('_currency_preferences')
+            if stored:
+                cache.set(cache_key, stored, timeout=None)
+                return Response(stored)
+        except Customer.DoesNotExist:
+            pass
+
+        cache.set(cache_key, default_prefs, timeout=None)
+        return Response(default_prefs)
+
     elif request.method == 'PATCH':
-        # For now, just echo back - in real implementation, save to user model
-        cache.set(cache_key, request.data, 3600)  # Update cache
-        return Response(request.data)
+        # Merge incoming data with existing prefs
+        cached_prefs = cache.get(cache_key) or default_prefs
+        updated_prefs = {**cached_prefs, **request.data}
+
+        # Persist to cache
+        cache.set(cache_key, updated_prefs, timeout=None)
+
+        # Persist to Customer profile
+        try:
+            customer = Customer.objects.get(user=request.user)
+            addr = customer.address or {}
+            addr['_currency_preferences'] = updated_prefs
+            customer.address = addr
+            customer.save(update_fields=['address'])
+        except Customer.DoesNotExist:
+            pass
+
+        return Response(updated_prefs)
 
 router = DefaultRouter()
 router.register(r'methods', PaymentMethodViewSet, basename='payment-methods')
@@ -54,6 +96,7 @@ router.register(r'scheduled-payouts', ScheduledPayoutViewSet, basename='schedule
 router.register(r'currencies', CurrencyViewSet, basename='currencies')
 router.register(r'countries', CountryViewSet, basename='countries')
 router.register(r'wallet', WalletViewSet, basename='wallet')
+router.register(r'exchange-rates-admin', ExchangeRateViewSet, basename='exchange-rates-admin')
 router.register(r'rate-limiting', RateLimitingViewSet, basename='rate-limiting')
 router.register(r'rate-monitoring', RateLimitMonitoringViewSet, basename='rate-monitoring')
 router.register(r'fees', FeeConfigurationViewSet, basename='fees')
@@ -62,6 +105,8 @@ router.register(r'subscriptions', SubscriptionViewSet, basename='subscriptions')
 router.register(r'domestic-transfers', DomesticTransferViewSet, basename='domestic-transfers')
 router.register(r'analytics', AnalyticsViewSet, basename='analytics')
 router.register(r'admin/disputes', DisputeViewSet, basename='admin-disputes')
+router.register(r'customer/disputes', CustomerDisputeViewSet, basename='customer-disputes')
+router.register(r'merchant/disputes', MerchantDisputeViewSet, basename='merchant-disputes')
 
 
 urlpatterns = [
@@ -78,9 +123,7 @@ urlpatterns = [
     path('', include(router.urls)),
     
     # Merchant transactions endpoint
-    path('merchant/transactions/', TransactionViewSet.as_view({
-        'get': 'list'
-    }), name='merchant-transactions'),
+    path('merchant/dashboard/transactions/', merchant_recent_transactions, name='merchant-transactions'),
     
     # P2P Payment endpoint
     path('send/', P2PPaymentView.as_view(), name='p2p_payment'),
@@ -156,6 +199,7 @@ urlpatterns = [
     # QR endpoints
     path('qr/validate/', validate_qr_payment, name='qr-validate'),
     path('qr/process/', process_qr_payment, name='qr-process'),
+    path('qr/generate/', generate_qr_code, name='qr-generate'),
 
     # Additional payment endpoints
     path('remittance/', send_remittance_view, name='remittance'),
@@ -189,4 +233,9 @@ urlpatterns = [
     path('pos/process-transaction/', process_pos_transaction, name='pos-process-transaction'),
     path('pos/generate-receipt/', generate_pos_receipt, name='pos-generate-receipt'),
     path('pos/dashboard/', get_pos_dashboard_data, name='pos-dashboard'),
+
+    # Merchant Dashboard endpoints
+    path('merchant/dashboard/stats/', merchant_dashboard_stats, name='merchant-dashboard-stats'),
+    path('merchant/dashboard/transactions/', merchant_recent_transactions, name='merchant-recent-transactions'),
+    path('merchant/dashboard/analytics/', merchant_analytics, name='merchant-analytics'),
 ]

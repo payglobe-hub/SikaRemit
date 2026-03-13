@@ -12,7 +12,8 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Settings, Shield, Bell, Database, Building, Globe, Lock, Mail, AlertTriangle, Save, RefreshCw } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import api from '@/lib/api/client'
+import { PermissionGuard } from '@/components/ui/permission-guard'
+import api from '@/lib/api/axios'
 import { getExchangeRates, CurrencyWebSocketService } from '@/lib/api/currency'
 
 export default function AdminSettingsPage() {
@@ -72,16 +73,10 @@ export default function AdminSettingsPage() {
 
   const fetchCurrencies = async () => {
     try {
-      const token = localStorage.getItem('access_token')
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const response = await fetch(`${API_URL}/api/v1/payments/currencies/`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      })
-      if (response.ok) {
-        const data = await response.json()
-        const currencyList = Array.isArray(data) ? data : (data.results || [])
-        setCurrencies(currencyList.filter((c: any) => c.is_active))
-      }
+      const response = await api.get('/api/v1/payments/currencies/')
+      const data = response.data
+      const currencyList = Array.isArray(data) ? data : (data.results || [])
+      setCurrencies(currencyList.filter((c: any) => c.is_active))
     } catch (error) {
       console.error('Failed to load currencies:', error)
     }
@@ -194,14 +189,25 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="w-full space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 bg-clip-text text-transparent flex items-center gap-3">
-          <Settings className="h-8 w-8 text-purple-600" />
-          System Settings
-        </h1>
-        <p className="text-slate-600 mt-1 text-base">Configure system-wide settings and preferences</p>
-      </div>
+    <PermissionGuard
+      role={['super_admin']}
+      fallback={
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-2">
+            <h2 className="text-xl font-semibold">Access Denied</h2>
+            <p className="text-muted-foreground">You do not have permission to access system settings.</p>
+          </div>
+        </div>
+      }
+    >
+      <div className="w-full space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 bg-clip-text text-transparent flex items-center gap-3">
+            <Settings className="h-8 w-8 text-blue-600" />
+            System Settings
+          </h1>
+          <p className="text-slate-600 mt-1 text-base">Configure system-wide settings and preferences</p>
+        </div>
 
       <Tabs defaultValue="general" className="space-y-6">
         <TabsList className="grid w-full grid-cols-6">
@@ -214,10 +220,10 @@ export default function AdminSettingsPage() {
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
-          <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-500">
+          <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-900 flex items-center gap-2">
-                <Building className="h-5 w-5 text-purple-600" />
+                <Building className="h-5 w-5 text-blue-600" />
                 General Settings
               </CardTitle>
             </CardHeader>
@@ -229,7 +235,7 @@ export default function AdminSettingsPage() {
                     id="system-name"
                     placeholder="sikaremit"
                     defaultValue="sikaremit"
-                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-purple-300"
+                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-blue-300"
                   />
                 </div>
                 <div className="space-y-2">
@@ -320,10 +326,10 @@ export default function AdminSettingsPage() {
         </TabsContent>
 
         <TabsContent value="security" className="space-y-6">
-          <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-500">
+          <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-900 flex items-center gap-2">
-                <Shield className="h-5 w-5 text-purple-600" />
+                <Shield className="h-5 w-5 text-blue-600" />
                 Security Settings
               </CardTitle>
             </CardHeader>
@@ -336,7 +342,7 @@ export default function AdminSettingsPage() {
                     type="number"
                     placeholder="60"
                     defaultValue="60"
-                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-purple-300"
+                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-blue-300"
                   />
                 </div>
                 <div className="space-y-2">
@@ -346,7 +352,7 @@ export default function AdminSettingsPage() {
                     type="number"
                     placeholder="5"
                     defaultValue="5"
-                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-purple-300"
+                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-blue-300"
                   />
                 </div>
                 <div className="space-y-2">
@@ -356,7 +362,7 @@ export default function AdminSettingsPage() {
                     type="number"
                     placeholder="8"
                     defaultValue="8"
-                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-purple-300"
+                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-blue-300"
                   />
                 </div>
                 <div className="space-y-2">
@@ -415,10 +421,10 @@ export default function AdminSettingsPage() {
         </TabsContent>
 
         <TabsContent value="api" className="space-y-6">
-          <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-500">
+          <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-900 flex items-center gap-2">
-                <Database className="h-5 w-5 text-purple-600" />
+                <Database className="h-5 w-5 text-blue-600" />
                 API Configuration
               </CardTitle>
             </CardHeader>
@@ -431,7 +437,7 @@ export default function AdminSettingsPage() {
                     type="number"
                     placeholder="1000"
                     defaultValue="1000"
-                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-purple-300"
+                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-blue-300"
                   />
                 </div>
                 <div className="space-y-2">
@@ -441,7 +447,7 @@ export default function AdminSettingsPage() {
                     type="number"
                     placeholder="30"
                     defaultValue="30"
-                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-purple-300"
+                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-blue-300"
                   />
                 </div>
                 <div className="space-y-2">
@@ -450,7 +456,7 @@ export default function AdminSettingsPage() {
                     id="webhook-secret"
                     type="password"
                     placeholder="••••••••"
-                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-purple-300"
+                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-blue-300"
                   />
                 </div>
                 <div className="space-y-2">
@@ -472,7 +478,7 @@ export default function AdminSettingsPage() {
                 <Textarea
                   id="cors-origins"
                   placeholder="https://yourdomain.com&#10;https://app.yourdomain.com"
-                  className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-purple-300 min-h-[100px]"
+                  className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-blue-300 min-h-[100px]"
                 />
               </div>
 
@@ -506,10 +512,10 @@ export default function AdminSettingsPage() {
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-6">
-          <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-500">
+          <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-900 flex items-center gap-2">
-                <Bell className="h-5 w-5 text-purple-600" />
+                <Bell className="h-5 w-5 text-blue-600" />
                 Notification Settings
               </CardTitle>
             </CardHeader>
@@ -581,7 +587,7 @@ export default function AdminSettingsPage() {
                     type="email"
                     placeholder="admin@sikaremit.com"
                     defaultValue="admin@sikaremit.com"
-                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-purple-300"
+                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-blue-300"
                   />
                 </div>
                 <div className="space-y-2">
@@ -591,7 +597,7 @@ export default function AdminSettingsPage() {
                     type="number"
                     placeholder="10000"
                     defaultValue="10000"
-                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-purple-300"
+                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-blue-300"
                   />
                 </div>
               </div>
@@ -600,10 +606,10 @@ export default function AdminSettingsPage() {
         </TabsContent>
 
         <TabsContent value="currency" className="space-y-6">
-          <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-500">
+          <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-900 flex items-center gap-2">
-                <Globe className="h-5 w-5 text-purple-600" />
+                <Globe className="h-5 w-5 text-blue-600" />
                 Exchange Rates (Base: Ghana Cedis)
               </CardTitle>
               <p className="text-sm text-slate-600">Set exchange rates from Ghana Cedis (GHS) to other currencies. Changes will be reflected immediately throughout the system.</p>
@@ -625,7 +631,7 @@ export default function AdminSettingsPage() {
                         [currency]: e.target.value === '' ? 0 : parseFloat(e.target.value)
                       }))}
                       placeholder="0.0000"
-                      className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-purple-300"
+                      className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-blue-300"
                     />
                   </div>
                 ))}
@@ -638,8 +644,7 @@ export default function AdminSettingsPage() {
                   variant="outline"
                   onClick={fetchExchangeRates}
                   disabled={isRatesLoading}
-                  className="bg-white/50 backdrop-blur-sm border-white/30 hover:bg-white/70 hover:border-purple-200/50"
-                >
+                  className="bg-white/50 backdrop-blur-sm border-white/30 hover:bg-white/70 hover:border-blue-200/50">
                   <RefreshCw className={`h-4 w-4 mr-2 ${isRatesLoading ? 'animate-spin' : ''}`} />
                   Refresh Rates
                 </Button>
@@ -647,8 +652,7 @@ export default function AdminSettingsPage() {
                 <Button
                   onClick={handleSaveExchangeRates}
                   disabled={isRatesLoading}
-                  className="bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:shadow-xl hover:shadow-purple-500/25 transition-all duration-300 hover:scale-105 px-8 py-3"
-                >
+                  className="bg-gradient-to-r from-blue-600 to-indigo-500 text-white hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 px-8 py-3">
                   {isRatesLoading ? (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -667,10 +671,10 @@ export default function AdminSettingsPage() {
         </TabsContent>
 
         <TabsContent value="maintenance" className="space-y-6">
-          <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-500">
+          <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-900 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-purple-600" />
+                <AlertTriangle className="h-5 w-5 text-blue-600" />
                 Maintenance Settings
               </CardTitle>
             </CardHeader>
@@ -734,17 +738,17 @@ export default function AdminSettingsPage() {
                     type="number"
                     placeholder="30"
                     defaultValue="30"
-                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-purple-300"
+                    className="bg-white/50 backdrop-blur-sm border-white/30 focus:border-blue-300"
                   />
                 </div>
               </div>
 
               <div className="space-y-4">
-                <Button variant="outline" className="bg-white/50 backdrop-blur-sm border-white/30 hover:bg-white/70 hover:border-purple-200/50">
+                <Button variant="outline" className="bg-white/50 backdrop-blur-sm border-white/30 hover:bg-white/70 hover:border-blue-200/50">
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Run Manual Backup
                 </Button>
-                <Button variant="outline" className="bg-white/50 backdrop-blur-sm border-white/30 hover:bg-white/70 hover:border-purple-200/50">
+                <Button variant="outline" className="bg-white/50 backdrop-blur-sm border-white/30 hover:bg-white/70 hover:border-blue-200/50">
                   <Database className="h-4 w-4 mr-2" />
                   Clear System Cache
                 </Button>
@@ -758,8 +762,7 @@ export default function AdminSettingsPage() {
         <Button
           onClick={handleSaveSettings}
           disabled={isLoading}
-          className="bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:shadow-xl hover:shadow-purple-500/25 transition-all duration-300 hover:scale-105 px-8 py-3"
-        >
+          className="bg-gradient-to-r from-blue-600 to-indigo-500 text-white hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 px-8 py-3">
           {isLoading ? (
             <>
               <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -774,5 +777,6 @@ export default function AdminSettingsPage() {
         </Button>
       </div>
     </div>
+    </PermissionGuard>
   )
 }

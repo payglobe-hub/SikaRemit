@@ -9,6 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
+
+// Prevent static generation for this page since it uses functions that can't be serialized
+export const dynamic = 'force-dynamic'
 import {
   Building,
   CreditCard,
@@ -183,11 +186,11 @@ export default function MerchantOnboardingPage() {
   const progress = ((currentStep + 1) / steps.length) * 100
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-sky-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900">
       {/* Enhanced Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-600/20 backdrop-blur-3xl"></div>
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-indigo-400/30 to-purple-600/30 rounded-full blur-3xl animate-pulse"></div>
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-600/20 backdrop-blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-indigo-400/30 to-blue-600/30 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-400/30 to-cyan-600/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
         <div className="relative z-10 px-6 py-12 lg:px-8">
@@ -288,19 +291,19 @@ export default function MerchantOnboardingPage() {
             <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-all duration-500 ${
               currentStep === 0 ? 'from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20' :
               currentStep === 1 ? 'from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20' :
-              'from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20'
+              'from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-950/20'
             }`} />
             <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500 ${
               currentStep === 0 ? 'bg-gradient-to-br from-blue-400/20 to-indigo-600/20' :
               currentStep === 1 ? 'bg-gradient-to-br from-green-400/20 to-emerald-600/20' :
-              'bg-gradient-to-br from-purple-400/20 to-violet-600/20'
+              'bg-gradient-to-br from-indigo-400/20 to-blue-600/20'
             }`} />
 
             <CardHeader className="relative z-10 text-center pb-8">
               <div className={`w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center shadow-lg ${
                 currentStep === 0 ? 'bg-gradient-to-br from-blue-500 to-indigo-600' :
                 currentStep === 1 ? 'bg-gradient-to-br from-green-500 to-emerald-600' :
-                'bg-gradient-to-br from-purple-500 to-violet-600'
+                'bg-gradient-to-br from-indigo-500 to-blue-600'
               }`}>
                 {renderIcon(steps[currentStep].icon, "w-10 h-10 text-white")}
               </div>
@@ -531,14 +534,14 @@ export default function MerchantOnboardingPage() {
               {/* Verification Step */}
               {currentStep === 2 && (
                 <div className="space-y-6">
-                  <div className="bg-purple-50 dark:bg-purple-900/20 p-6 rounded-xl border border-purple-200 dark:border-purple-800">
+                  <div className="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-xl border border-indigo-200 dark:border-indigo-800">
                     <div className="flex items-center space-x-3 mb-3">
-                      <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
-                        <FileText className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                      <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
+                        <FileText className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                       </div>
                       <div>
-                        <h4 className="font-semibold text-purple-800 dark:text-purple-200">Required Documents</h4>
-                        <p className="text-sm text-purple-700 dark:text-purple-300">
+                        <h4 className="font-semibold text-indigo-800 dark:text-indigo-200">Required Documents</h4>
+                        <p className="text-sm text-indigo-700 dark:text-indigo-300">
                           Please upload the following documents to verify your business. All documents must be clear and legible.
                         </p>
                       </div>
@@ -546,10 +549,10 @@ export default function MerchantOnboardingPage() {
                   </div>
 
                   <div className="space-y-4">
-                    <div className="group border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 hover:border-purple-400 dark:hover:border-purple-600 transition-colors duration-300">
+                    <div className="group border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 hover:border-indigo-400 dark:hover:border-indigo-600 transition-colors duration-300">
                       <div className="text-center">
-                        <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                          <Upload className="w-8 h-8 text-purple-600" />
+                        <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                          <Upload className="w-8 h-8 text-indigo-600" />
                         </div>
                         <Label htmlFor="businessLicense" className="cursor-pointer">
                           <span className="font-semibold text-lg text-gray-900 dark:text-white">Business License/Registration *</span>
@@ -573,10 +576,10 @@ export default function MerchantOnboardingPage() {
                       </div>
                     </div>
 
-                    <div className="group border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 hover:border-purple-400 dark:hover:border-purple-600 transition-colors duration-300">
+                    <div className="group border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 hover:border-indigo-400 dark:hover:border-indigo-600 transition-colors duration-300">
                       <div className="text-center">
-                        <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                          <User className="w-8 h-8 text-purple-600" />
+                        <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                          <User className="w-8 h-8 text-indigo-600" />
                         </div>
                         <Label htmlFor="idDocument" className="cursor-pointer">
                           <span className="font-semibold text-lg text-gray-900 dark:text-white">ID Document *</span>
@@ -600,10 +603,10 @@ export default function MerchantOnboardingPage() {
                       </div>
                     </div>
 
-                    <div className="group border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 hover:border-purple-400 dark:hover:border-purple-600 transition-colors duration-300">
+                    <div className="group border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 hover:border-indigo-400 dark:hover:border-indigo-600 transition-colors duration-300">
                       <div className="text-center">
-                        <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                          <FileText className="w-8 h-8 text-purple-600" />
+                        <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                          <FileText className="w-8 h-8 text-indigo-600" />
                         </div>
                         <Label htmlFor="taxDocument" className="cursor-pointer">
                           <span className="font-semibold text-lg text-gray-900 dark:text-white">Tax Document (Optional)</span>
@@ -654,7 +657,7 @@ export default function MerchantOnboardingPage() {
                   disabled={updateOnboardingMutation.isPending}
                   className={`h-12 px-8 rounded-xl font-semibold transition-all duration-300 ${
                     currentStep === steps.length - 1
-                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl'
+                      ? 'bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl'
                       : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl'
                   }`}
                 >

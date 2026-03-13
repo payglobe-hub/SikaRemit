@@ -267,7 +267,7 @@ export default function AdminKYCPage() {
                 <CardTitle className="text-sm font-medium">Escalated</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-purple-600">{stats.escalated}</div>
+                <div className="text-2xl font-bold text-indigo-600">{stats.escalated}</div>
               </CardContent>
             </Card>
             <Card>

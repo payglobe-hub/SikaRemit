@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import api from '@/lib/api/axios'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -73,20 +74,13 @@ export default function AdminFeesPage() {
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-
   useEffect(() => {
     const loadCurrencies = async () => {
       try {
-        const token = localStorage.getItem('access_token')
-        const response = await fetch(`${API_URL}/api/v1/payments/currencies/`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        })
-        if (response.ok) {
-          const data = await response.json()
-          const currencyList = Array.isArray(data) ? data : (data.results || [])
-          setCurrencies(currencyList.filter((c: any) => c.is_active))
-        }
+        const response = await api.get('/api/v1/payments/currencies/')
+        const data = response.data
+        const currencyList = Array.isArray(data) ? data : (data.results || [])
+        setCurrencies(currencyList.filter((c: any) => c.is_active))
       } catch (error) {
         console.error('Failed to load currencies:', error)
       }
@@ -94,15 +88,10 @@ export default function AdminFeesPage() {
     
     const loadCountries = async () => {
       try {
-        const token = localStorage.getItem('access_token')
-        const response = await fetch(`${API_URL}/api/v1/payments/countries/`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        })
-        if (response.ok) {
-          const data = await response.json()
-          const countryList = Array.isArray(data) ? data : (data.results || [])
-          setCountries(countryList.filter((c: any) => c.is_active))
-        }
+        const response = await api.get('/api/v1/payments/countries/')
+        const data = response.data
+        const countryList = Array.isArray(data) ? data : (data.results || [])
+        setCountries(countryList.filter((c: any) => c.is_active))
       } catch (error) {
         console.error('Failed to load countries:', error)
       }
@@ -110,28 +99,14 @@ export default function AdminFeesPage() {
     
     loadCurrencies()
     loadCountries()
-  }, [API_URL])
-
-  const getAuthHeaders = (): Record<string, string> => {
-    const token = localStorage.getItem('access_token')
-    return token ? { Authorization: `Bearer ${token}` } : {}
-  }
+  }, [])
 
   // Fetch fee configurations from API
   const { data: feeConfigurations = [], isLoading } = useQuery({
     queryKey: ['fee-configurations'],
     queryFn: async () => {
-      const token = localStorage.getItem('access_token')
-      const response = await fetch(`${API_URL}/api/v1/payments/fees/`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      if (!response.ok) {
-        console.error('Fee configurations fetch failed:', response.status)
-        return []
-      }
-      const data = await response.json()
-      console.log('Fee configurations response:', data)
-      // Handle paginated response or direct array
+      const response = await api.get('/api/v1/payments/fees/')
+      const data = response.data
       if (Array.isArray(data)) return data
       if (data.results && Array.isArray(data.results)) return data.results
       if (data.data && Array.isArray(data.data)) return data.data
@@ -150,7 +125,7 @@ export default function AdminFeesPage() {
     const colors: Record<string, string> = {
       remittance: 'blue',
       domestic_transfer: 'green',
-      payment: 'purple',
+      payment: 'indigo',
       merchant_service: 'orange',
       platform_fee: 'red',
       withdrawal: 'yellow',
@@ -183,32 +158,18 @@ export default function AdminFeesPage() {
 
     setIsSubmitting(true)
     try {
-      const response = await fetch(`${API_URL}/api/v1/admin/fee-configurations/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          fee_type: formData.fee_type,
-          calculation_method: formData.calculation_method || 'fixed',
-          fixed_fee: parseFloat(formData.fixed_fee) || 0,
-          percentage_fee: (parseFloat(formData.percentage_fee) || 0) / 100, // Convert percentage to decimal (e.g., 2.5% -> 0.025)
-          currency: formData.currency,
-          corridor_from: formData.corridor_from && formData.corridor_from !== 'all' ? formData.corridor_from : null,
-          corridor_to: formData.corridor_to && formData.corridor_to !== 'all' ? formData.corridor_to : null,
-          description: formData.description,
-          is_active: true
-        })
+      await api.post('/api/v1/admin/fee-configurations/', {
+        name: formData.name,
+        fee_type: formData.fee_type,
+        calculation_method: formData.calculation_method || 'fixed',
+        fixed_fee: parseFloat(formData.fixed_fee) || 0,
+        percentage_fee: (parseFloat(formData.percentage_fee) || 0) / 100,
+        currency: formData.currency,
+        corridor_from: formData.corridor_from && formData.corridor_from !== 'all' ? formData.corridor_from : null,
+        corridor_to: formData.corridor_to && formData.corridor_to !== 'all' ? formData.corridor_to : null,
+        description: formData.description,
+        is_active: true
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        console.error('Fee creation error:', errorData)
-        const errorMessage = errorData.detail || Object.entries(errorData).map(([k, v]) => `${k}: ${v}`).join(', ') || 'Failed to create fee configuration'
-        throw new Error(errorMessage)
-      }
 
       queryClient.invalidateQueries({ queryKey: ['fee-configurations'] })
       setShowCreateDialog(false)
@@ -226,29 +187,17 @@ export default function AdminFeesPage() {
 
     setIsSubmitting(true)
     try {
-      const response = await fetch(`${API_URL}/api/v1/admin/fee-configurations/${selectedFee.id}/`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          fee_type: formData.fee_type,
-          calculation_method: formData.calculation_method || 'fixed',
-          fixed_fee: parseFloat(formData.fixed_fee) || 0,
-          percentage_fee: (parseFloat(formData.percentage_fee) || 0) / 100, // Convert percentage to decimal (e.g., 2.5% -> 0.025)
-          currency: formData.currency,
-          corridor_from: formData.corridor_from && formData.corridor_from !== 'all' ? formData.corridor_from : null,
-          corridor_to: formData.corridor_to && formData.corridor_to !== 'all' ? formData.corridor_to : null,
-          description: formData.description
-        })
+      await api.put(`/api/v1/admin/fee-configurations/${selectedFee.id}/`, {
+        name: formData.name,
+        fee_type: formData.fee_type,
+        calculation_method: formData.calculation_method || 'fixed',
+        fixed_fee: parseFloat(formData.fixed_fee) || 0,
+        percentage_fee: (parseFloat(formData.percentage_fee) || 0) / 100,
+        currency: formData.currency,
+        corridor_from: formData.corridor_from && formData.corridor_from !== 'all' ? formData.corridor_from : null,
+        corridor_to: formData.corridor_to && formData.corridor_to !== 'all' ? formData.corridor_to : null,
+        description: formData.description
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Failed to update fee configuration')
-      }
 
       queryClient.invalidateQueries({ queryKey: ['fee-configurations'] })
       setShowEditDialog(false)
@@ -266,14 +215,7 @@ export default function AdminFeesPage() {
     if (!confirm('Are you sure you want to delete this fee configuration?')) return
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/admin/fee-configurations/${feeId}/`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      })
-
-      if (!response.ok && response.status !== 204) {
-        throw new Error('Failed to delete fee configuration')
-      }
+      await api.delete(`/api/v1/admin/fee-configurations/${feeId}/`)
 
       queryClient.invalidateQueries({ queryKey: ['fee-configurations'] })
       toast({ title: 'Success', description: 'Fee configuration deleted successfully' })

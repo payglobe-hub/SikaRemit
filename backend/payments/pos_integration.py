@@ -89,8 +89,38 @@ class VirtualTerminal:
                 metadata=metadata or {}
             )
             
-            # Log transaction
-            self._log_transaction(transaction_id, result)
+            # Log transaction atomically; refund if DB fails after successful charge
+            if result.get('success'):
+                try:
+                    from django.db import transaction as db_transaction
+                    with db_transaction.atomic():
+                        self._log_transaction(transaction_id, result)
+                except Exception as db_err:
+                    logger.error(f"DB log failed after VT charge, issuing refund: {db_err}")
+                    try:
+                        from payments.gateways.stripe import StripeGateway
+                        StripeGateway().refund_payment(
+                            transaction_id=result.get('gateway_transaction_id'),
+                            amount=float(amount),
+                            reason='DB log failed after VT charge'
+                        )
+                    except Exception as refund_err:
+                        logger.critical(
+                            f"REFUND ALSO FAILED for VT tx {transaction_id}, "
+                            f"gateway_tx={result.get('gateway_transaction_id')}, "
+                            f"amount={amount}: {refund_err}"
+                        )
+                    return {
+                        'success': False,
+                        'error': 'Payment charged but recording failed. Refund initiated.',
+                        'transaction_id': transaction_id,
+                    }
+            else:
+                # Failed charges can be logged best-effort
+                try:
+                    self._log_transaction(transaction_id, result)
+                except Exception:
+                    pass
             
             return result
             
@@ -115,19 +145,60 @@ class VirtualTerminal:
         customer_info: Dict,
         metadata: Dict
     ) -> Dict[str, Any]:
-        """Process card payment through gateway"""
-        # In production, integrate with Stripe, Adyen, etc.
-        # Mock implementation
-        return {
-            'success': True,
-            'transaction_id': transaction_id,
-            'status': 'completed',
-            'amount': float(amount),
-            'currency': currency,
-            'card_last4': card_data['card_number'][-4:],
-            'card_brand': self._detect_card_brand(card_data['card_number']),
-            'processed_at': datetime.now().isoformat()
-        }
+        """Process card payment through Stripe gateway"""
+        try:
+            from payments.gateways.stripe import StripeGateway
+
+            gateway = StripeGateway()
+
+            class VTPaymentMethod:
+                def __init__(self, data):
+                    self.method_type = 'card'
+                    self.id = transaction_id
+                    self.details = {
+                        'card_number': data.get('card_number', ''),
+                        'exp_month': data.get('exp_month', ''),
+                        'exp_year': data.get('exp_year', ''),
+                        'cvv': data.get('cvv', ''),
+                        'cardholder_name': data.get('cardholder_name', ''),
+                    }
+
+            result = gateway.process_payment(
+                amount=float(amount),
+                currency=currency,
+                payment_method=VTPaymentMethod(card_data),
+                customer=None,
+                merchant=None,
+                metadata={
+                    'transaction_id': transaction_id,
+                    'pos_type': 'virtual_terminal',
+                    'merchant_id': self.merchant_id,
+                    **(metadata or {}),
+                }
+            )
+
+            if result.get('success'):
+                return {
+                    'success': True,
+                    'transaction_id': transaction_id,
+                    'status': 'completed',
+                    'amount': float(amount),
+                    'currency': currency,
+                    'card_last4': card_data['card_number'][-4:],
+                    'card_brand': self._detect_card_brand(card_data['card_number']),
+                    'gateway_transaction_id': result.get('transaction_id', ''),
+                    'processed_at': datetime.now().isoformat()
+                }
+            else:
+                return {
+                    'success': False,
+                    'transaction_id': transaction_id,
+                    'error': result.get('error', 'Payment gateway declined'),
+                }
+
+        except Exception as e:
+            logger.error(f"Virtual terminal payment failed: {str(e)}")
+            return {'success': False, 'transaction_id': transaction_id, 'error': str(e)}
     
     def _detect_card_brand(self, card_number: str) -> str:
         """Detect card brand from number"""
@@ -143,24 +214,21 @@ class VirtualTerminal:
         return 'unknown'
     
     def _log_transaction(self, transaction_id: str, result: Dict):
-        """Log transaction to database"""
+        """Log transaction to database — raises on failure so caller can refund"""
         from .models import POSTransaction
         
-        try:
-            POSTransaction.objects.create(
-                merchant_id=self.merchant_id,
-                transaction_id=transaction_id,
-                device_type=POSDeviceType.VIRTUAL_TERMINAL,
-                transaction_type=POSTransactionType.SALE,
-                amount=result.get('amount', 0),
-                currency=result.get('currency', 'USD'),
-                status=result.get('status', 'failed'),
-                card_last4=result.get('card_last4', ''),
-                card_brand=result.get('card_brand', ''),
-                response_data=result
-            )
-        except Exception as e:
-            logger.error(f"Error logging POS transaction: {str(e)}")
+        POSTransaction.objects.create(
+            merchant_id=self.merchant_id,
+            transaction_id=transaction_id,
+            device_type=POSDeviceType.VIRTUAL_TERMINAL,
+            transaction_type=POSTransactionType.SALE,
+            amount=result.get('amount', 0),
+            currency=result.get('currency', 'USD'),
+            status=result.get('status', 'failed'),
+            card_last4=result.get('card_last4', ''),
+            card_brand=result.get('card_brand', ''),
+            response_data=result
+        )
 
 
 class MobileReaderSDK:
@@ -188,7 +256,7 @@ class MobileReaderSDK:
             'device_id': self.device_id,
             'connection_type': connection_type,
             'status': 'ready',
-            'battery_level': 85,  # Mock data
+            'battery_level': self._get_battery_level(),  # Actual battery level from device
             'firmware_version': '2.1.0'
         }
     
@@ -202,16 +270,39 @@ class MobileReaderSDK:
         Returns:
             Card data (encrypted)
         """
-        # In production, this would communicate with actual hardware
-        # Mock implementation
-        return {
-            'success': True,
-            'card_encrypted_data': 'encrypted_card_data_here',
-            'card_last4': '4242',
-            'card_brand': 'visa',
-            'read_method': 'chip',  # chip, swipe, or contactless
-            'timestamp': datetime.now().isoformat()
-        }
+        # Communicate with the hardware reader via its SDK/API
+        reader_api_url = getattr(settings, 'POS_READER_API_URL', None)
+        if not reader_api_url:
+            return {
+                'success': False,
+                'error': 'Mobile card reader not configured. Set POS_READER_API_URL in settings.',
+            }
+
+        try:
+            import requests as http_requests
+            response = http_requests.post(
+                f"{reader_api_url}/read_card",
+                json={'device_id': self.device_id, 'timeout': timeout},
+                timeout=timeout + 5,
+            )
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    'success': True,
+                    'card_encrypted_data': data.get('card_encrypted_data', ''),
+                    'card_last4': data.get('card_last4', ''),
+                    'card_brand': data.get('card_brand', ''),
+                    'read_method': data.get('read_method', 'chip'),
+                    'timestamp': datetime.now().isoformat()
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': f'Card reader returned status {response.status_code}',
+                }
+        except Exception as e:
+            logger.error(f"Card reader communication failed: {str(e)}")
+            return {'success': False, 'error': str(e)}
     
     def process_payment(
         self,
@@ -220,25 +311,92 @@ class MobileReaderSDK:
         card_data: Dict,
         metadata: Optional[Dict] = None
     ) -> Dict:
-        """Process payment with mobile reader"""
+        """Process payment with mobile reader via Stripe gateway"""
         transaction_id = f"mr_{uuid.uuid4().hex[:16]}"
         
         try:
-            # Process payment
-            result = {
-                'success': True,
-                'transaction_id': transaction_id,
-                'amount': float(amount),
-                'currency': currency,
-                'status': 'completed',
-                'card_last4': card_data.get('card_last4'),
-                'card_brand': card_data.get('card_brand'),
-                'read_method': card_data.get('read_method'),
-                'device_id': self.device_id
-            }
-            
-            # Log transaction
-            self._log_transaction(transaction_id, result)
+            from payments.gateways.stripe import StripeGateway
+
+            gateway = StripeGateway()
+
+            class ReaderPaymentMethod:
+                def __init__(self, data):
+                    self.method_type = 'card'
+                    self.id = transaction_id
+                    self.details = {
+                        'encrypted_data': data.get('card_encrypted_data', ''),
+                        'last4': data.get('card_last4', ''),
+                        'brand': data.get('card_brand', ''),
+                    }
+
+            gateway_result = gateway.process_payment(
+                amount=float(amount),
+                currency=currency,
+                payment_method=ReaderPaymentMethod(card_data),
+                customer=None,
+                merchant=None,
+                metadata={
+                    'transaction_id': transaction_id,
+                    'pos_type': 'mobile_reader',
+                    'device_id': self.device_id,
+                    'merchant_id': self.merchant_id,
+                    **(metadata or {}),
+                }
+            )
+
+            if gateway_result.get('success'):
+                result = {
+                    'success': True,
+                    'transaction_id': transaction_id,
+                    'amount': float(amount),
+                    'currency': currency,
+                    'status': 'completed',
+                    'card_last4': card_data.get('card_last4'),
+                    'card_brand': card_data.get('card_brand'),
+                    'read_method': card_data.get('read_method'),
+                    'device_id': self.device_id,
+                    'gateway_transaction_id': gateway_result.get('transaction_id', ''),
+                }
+
+                # Log transaction atomically; refund if DB fails
+                try:
+                    from django.db import transaction as db_transaction
+                    with db_transaction.atomic():
+                        self._log_transaction(transaction_id, result)
+                except Exception as db_err:
+                    logger.error(f"DB log failed after MR charge, issuing refund: {db_err}")
+                    try:
+                        gateway.refund_payment(
+                            transaction_id=gateway_result.get('transaction_id'),
+                            amount=float(amount),
+                            reason='DB log failed after MR charge'
+                        )
+                    except Exception as refund_err:
+                        logger.critical(
+                            f"REFUND ALSO FAILED for MR tx {transaction_id}, "
+                            f"gateway_tx={gateway_result.get('transaction_id')}, "
+                            f"amount={amount}: {refund_err}"
+                        )
+                    return {
+                        'success': False,
+                        'error': 'Payment charged but recording failed. Refund initiated.',
+                        'transaction_id': transaction_id,
+                    }
+            else:
+                result = {
+                    'success': False,
+                    'transaction_id': transaction_id,
+                    'error': gateway_result.get('error', 'Payment processing failed'),
+                    'status': 'failed',
+                    'amount': float(amount),
+                    'currency': currency,
+                    'device_id': self.device_id,
+                }
+                # Best-effort log for failed charges
+                try:
+                    self._log_transaction(transaction_id, result)
+                except Exception:
+                    pass
             
             return result
             

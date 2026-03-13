@@ -101,11 +101,13 @@ KYC_DOCUMENT_TYPES = [
 PROVIDER_MTN = 'mtn_momo'
 PROVIDER_TELECEL = 'telecel'
 PROVIDER_AIRTEL_TIGO = 'airtel_tigo'
+PROVIDER_G_MONEY = 'g_money'
 
 MOBILE_MONEY_PROVIDERS = [
     (PROVIDER_MTN, 'MTN Mobile Money'),
     (PROVIDER_TELECEL, 'Telecel Cash'),
     (PROVIDER_AIRTEL_TIGO, 'AirtelTigo Money'),
+    (PROVIDER_G_MONEY, 'G-Money'),
 ]
 
 # =============================================================================
@@ -116,17 +118,16 @@ METHOD_CREDIT_CARD = 'credit_card'
 METHOD_BANK_TRANSFER = 'bank_transfer'
 METHOD_MOBILE_MONEY = 'mobile_money'
 METHOD_QR_PAYMENT = 'qr_payment'
-METHOD_APPLE_PAY = 'apple_pay'
-METHOD_GOOGLE_PAY = 'google_pay'
 METHOD_WALLET = 'wallet'
 
 PAYMENT_METHOD_CHOICES = [
     (METHOD_CREDIT_CARD, 'Credit Card'),
     (METHOD_BANK_TRANSFER, 'Bank Transfer'),
-    (METHOD_MOBILE_MONEY, 'Mobile Money'),
+    (PROVIDER_MTN, 'MTN Mobile Money'),
+    (PROVIDER_TELECEL, 'Telecel Cash'),
+    (PROVIDER_AIRTEL_TIGO, 'AirtelTigo Money'),
+    (PROVIDER_G_MONEY, 'G-Money'),
     (METHOD_QR_PAYMENT, 'QR Payment'),
-    (METHOD_APPLE_PAY, 'Apple Pay'),
-    (METHOD_GOOGLE_PAY, 'Google Pay'),
     (METHOD_WALLET, 'Digital Wallet'),
 ]
 
@@ -162,28 +163,178 @@ PAYMENT_TYPE_CHOICES = [
 ]
 
 # =============================================================================
-# USER TYPES
+# USER TYPES - Enhanced Admin Hierarchy
 # =============================================================================
 
-USER_TYPE_ADMIN = 1
-USER_TYPE_MERCHANT = 2
-USER_TYPE_CUSTOMER = 3
+# Admin Hierarchy (Levels 1-4)
+USER_TYPE_SUPER_ADMIN = 1      # Full system access
+USER_TYPE_BUSINESS_ADMIN = 2   # KYC, compliance, risk, merchant approval
+USER_TYPE_OPERATIONS_ADMIN = 3 # Customer support, basic operations
+USER_TYPE_VERIFICATION_ADMIN = 4 # Document verification only
+
+# Regular Users (Levels 5-6)
+USER_TYPE_MERCHANT = 5
+USER_TYPE_CUSTOMER = 6
 
 USER_TYPE_CHOICES = [
-    (USER_TYPE_ADMIN, 'admin'),
+    (USER_TYPE_SUPER_ADMIN, 'super_admin'),
+    (USER_TYPE_BUSINESS_ADMIN, 'business_admin'),
+    (USER_TYPE_OPERATIONS_ADMIN, 'operations_admin'),
+    (USER_TYPE_VERIFICATION_ADMIN, 'verification_admin'),
     (USER_TYPE_MERCHANT, 'merchant'),
     (USER_TYPE_CUSTOMER, 'customer'),
 ]
 
 # String-based user roles (for frontend compatibility)
-ROLE_ADMIN = 'admin'
+ROLE_SUPER_ADMIN = 'super_admin'
+ROLE_BUSINESS_ADMIN = 'business_admin'
+ROLE_OPERATIONS_ADMIN = 'operations_admin'
+ROLE_VERIFICATION_ADMIN = 'verification_admin'
 ROLE_MERCHANT = 'merchant'
 ROLE_CUSTOMER = 'customer'
 
 USER_ROLE_CHOICES = [
-    (ROLE_ADMIN, 'Admin'),
+    (ROLE_SUPER_ADMIN, 'Super Admin'),
+    (ROLE_BUSINESS_ADMIN, 'Business Admin'),
+    (ROLE_OPERATIONS_ADMIN, 'Operations Admin'),
+    (ROLE_VERIFICATION_ADMIN, 'Verification Admin'),
     (ROLE_MERCHANT, 'Merchant'),
     (ROLE_CUSTOMER, 'Customer'),
+]
+
+# Admin role hierarchy levels
+ADMIN_HIERARCHY_LEVELS = {
+    USER_TYPE_SUPER_ADMIN: 1,
+    USER_TYPE_BUSINESS_ADMIN: 2,
+    USER_TYPE_OPERATIONS_ADMIN: 3,
+    USER_TYPE_VERIFICATION_ADMIN: 4,
+}
+
+# =============================================================================
+# ADMIN PERMISSIONS - Granular Permission System
+# =============================================================================
+
+# Permission categories
+PERMISSION_USER_MANAGEMENT = 'user_management'
+PERMISSION_KYC_REVIEW = 'kyc_review'
+PERMISSION_COMPLIANCE_MONITORING = 'compliance_monitoring'
+PERMISSION_TRANSACTION_OVERRIDE = 'transaction_override'
+PERMISSION_MERCHANT_APPROVAL = 'merchant_approval'
+PERMISSION_SUPPORT_MANAGEMENT = 'support_management'
+PERMISSION_REPORTING = 'reporting'
+PERMISSION_SYSTEM_SETTINGS = 'system_settings'
+PERMISSION_VERIFICATION_ONLY = 'verification_only'
+PERMISSION_AUDIT_LOGS = 'audit_logs'
+PERMISSION_ADMIN_MANAGEMENT = 'admin_management'
+PERMISSION_EMERGENCY_OVERRIDE = 'emergency_override'
+
+# Granular permissions mapping
+ADMIN_PERMISSIONS = {
+    PERMISSION_USER_MANAGEMENT: {
+        'roles': [USER_TYPE_SUPER_ADMIN],
+        'description': 'Manage user accounts and permissions',
+        'category': 'user_management'
+    },
+    PERMISSION_ADMIN_MANAGEMENT: {
+        'roles': [USER_TYPE_SUPER_ADMIN],
+        'description': 'Create, modify, and restrict admin accounts',
+        'category': 'admin_management'
+    },
+    PERMISSION_KYC_REVIEW: {
+        'roles': [USER_TYPE_BUSINESS_ADMIN, USER_TYPE_VERIFICATION_ADMIN],
+        'description': 'Review and approve/reject KYC documents',
+        'category': 'compliance'
+    },
+    PERMISSION_COMPLIANCE_MONITORING: {
+        'roles': [USER_TYPE_BUSINESS_ADMIN],
+        'description': 'Monitor compliance and regulatory requirements',
+        'category': 'compliance'
+    },
+    PERMISSION_TRANSACTION_OVERRIDE: {
+        'roles': [USER_TYPE_SUPER_ADMIN, USER_TYPE_BUSINESS_ADMIN],
+        'description': 'Override transaction restrictions and limits',
+        'category': 'transactions'
+    },
+    PERMISSION_MERCHANT_APPROVAL: {
+        'roles': [USER_TYPE_BUSINESS_ADMIN],
+        'description': 'Approve or reject merchant applications',
+        'category': 'merchant_management'
+    },
+    PERMISSION_SUPPORT_MANAGEMENT: {
+        'roles': [USER_TYPE_OPERATIONS_ADMIN],
+        'description': 'Manage customer support operations',
+        'category': 'support'
+    },
+    PERMISSION_REPORTING: {
+        'roles': [USER_TYPE_BUSINESS_ADMIN, USER_TYPE_OPERATIONS_ADMIN],
+        'description': 'Access and generate reports',
+        'category': 'analytics'
+    },
+    PERMISSION_SYSTEM_SETTINGS: {
+        'roles': [USER_TYPE_SUPER_ADMIN],
+        'description': 'Modify system configuration and settings',
+        'category': 'system'
+    },
+    PERMISSION_VERIFICATION_ONLY: {
+        'roles': [USER_TYPE_VERIFICATION_ADMIN],
+        'description': 'Document verification tasks only',
+        'category': 'verification'
+    },
+    PERMISSION_AUDIT_LOGS: {
+        'roles': [USER_TYPE_SUPER_ADMIN, USER_TYPE_BUSINESS_ADMIN],
+        'description': 'Access comprehensive audit logs',
+        'category': 'audit'
+    },
+    PERMISSION_EMERGENCY_OVERRIDE: {
+        'roles': [USER_TYPE_SUPER_ADMIN],
+        'description': 'Emergency system controls and overrides',
+        'category': 'emergency'
+    },
+}
+
+# Admin activity types for audit logging
+ADMIN_ACTIVITY_USER_CREATED = 'user_created'
+ADMIN_ACTIVITY_USER_MODIFIED = 'user_modified'
+ADMIN_ACTIVITY_USER_SUSPENDED = 'user_suspended'
+ADMIN_ACTIVITY_USER_ACTIVATED = 'user_activated'
+ADMIN_ACTIVITY_ADMIN_CREATED = 'admin_created'
+ADMIN_ACTIVITY_ADMIN_MODIFIED = 'admin_modified'
+ADMIN_ACTIVITY_ADMIN_SUSPENDED = 'admin_suspended'
+ADMIN_ACTIVITY_PERMISSION_GRANTED = 'permission_granted'
+ADMIN_ACTIVITY_PERMISSION_REVOKED = 'permission_revoked'
+ADMIN_ACTIVITY_KYC_APPROVED = 'kyc_approved'
+ADMIN_ACTIVITY_KYC_REJECTED = 'kyc_rejected'
+ADMIN_ACTIVITY_MERCHANT_APPROVED = 'merchant_approved'
+ADMIN_ACTIVITY_MERCHANT_REJECTED = 'merchant_rejected'
+ADMIN_ACTIVITY_TRANSACTION_OVERRIDE = 'transaction_override'
+ADMIN_ACTIVITY_SYSTEM_SETTING_CHANGED = 'system_setting_changed'
+ADMIN_ACTIVITY_EMERGENCY_ACTION = 'emergency_action'
+ADMIN_ACTIVITY_LOGIN = 'admin_login'
+ADMIN_ACTIVITY_LOGOUT = 'admin_logout'
+ADMIN_ACTIVITY_PASSWORD_CHANGE = 'password_change'
+ADMIN_ACTIVITY_PROFILE_UPDATE = 'profile_update'
+
+ENHANCED_ADMIN_ACTIVITY_TYPES = [
+    (ADMIN_ACTIVITY_USER_CREATED, 'User Account Created'),
+    (ADMIN_ACTIVITY_USER_MODIFIED, 'User Account Modified'),
+    (ADMIN_ACTIVITY_USER_SUSPENDED, 'User Account Suspended'),
+    (ADMIN_ACTIVITY_USER_ACTIVATED, 'User Account Activated'),
+    (ADMIN_ACTIVITY_ADMIN_CREATED, 'Admin Account Created'),
+    (ADMIN_ACTIVITY_ADMIN_MODIFIED, 'Admin Account Modified'),
+    (ADMIN_ACTIVITY_ADMIN_SUSPENDED, 'Admin Account Suspended'),
+    (ADMIN_ACTIVITY_PERMISSION_GRANTED, 'Permission Granted'),
+    (ADMIN_ACTIVITY_PERMISSION_REVOKED, 'Permission Revoked'),
+    (ADMIN_ACTIVITY_KYC_APPROVED, 'KYC Approved'),
+    (ADMIN_ACTIVITY_KYC_REJECTED, 'KYC Rejected'),
+    (ADMIN_ACTIVITY_MERCHANT_APPROVED, 'Merchant Approved'),
+    (ADMIN_ACTIVITY_MERCHANT_REJECTED, 'Merchant Rejected'),
+    (ADMIN_ACTIVITY_TRANSACTION_OVERRIDE, 'Transaction Override'),
+    (ADMIN_ACTIVITY_SYSTEM_SETTING_CHANGED, 'System Setting Changed'),
+    (ADMIN_ACTIVITY_EMERGENCY_ACTION, 'Emergency Action Taken'),
+    (ADMIN_ACTIVITY_LOGIN, 'Admin Login'),
+    (ADMIN_ACTIVITY_LOGOUT, 'Admin Logout'),
+    (ADMIN_ACTIVITY_PASSWORD_CHANGE, 'Password Changed'),
+    (ADMIN_ACTIVITY_PROFILE_UPDATE, 'Profile Updated'),
 ]
 
 # =============================================================================
@@ -333,7 +484,10 @@ PAYOUT_STATUS_CHOICES = [
 
 PAYOUT_METHOD_CHOICES = [
     (METHOD_BANK_TRANSFER, 'Bank Transfer'),
-    (METHOD_MOBILE_MONEY, 'Mobile Money'),
+    (PROVIDER_MTN, 'MTN Mobile Money'),
+    (PROVIDER_TELECEL, 'Telecel Cash'),
+    (PROVIDER_AIRTEL_TIGO, 'AirtelTigo Money'),
+    (PROVIDER_G_MONEY, 'G-Money'),
 ]
 
 # =============================================================================

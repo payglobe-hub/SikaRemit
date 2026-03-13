@@ -11,6 +11,7 @@ from django.utils.module_loading import import_string
 from django.core.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from shared.constants import USER_TYPE_MERCHANT, USER_TYPE_CUSTOMER
 
 User = get_user_model()
 
@@ -21,20 +22,26 @@ class UserRegisterSerializer(serializers.Serializer):
         required=True,
         allow_blank=True
     )
-    password2 = serializers.CharField(write_only=True, required=True, allow_blank=True)
-    user_type = serializers.IntegerField(required=True)
+    password2 = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    user_type = serializers.IntegerField(required=False, default=USER_TYPE_CUSTOMER)
     username = serializers.CharField(required=False, allow_blank=True)
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
     phone = serializers.CharField(required=False, allow_blank=True)
 
     def validate(self, attrs):
-        if attrs['password'] != attrs['password2']:
+        # If password2 not provided, default to password (mobile apps skip confirm)
+        password2 = attrs.get('password2') or attrs.get('password')
+        if attrs['password'] != password2:
             raise serializers.ValidationError({"password": "Passwords don't match"})
+        
+        # Default user_type to CUSTOMER if not provided
+        if 'user_type' not in attrs or attrs['user_type'] is None:
+            attrs['user_type'] = USER_TYPE_CUSTOMER
         
         # SECURITY: Only allow customer and merchant account creation through public registration
         # Admin accounts should only be created through admin-only endpoints
-        if attrs['user_type'] not in [2, 3]:  # 2 = merchant, 3 = customer
+        if attrs['user_type'] not in [USER_TYPE_MERCHANT, USER_TYPE_CUSTOMER]:
             raise serializers.ValidationError({
                 "user_type": "Invalid user type. Only customer and merchant accounts can be created through public registration."
             })
@@ -91,9 +98,20 @@ class AccountsUserSerializer(serializers.ModelSerializer):
     def get_role(self, obj):
         if obj.is_superuser or obj.is_staff:
             return 'admin'
+        # Use correct user_type mappings from constants
+        from shared.constants import (
+            USER_TYPE_MERCHANT, USER_TYPE_CUSTOMER,
+            USER_TYPE_SUPER_ADMIN, USER_TYPE_BUSINESS_ADMIN, 
+            USER_TYPE_OPERATIONS_ADMIN, USER_TYPE_VERIFICATION_ADMIN
+        )
+        
         role_mapping = {
-            2: 'merchant',
-            3: 'customer'
+            USER_TYPE_MERCHANT: 'merchant',
+            USER_TYPE_CUSTOMER: 'customer',
+            USER_TYPE_SUPER_ADMIN: 'super_admin',
+            USER_TYPE_BUSINESS_ADMIN: 'business_admin',
+            USER_TYPE_OPERATIONS_ADMIN: 'operations_admin',
+            USER_TYPE_VERIFICATION_ADMIN: 'verification_admin'
         }
         return role_mapping.get(obj.user_type, 'customer')
     
@@ -215,7 +233,7 @@ class AuthLogSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
-class PaymentSerializer(serializers.Serializer):
+class PaymentInitiationSerializer(serializers.Serializer):
     amount = serializers.DecimalField(max_digits=12, decimal_places=2)
     currency = serializers.CharField(max_length=3)
     payment_method = serializers.CharField(max_length=20)
@@ -374,9 +392,14 @@ class PayoutSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Payout
-        fields = ['id', 'merchant', 'merchant_email', 'amount', 'status', 'method', 'reference', 'created_at']
+        fields = [
+            'id', 'merchant', 'merchant_email', 'amount', 'status', 'method', 'reference',
+            'recipient_name', 'recipient_email', 'created_at', 'processed_at'
+        ]
         extra_kwargs = {
-            'merchant': {'write_only': True}
+            'merchant': {'write_only': True},
+            'recipient_name': {'required': False, 'help_text': 'Full name of the payout recipient'},
+            'recipient_email': {'required': False, 'help_text': 'Email address for notifications and verification'}
         }
 
 class SupportMessageSerializer(serializers.ModelSerializer):
@@ -428,7 +451,7 @@ class RecipientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipient
-        fields = ['id', 'name', 'phone', 'email', 'accountNumber', 'bankName', 'mobileProvider', 'type']
+        fields = ['id', 'name', 'phone', 'email', 'account_number', 'bank_name', 'mobile_provider', 'type']
         read_only_fields = ['id']
 
     def get_type(self, obj):
@@ -445,5 +468,76 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
         serializer = AccountsUserSerializer(self.user)
-        data['user'] = serializer.data
+        user_data = serializer.data
+        
+        # Add routing information for frontend
+        user_data['routing_info'] = self.get_routing_info()
+        
+        data['user'] = user_data
         return data
+    
+    def get_routing_info(self):
+        """Provide routing information for frontend based on user type"""
+        user_type = self.user.user_type
+        
+        # Import constants to get role names
+        from shared.constants import (
+            USER_TYPE_SUPER_ADMIN, USER_TYPE_BUSINESS_ADMIN, 
+            USER_TYPE_OPERATIONS_ADMIN, USER_TYPE_VERIFICATION_ADMIN,
+            USER_TYPE_MERCHANT, USER_TYPE_CUSTOMER,
+            USER_TYPE_CHOICES
+        )
+        
+        # Get role name from choices
+        role_name = dict(USER_TYPE_CHOICES).get(user_type, 'unknown')
+        
+        # Determine routing target
+        if user_type == USER_TYPE_SUPER_ADMIN:
+            return {
+                'target': 'admin_super',
+                'path': '/admin/super',
+                'role': 'super_admin',
+                'permissions': ['all']
+            }
+        elif user_type == USER_TYPE_BUSINESS_ADMIN:
+            return {
+                'target': 'admin_business',
+                'path': '/admin/business',
+                'role': 'business_admin',
+                'permissions': ['kyc_review', 'merchant_approval', 'compliance']
+            }
+        elif user_type == USER_TYPE_OPERATIONS_ADMIN:
+            return {
+                'target': 'admin_operations',
+                'path': '/admin/operations',
+                'role': 'operations_admin',
+                'permissions': ['user_management', 'support', 'reporting']
+            }
+        elif user_type == USER_TYPE_VERIFICATION_ADMIN:
+            return {
+                'target': 'admin_verification',
+                'path': '/admin/verification',
+                'role': 'verification_admin',
+                'permissions': ['document_verification']
+            }
+        elif user_type == USER_TYPE_MERCHANT:
+            return {
+                'target': 'merchant',
+                'path': '/merchant',
+                'role': 'merchant',
+                'permissions': ['payments', 'analytics']
+            }
+        elif user_type == USER_TYPE_CUSTOMER:
+            return {
+                'target': 'customer',
+                'path': '/customer',
+                'role': 'customer',
+                'permissions': ['send_money', 'view_transactions']
+            }
+        else:
+            return {
+                'target': 'unknown',
+                'path': '/login',
+                'role': 'unknown',
+                'permissions': []
+            }

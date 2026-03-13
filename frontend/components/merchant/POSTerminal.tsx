@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import api from '@/lib/api/axios'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -44,16 +45,10 @@ export function POSTerminal({ merchantId, deviceType = 'virtual_terminal' }: POS
   useEffect(() => {
     const fetchCurrencies = async () => {
       try {
-        const token = localStorage.getItem('access_token') || localStorage.getItem('token')
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-        const response = await fetch(`${API_URL}/api/payments/currencies/`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        })
-        if (response.ok) {
-          const data = await response.json()
-          const currencyList = Array.isArray(data) ? data : (data.results || [])
-          setCurrencies(currencyList.filter((c: any) => c.is_active))
-        }
+        const response = await api.get('/api/v1/payments/currencies/')
+        const data = response.data
+        const currencyList = Array.isArray(data) ? data : (data.results || [])
+        setCurrencies(currencyList.filter((c: any) => c.is_active))
       } catch (error) {
         console.error('Failed to load currencies:', error)
       }
@@ -61,58 +56,40 @@ export function POSTerminal({ merchantId, deviceType = 'virtual_terminal' }: POS
     fetchCurrencies()
   }, [])
 
+  const [deviceId, setDeviceId] = useState<string | null>(null)
+
   const handleProcess = async () => {
     try {
       setProcessing(true)
 
       // First, get or create a virtual terminal device
-      let deviceId: string | null = localStorage.getItem('pos_device_id')
-      if (!deviceId) {
-        // Register a virtual terminal device
-        const registerResponse = await fetch('/api/payments/api/pos/register-device/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({
-            device_type: deviceType,
-            device_name: `Virtual Terminal ${Date.now()}`,
-            device_info: { terminal_type: 'web_based' }
-          })
+      let currentDeviceId = deviceId
+      
+      if (!currentDeviceId) {
+        const registerResponse = await api.post('/api/v1/payments/pos/register-device/', {
+          device_type: deviceType,
+          device_name: `Virtual Terminal ${Date.now()}`,
+          device_info: { terminal_type: 'web_based' }
         })
-
-        if (registerResponse.ok) {
-          const registerData = await registerResponse.json()
-          deviceId = registerData.device_id
-          localStorage.setItem('pos_device_id', deviceId!)
-        } else {
-          throw new Error('Failed to register POS device')
-        }
+        currentDeviceId = registerResponse.data.device_id
+        setDeviceId(currentDeviceId)
       }
 
-      const response = await fetch('/api/payments/api/pos/process-transaction/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          device_id: deviceId,
-          device_type: deviceType,
-          amount: parseFloat(amount),
-          currency,
-          card_data: {
-            card_number: cardNumber.replace(/\s/g, ''),
-            exp_month: expMonth,
-            exp_year: expYear,
-            cvv,
-            cardholder_name: cardholderName
-          }
-        })
+      const response = await api.post('/api/v1/payments/pos/process-transaction/', {
+        device_id: currentDeviceId,
+        device_type: deviceType,
+        amount: parseFloat(amount),
+        currency,
+        card_data: {
+          card_number: cardNumber.replace(/\s/g, ''),
+          exp_month: expMonth,
+          exp_year: expYear,
+          cvv,
+          cardholder_name: cardholderName
+        }
       })
 
-      const data = await response.json()
+      const data = response.data
       setResult(data)
 
       if (data.success) {

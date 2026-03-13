@@ -19,6 +19,27 @@ import uuid
 
 logger = logging.getLogger(__name__)
 
+
+def _get_telecom_gateway(provider):
+    """Get the appropriate mobile money gateway for telecom top-up."""
+    from payments.gateways.mobile_money import (
+        MTNMoMoGateway, TelecelCashGateway, AirtelTigoMoneyGateway
+    )
+    gateway_map = {
+        'MTN': MTNMoMoGateway,
+        'mtn': MTNMoMoGateway,
+        'mtn_momo': MTNMoMoGateway,
+        'Telecel': TelecelCashGateway,
+        'telecel': TelecelCashGateway,
+        'AirtelTigo': AirtelTigoMoneyGateway,
+        'airteltigo': AirtelTigoMoneyGateway,
+        'airtel_tigo': AirtelTigoMoneyGateway,
+    }
+    gateway_class = gateway_map.get(provider)
+    if not gateway_class:
+        return None
+    return gateway_class()
+
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def telecom_providers(request, country_code=None):
@@ -76,7 +97,7 @@ def purchase_airtime(request):
     Request body:
     {
         "phone_number": "0241234567",
-        "provider": "MTN",  # MTN, Vodafone, AirtelTigo
+        "provider": "MTN",  # MTN, Telecel, AirtelTigo
         "amount": 50.00,
         "country_code": "GH"
     }
@@ -129,20 +150,48 @@ def purchase_airtime(request):
                 }
             )
             
-            # TODO: Integrate with actual telecom provider API
-            # For now, mark as completed (simulate success)
-            tx.status = 'completed'
+            # Process through telecom provider gateway
+            gateway = _get_telecom_gateway(provider)
+            if not gateway or not gateway.is_configured():
+                tx.status = 'failed'
+                tx.failure_reason = f'Telecom provider {provider} is not configured'
+                tx.save()
+                return Response(
+                    {'error': f'Provider {provider} is currently unavailable. Please try again later.'},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
+
+            # Build a lightweight payment method object for the gateway
+            class TelecomPaymentMethod:
+                def __init__(self, phone):
+                    self.details = {'phone_number': phone}
+
+            result = gateway.process_payment(
+                amount=float(amount),
+                currency=country_code == 'GH' and 'GHS' or 'USD',
+                payment_method=TelecomPaymentMethod(phone_number),
+                customer=request.user,
+                merchant=None,
+                metadata={'type': 'airtime', 'provider': provider}
+            )
+
+            if result.get('success'):
+                tx.status = 'pending'  # Awaiting provider confirmation via webhook
+                tx.metadata['gateway_transaction_id'] = result.get('transaction_id')
+            else:
+                tx.status = 'failed'
+                tx.failure_reason = result.get('error', 'Airtime purchase failed')
             tx.save()
         
         return Response({
-            'success': True,
-            'message': f'Airtime of {amount} successfully sent to {phone_number}',
+            'success': result.get('success', False),
+            'message': f'Airtime purchase for {phone_number} submitted' if result.get('success') else result.get('error'),
             'transaction_id': tx.reference,
             'phone_number': phone_number,
             'provider': provider,
             'amount': float(amount),
             'status': tx.status
-        }, status=status.HTTP_201_CREATED)
+        }, status=status.HTTP_201_CREATED if result.get('success') else status.HTTP_400_BAD_REQUEST)
         
     except Exception as e:
         logger.error(f"Error purchasing airtime: {str(e)}")
@@ -213,14 +262,41 @@ def purchase_data_bundle(request):
                 }
             )
             
-            # TODO: Integrate with actual telecom provider API
-            # For now, mark as completed (simulate success)
-            tx.status = 'completed'
+            # Process through telecom provider gateway
+            gateway = _get_telecom_gateway(provider)
+            if not gateway or not gateway.is_configured():
+                tx.status = 'failed'
+                tx.failure_reason = f'Telecom provider {provider} is not configured'
+                tx.save()
+                return Response(
+                    {'error': f'Provider {provider} is currently unavailable. Please try again later.'},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
+
+            class TelecomPaymentMethod:
+                def __init__(self, phone):
+                    self.details = {'phone_number': phone}
+
+            result = gateway.process_payment(
+                amount=float(amount),
+                currency=country_code == 'GH' and 'GHS' or 'USD',
+                payment_method=TelecomPaymentMethod(phone_number),
+                customer=request.user,
+                merchant=None,
+                metadata={'type': 'data_bundle', 'package_id': package_id, 'provider': provider}
+            )
+
+            if result.get('success'):
+                tx.status = 'pending'
+                tx.metadata['gateway_transaction_id'] = result.get('transaction_id')
+            else:
+                tx.status = 'failed'
+                tx.failure_reason = result.get('error', 'Data bundle purchase failed')
             tx.save()
         
         return Response({
-            'success': True,
-            'message': f'Data bundle {package_name} successfully sent to {phone_number}',
+            'success': result.get('success', False),
+            'message': f'Data bundle {package_name} for {phone_number} submitted' if result.get('success') else result.get('error'),
             'transaction_id': tx.reference,
             'phone_number': phone_number,
             'provider': provider,
@@ -228,7 +304,7 @@ def purchase_data_bundle(request):
             'package_name': package_name,
             'amount': float(amount),
             'status': tx.status
-        }, status=status.HTTP_201_CREATED)
+        }, status=status.HTTP_201_CREATED if result.get('success') else status.HTTP_400_BAD_REQUEST)
         
     except Exception as e:
         logger.error(f"Error purchasing data bundle: {str(e)}")

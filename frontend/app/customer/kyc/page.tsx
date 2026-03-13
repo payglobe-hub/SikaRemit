@@ -736,6 +736,38 @@ export default function KYCUploadPage() {
           </Card>
         )}
 
+        {/* Phone Verification Section */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Phone Verification
+            </CardTitle>
+            <CardDescription>
+              Verify your phone number to complete KYC requirements
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-center">
+              <div className="mb-4">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                  <Upload className="h-8 w-8 text-blue-600" />
+                </div>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Verify Your Phone Number</h3>
+              <p className="text-muted-foreground mb-4">
+                We'll send you a verification code to confirm your phone number
+              </p>
+              <Button 
+                onClick={() => router.push('/customer/verify-phone')}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Verify Phone Number
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Information Alert */}
         <Alert>
           <AlertCircle className="h-4 w-4" />

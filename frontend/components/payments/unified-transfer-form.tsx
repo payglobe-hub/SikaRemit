@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import api from '@/lib/api/axios'
 import { ArrowRight, DollarSign, Building2, Smartphone, Wallet, CheckCircle, Loader2, XCircle } from 'lucide-react'
 import { TransactionContext } from '@/lib/types/payments'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -61,18 +62,12 @@ export function UnifiedTransferForm({ transferMode, onSubmit, onCancel }: Unifie
   const [countries, setCountries] = useState<{code: string, name: string, flag_emoji?: string, currency_code?: string}[]>([])
 
   useEffect(() => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-    const token = localStorage.getItem('access_token')
-    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
-    
     const fetchCurrencies = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/v1/payments/currencies/`, { headers })
-        if (response.ok) {
-          const data = await response.json()
-          const currencyList = Array.isArray(data) ? data : (data.results || [])
-          setCurrencies(currencyList.filter((c: any) => c.is_active))
-        }
+        const response = await api.get('/api/v1/payments/currencies/')
+        const data = response.data
+        const currencyList = Array.isArray(data) ? data : (data.results || [])
+        setCurrencies(currencyList.filter((c: any) => c.is_active))
       } catch (error) {
         console.error('Failed to load currencies:', error)
       }
@@ -80,12 +75,10 @@ export function UnifiedTransferForm({ transferMode, onSubmit, onCancel }: Unifie
     
     const fetchCountries = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/v1/payments/countries/`, { headers })
-        if (response.ok) {
-          const data = await response.json()
-          const countryList = Array.isArray(data) ? data : (data.results || [])
-          setCountries(countryList.filter((c: any) => c.is_active))
-        }
+        const response = await api.get('/api/v1/payments/countries/')
+        const data = response.data
+        const countryList = Array.isArray(data) ? data : (data.results || [])
+        setCountries(countryList.filter((c: any) => c.is_active))
       } catch (error) {
         console.error('Failed to load countries:', error)
       }
@@ -157,7 +150,7 @@ export function UnifiedTransferForm({ transferMode, onSubmit, onCancel }: Unifie
           delivery_phone: deliveryPhone,
           delivery_mobile_provider: mobileProvider,
         }),
-        ...(deliveryMethod === 'bank_account' && {
+        ...(deliveryMethod === 'bank' && {
           delivery_account_number: deliveryAccountNumber,
           delivery_bank_name: deliveryBankName,
           delivery_bank_branch: deliveryBankBranch || undefined,
@@ -247,7 +240,7 @@ export function UnifiedTransferForm({ transferMode, onSubmit, onCancel }: Unifie
       // Delivery method specific validation
       if (deliveryMethod === 'sikaremit_wallet' && !deliveryWalletId) return false
       if (deliveryMethod === 'mobile_money' && !deliveryPhone) return false
-      if (deliveryMethod === 'bank_account' && (!deliveryAccountNumber || !deliveryBankName)) return false
+      if (deliveryMethod === 'bank' && (!deliveryAccountNumber || !deliveryBankName)) return false
     }
 
     return true
@@ -483,7 +476,8 @@ export function UnifiedTransferForm({ transferMode, onSubmit, onCancel }: Unifie
                         {[
                           { value: 'MTN', label: 'MTN Mobile Money' },
                           { value: 'Telecel', label: 'Telecel Cash' },
-                          { value: 'AirtelTigo', label: 'AirtelTigo Money' }
+                          { value: 'AirtelTigo', label: 'AirtelTigo Money' },
+                          { value: 'G-Money', label: 'G-Money' }
                         ].map((provider) => {
                           const image = getProviderImage(provider.value)
                           return (
@@ -580,7 +574,7 @@ export function UnifiedTransferForm({ transferMode, onSubmit, onCancel }: Unifie
                           Mobile Money
                         </div>
                       </SelectItem>
-                      <SelectItem value="bank_account">
+                      <SelectItem value="bank">
                         <div className="flex items-center">
                           <Building2 className="w-4 h-4 mr-2 text-blue-600" />
                           Bank Account
@@ -627,7 +621,7 @@ export function UnifiedTransferForm({ transferMode, onSubmit, onCancel }: Unifie
                   </div>
                 )}
 
-                {deliveryMethod === 'bank_account' && (
+                {deliveryMethod === 'bank' && (
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">

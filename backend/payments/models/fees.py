@@ -227,11 +227,35 @@ class FeeConfiguration(models.Model):
         elif self.calculation_method == 'percentage':
             fee_amount = amount * self.percentage_fee
         elif self.calculation_method == 'tiered':
-            # TODO: Implement tiered calculation
-            fee_amount = amount * self.percentage_fee
+            # Tiered: fixed_fee + percentage_fee applied together
+            # The correct tier is selected by matching min/max_transaction_amount ranges
+            # Each FeeConfiguration row represents one tier
+            fee_amount = self.fixed_fee + (amount * self.percentage_fee)
         elif self.calculation_method == 'volume_based':
-            # TODO: Implement volume-based calculation
-            fee_amount = amount * self.percentage_fee
+            # Volume-based: look up the user's/merchant's recent transaction count
+            # and apply a discount multiplier for higher volumes
+            base_fee = self.fixed_fee + (amount * self.percentage_fee)
+            # Volume discount tiers based on monthly transaction count
+            if self.merchant:
+                from django.db.models import Count
+                from datetime import timedelta
+                month_ago = timezone.now() - timedelta(days=30)
+                from payments.models.transactions import Transaction
+                tx_count = Transaction.objects.filter(
+                    merchant=self.merchant,
+                    created_at__gte=month_ago,
+                    status='completed'
+                ).count()
+                if tx_count > 1000:
+                    fee_amount = base_fee * Decimal('0.70')   # 30% discount
+                elif tx_count > 500:
+                    fee_amount = base_fee * Decimal('0.80')   # 20% discount
+                elif tx_count > 100:
+                    fee_amount = base_fee * Decimal('0.90')   # 10% discount
+                else:
+                    fee_amount = base_fee
+            else:
+                fee_amount = base_fee
 
         # Apply min/max limits
         if self.min_fee is not None and fee_amount < self.min_fee:

@@ -132,6 +132,15 @@ class GatewayHierarchyRegistry:
             description='QR code scanning for instant merchant payments',
             requires_config=[]  # Uses existing QR scanner
         ),
+
+        'g_money': GatewayConfig(
+            name='g_money',
+            type=GatewayType.MAJOR,
+            priority=GatewayPriority.PRIMARY,
+            supported_methods=['mtn_momo', 'telecel', 'airtel_tigo', 'mobile_money'],
+            description='GCB Bank G-Money - Complete Ghana mobile money ecosystem with 1.2% fees',
+            requires_config=['G_MONEY_API_KEY', 'G_MONEY_API_SECRET', 'G_MONEY_API_URL', 'G_MONEY_WEBHOOK_SECRET']
+        ),
     }
 
     # Payment method mappings
@@ -176,9 +185,9 @@ class GatewayHierarchyRegistry:
             method_type='telecel',
             category=PaymentMethodCategory.MOBILE_MONEY_GHANA,
             display_name='Telecel Cash',
-            available_gateways=['telecel'],
+            available_gateways=['telecel', 'g_money'],
             icon='📱',
-            description='Telecel Cash payments'
+            description='Telecel Cash payments via G-Money ecosystem'
         ),
 
         'qr_code': PaymentMethodMapping(

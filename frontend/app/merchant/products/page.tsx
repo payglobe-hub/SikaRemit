@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
+
+// Prevent static generation for this page since it uses functions that can't be serialized
+export const dynamic = 'force-dynamic'
 import {
   Dialog,
   DialogContent,
@@ -52,12 +55,14 @@ import { useCurrency } from '@/hooks/useCurrency'
 import { useToast } from '@/hooks/use-toast'
 import * as ProductsAPI from '@/lib/api/products'
 import * as StoresAPI from '@/lib/api/stores'
+import { ImageUpload } from '@/components/ImageUpload'
 
 export default function MerchantProductsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [storeFilter, setStoreFilter] = useState('all')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<ProductsAPI.Product | null>(null)
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -103,6 +108,7 @@ export default function MerchantProductsPage() {
         low_stock_threshold: '5',
         store_id: ''
       })
+      setSelectedImage(null)
     },
     onError: (error: any) => {
       toast({
@@ -159,7 +165,8 @@ export default function MerchantProductsPage() {
         sku: formData.sku,
         stock_quantity: parseInt(formData.stock_quantity),
         low_stock_threshold: parseInt(formData.low_stock_threshold),
-        store_id: formData.store_id
+        store_id: formData.store_id,
+        image: selectedImage || undefined
       }
       createProductMutation.mutate(productData)
     }
@@ -178,37 +185,37 @@ export default function MerchantProductsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       {/* Hero Section */}
-      <div className="relative py-16 lg:py-24 overflow-hidden bg-gradient-to-br from-purple-50/30 via-blue-50/20 to-pink-50/30">
+      <div className="relative py-16 lg:py-24 overflow-hidden bg-gradient-to-br from-blue-50/30 via-blue-50/20 to-blue-50/30">
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-blue-400/15 to-purple-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-conic from-purple-500/5 via-transparent to-blue-500/5 rounded-full blur-2xl animate-spin" style={{animationDuration: '20s'}}></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-blue-400/20 to-blue-300/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-blue-400/15 to-indigo-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-conic from-blue-500/5 via-transparent to-blue-400/5 rounded-full blur-2xl animate-spin" style={{animationDuration: '20s'}}></div>
         </div>
 
         <div className="container mx-auto px-4 lg:px-8 relative z-10">
           <div className="text-center max-w-4xl mx-auto animate-in slide-in-from-bottom duration-1000">
-            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-purple-500/5 text-slate-700 text-sm font-semibold mb-8 animate-in zoom-in-50 duration-700 delay-300 hover:bg-white/50 hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 group">
-              <Package className="w-5 h-5 mr-3 text-purple-600 group-hover:rotate-12 transition-transform duration-300" />
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg shadow-blue-500/5 text-slate-700 text-sm font-semibold mb-8 animate-in zoom-in-50 duration-700 delay-300 hover:bg-white/50 hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 group">
+              <Package className="w-5 h-5 mr-3 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
               Product Management
             </div>
             <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-6 leading-tight animate-in slide-in-from-bottom duration-1000 delay-500">
               Comprehensive Inventory
-              <span className="block bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-sm">Manage products, pricing, and stock levels</span>
+              <span className="block bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent drop-shadow-sm">Manage products, pricing, and stock levels</span>
             </h1>
             <p className="text-lg text-slate-600/90 mb-8 max-w-2xl mx-auto leading-relaxed animate-in slide-in-from-bottom duration-1000 delay-700 font-medium">
               Maintain accurate inventory across all stores with real-time stock tracking, automated alerts, and comprehensive product management tools.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center animate-in slide-in-from-bottom duration-1000 delay-900">
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <Package className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <Package className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">Product catalog</span>
               </div>
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <Activity className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <Activity className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">Stock monitoring</span>
               </div>
               <div className="flex items-center space-x-3 bg-white/40 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/30 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 hover:bg-white/50 group">
-                <DollarSign className="w-6 h-6 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
+                <DollarSign className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-slate-700 font-medium">Pricing control</span>
               </div>
             </div>
@@ -219,8 +226,8 @@ export default function MerchantProductsPage() {
       <div className="max-w-7xl mx-auto px-6 py-8 lg:px-8 space-y-8">
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden">
-            <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 relative overflow-hidden">
+            <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10"></div>
 
             <CardContent className="relative z-10 p-6">
@@ -229,15 +236,15 @@ export default function MerchantProductsPage() {
                   <p className="text-sm font-medium text-sikaremit-muted">Total Products</p>
                   <p className="text-3xl font-bold text-sikaremit-foreground">{products?.length || 0}</p>
                 </div>
-                <div className={`p-3 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                   <Package className="h-5 w-5 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden">
-            <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 relative overflow-hidden">
+            <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10"></div>
 
             <CardContent className="relative z-10 p-6">
@@ -246,15 +253,15 @@ export default function MerchantProductsPage() {
                   <p className="text-sm font-medium text-sikaremit-muted">Available</p>
                   <p className="text-3xl font-bold text-sikaremit-foreground">{products?.filter((p: any) => p.is_available).length || 0}</p>
                 </div>
-                <div className={`p-3 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                   <CheckCircle className="h-5 w-5 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden">
-            <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 relative overflow-hidden">
+            <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10"></div>
 
             <CardContent className="relative z-10 p-6">
@@ -263,15 +270,15 @@ export default function MerchantProductsPage() {
                   <p className="text-sm font-medium text-sikaremit-muted">Low Stock</p>
                   <p className="text-3xl font-bold text-sikaremit-foreground">{products?.filter((p: any) => p.stock_quantity <= p.low_stock_threshold).length || 0}</p>
                 </div>
-                <div className={`p-3 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                   <AlertCircle className="h-5 w-5 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 relative overflow-hidden">
-            <div className={`absolute inset-0 bg-gradient-to-br ${'from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
+          <Card className="bg-sikaremit-card/80 backdrop-blur-sm group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/40 backdrop-blur-xl border border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 relative overflow-hidden">
+            <div className={`absolute inset-0 bg-gradient-to-br ${'from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20'} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-10 -mt-10"></div>
 
             <CardContent className="relative z-10 p-6">
@@ -282,7 +289,7 @@ export default function MerchantProductsPage() {
                     {formatAmount(products?.reduce((sum: number, p: any) => sum + (p.price * p.stock_quantity), 0) || 0)}
                   </p>
                 </div>
-                <div className={`p-3 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                   <DollarSign className="h-5 w-5 text-white" />
                 </div>
               </div>
@@ -293,7 +300,7 @@ export default function MerchantProductsPage() {
         {/* Search and Create */}
         <Card className="group relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-1 duration-700">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-800 dark:to-gray-800"></div>
-          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-purple-400/20 to-pink-600/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-blue-400/20 to-blue-300/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
 
           <CardContent className="p-6 relative z-10">
             <div className="flex flex-col lg:flex-row gap-4">
@@ -304,7 +311,7 @@ export default function MerchantProductsPage() {
                     placeholder="Search products by name, SKU, or description..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-12 h-12 text-base border-2 border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400 rounded-xl shadow-sm"
+                    className="pl-12 h-12 text-base border-2 border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 rounded-xl shadow-sm"
                   />
                 </div>
               </div>
@@ -326,7 +333,7 @@ export default function MerchantProductsPage() {
 
               <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-500 font-semibold hover:scale-105 relative overflow-hidden group h-12 px-6 rounded-xl">
+                  <Button className="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 shadow-2xl shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-500 font-semibold hover:scale-105 relative overflow-hidden group h-12 px-6 rounded-xl">
                     <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                     <Plus className="w-4 h-4 mr-2" />
                     Add Product
@@ -340,6 +347,13 @@ export default function MerchantProductsPage() {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
+                    <div>
+                      <Label>Product Image</Label>
+                      <ImageUpload
+                        onImageSelect={setSelectedImage}
+                        className="mt-2"
+                      />
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="name">Product Name</Label>
@@ -500,14 +514,22 @@ export default function MerchantProductsPage() {
                       <TableRow
                         key={product.id}
                         data-testid="product-item"
-                        className="group border-b border-gray-100 dark:border-gray-700 hover:bg-gradient-to-r hover:from-purple-50/50 hover:to-transparent dark:hover:from-purple-950/20 dark:hover:to-transparent transition-all duration-300 animate-in slide-in-from-left duration-500"
+                        className="group border-b border-gray-100 dark:border-gray-700 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent dark:hover:from-blue-950/20 dark:hover:to-transparent transition-all duration-300 animate-in slide-in-from-left duration-500"
                         style={{ animationDelay: `${index * 50}ms` }}
                       >
                         <TableCell>
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg flex items-center justify-center">
-                              <Package className="w-5 h-5 text-purple-600" />
-                            </div>
+                            {product.image_url ? (
+                              <img
+                                src={product.image_url}
+                                alt={product.name}
+                                className="w-10 h-10 rounded-lg object-cover"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg flex items-center justify-center">
+                                <Package className="w-5 h-5 text-blue-600" />
+                              </div>
+                            )}
                             <div>
                               <div className="font-medium text-gray-900 dark:text-white">{product.name}</div>
                               <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
@@ -597,7 +619,7 @@ export default function MerchantProductsPage() {
                 </p>
                 <Button
                   onClick={() => setIsCreateDialogOpen(true)}
-                  className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600"
+                  className="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Product

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Production Configuration for SikaRemit Frontend
  * Centralizes all production-ready settings and validations
  */
@@ -109,12 +109,13 @@ export function validateProductionConfig(): { valid: boolean; errors: string[] }
  */
 export function logConfigStatus(): void {
   if (isDevelopment) {
-    console.log('=== SikaRemit Configuration ===');
-    console.log(`Environment: ${process.env.NODE_ENV}`);
-    console.log(`API URL: ${API_CONFIG.BASE_URL}`);
-    console.log(`Stripe: ${PAYMENT_CONFIG.STRIPE.ENABLED ? 'Enabled' : 'Disabled'}`);
-    console.log(`Analytics: ${FEATURES.ANALYTICS_ENABLED ? 'Enabled' : 'Disabled'}`);
-    console.log(`Sentry: ${FEATURES.SENTRY_ENABLED ? 'Enabled' : 'Disabled'}`);
-    console.log('===============================');
+    
+    
+    
+    
+    
+    
+    
   }
 }
+
