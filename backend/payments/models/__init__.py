@@ -29,6 +29,18 @@ from .fraud import FraudAlert, FraudBlacklist, BlacklistedBIN, FraudReport
 # Double-entry bookkeeping ledger
 from .ledger import LedgerAccount, LedgerJournal, LedgerEntry, LedgerService
 
+# Invoice models
+from .invoices import BusinessClient, InvoiceTemplate, Invoice as PaymentInvoice, InvoiceItem as PaymentInvoiceItem, InvoicePayment, InvoiceReminder
+
+# Subscription models
+from .subscriptions import SubscriptionPlan, SubscriptionFeature, PlanFeature, Subscription, SubscriptionUsage, SubscriptionPayment, SubscriptionDiscount
+
+# Social payment models
+from .social_payments import PaymentRequest, SplitBill, SplitParticipant, SplitPayment, GroupSavings, GroupSavingsParticipant, GroupSavingsContribution, SocialPaymentInvite
+
+# Referral models
+from .referrals import ReferralCode, Referral
+
 __all__ = [
     'PaymentMethod',
     'Transaction',
@@ -76,4 +88,25 @@ __all__ = [
     'LedgerJournal',
     'LedgerEntry',
     'LedgerService',
+    'BusinessClient',
+    'InvoiceTemplate',
+    'PaymentInvoice',
+    'PaymentInvoiceItem',
+    'InvoicePayment',
+    'RecurringInvoice',
+    'SubscriptionPlan',
+    'SubscriptionFeature',
+    'PlanFeature',
+    'Subscription',
+    'SubscriptionUsage',
+    'PaymentRequest',
+    'SplitBill',
+    'SplitParticipant',
+    'SplitPayment',
+    'GroupSavings',
+    'GroupSavingsParticipant',
+    'GroupSavingsContribution',
+    'SocialPaymentInvite',
+    'ReferralCode',
+    'Referral',
 ]

@@ -199,8 +199,10 @@ class Invoice(models.Model):
         if not self.invoice_number:
             self.invoice_number = self._generate_invoice_number()
 
-        # Calculate totals
-        self._calculate_totals()
+        # Calculate totals only if the instance already has a PK
+        # (items relation requires a saved instance)
+        if self.pk:
+            self._calculate_totals()
 
         # Update status based on payments
         self._update_status()
@@ -211,11 +213,12 @@ class Invoice(models.Model):
         """Generate unique invoice number"""
         today = timezone.now().date()
         date_prefix = today.strftime('%Y%m%d')
+        full_prefix = f"INV-{date_prefix}"
 
         # Find the next number for today
         existing_invoices = Invoice.objects.filter(
             user=self.user,
-            invoice_number__startswith=date_prefix
+            invoice_number__startswith=full_prefix
         ).order_by('-invoice_number')
 
         if existing_invoices.exists():
@@ -252,7 +255,7 @@ class Invoice(models.Model):
         if self.status == 'cancelled':
             return
 
-        if self.amount_paid >= self.total_amount:
+        if self.total_amount > 0 and self.amount_paid >= self.total_amount:
             self.status = 'paid'
             if not self.paid_at:
                 self.paid_at = timezone.now()

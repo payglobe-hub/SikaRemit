@@ -13,7 +13,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Add transaction relationship to Bill model
+        # Rename existing transaction_id CharField first to avoid column conflict
+        migrations.RenameField(
+            model_name='bill',
+            old_name='transaction_id',
+            new_name='external_transaction_id',
+        ),
+
+        # Now add transaction ForeignKey (creates transaction_id column)
         migrations.AddField(
             model_name='bill',
             name='transaction',
@@ -24,12 +31,5 @@ class Migration(migrations.Migration):
                 blank=True,
                 related_name='bill_payments'
             ),
-        ),
-        
-        # Rename transaction_id to external_transaction_id for backward compatibility
-        migrations.RenameField(
-            model_name='bill',
-            old_name='transaction_id',
-            new_name='external_transaction_id',
         ),
     ]
