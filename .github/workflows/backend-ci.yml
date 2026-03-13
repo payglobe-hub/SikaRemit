@@ -1,15 +1,9 @@
-name: Backend CI/CD
+name: Backend CI/CD (disabled — use ci-cd.yml)
 
+# Disabled: ci-cd.yml is the single CI/CD pipeline
 on:
   push:
-    branches: [ main, develop ]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend-ci.yml'
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'backend/**'
+    branches: [ disabled-do-not-use ]
 
 jobs:
   test:

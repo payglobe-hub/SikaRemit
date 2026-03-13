@@ -1,15 +1,9 @@
-name: Frontend CI/CD
+name: Frontend CI/CD (disabled — use ci-cd.yml)
 
+# Disabled: ci-cd.yml is the single CI/CD pipeline
 on:
   push:
-    branches: [ main, develop ]
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend-ci.yml'
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'frontend/**'
+    branches: [ disabled-do-not-use ]
 
 jobs:
   test:
