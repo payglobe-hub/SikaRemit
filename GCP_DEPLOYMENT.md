@@ -181,7 +181,7 @@ echo -n "https://YOUR_SENTRY_DSN@sentry.io/PROJECT_ID" | \
 
 ```bash
 # Get the Cloud Run service account
-SA="$(gcloud iam service-accounts list --filter='displayName:Compute Engine' --format='value(email)')"
+SA="$(gcloud iam service-accounts list --filter='displayName:Default compute service account' --format='value(email)')"
 
 # Grant access to all secrets
 for SECRET in django-secret-key database-url redis-url stripe-secret-key stripe-webhook-secret mtn-momo-api-key mtn-momo-api-secret mtn-momo-subscription-key mtn-momo-api-url sendgrid-api-key sentry-dsn; do
@@ -195,7 +195,7 @@ done
 
 ## Step 6: Set Up GitHub Actions (CI/CD)
 
-### Create a GCP Service Account for GitHub
+### Create a GCP Service Account for GitHub (Workload Identity Federation)
 
 ```bash
 # Create service account
@@ -225,9 +225,33 @@ gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
   --member="serviceAccount:$SA_EMAIL" \
   --role="roles/secretmanager.secretAccessor"
 
-# Create and download key
-gcloud iam service-accounts keys create github-sa-key.json \
-  --iam-account=$SA_EMAIL
+# Enable IAM Credentials API
+gcloud services enable iamcredentials.googleapis.com
+
+# Create a Workload Identity Pool
+gcloud iam workload-identity-pools create github-pool \
+  --location="global" \
+  --display-name="GitHub Actions Pool"
+
+# Create a Workload Identity Provider
+gcloud iam workload-identity-pools providers create-oidc github-provider \
+  --location="global" \
+  --workload-identity-pool="github-pool" \
+  --display-name="GitHub Actions Provider" \
+  --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository" \
+  --attribute-condition="attribute.repository=='payglobe-hub/SikaRemit'" \
+  --issuer-uri="https://token.actions.githubusercontent.com"
+
+# Allow GitHub Actions to impersonate the service account
+gcloud iam service-accounts add-iam-policy-binding $SA_EMAIL \
+  --role="roles/iam.workloadIdentityUser" \
+  --member="principalSet://iam.googleapis.com/projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/attribute.repository/payglobe-hub/SikaRemit"
+
+# Get the Workload Identity Pool Provider resource name
+POOL_PROVIDER=$(gcloud iam workload-identity-pools providers describe github-provider \
+  --location="global" \
+  --workload-identity-pool="github-pool" \
+  --format="value(name)")
 ```
 
 ### Add Secrets to GitHub Repository
@@ -269,9 +293,21 @@ Vercel will now auto-deploy on every push to `main`.
 
 ### Backend: api.sikaremit.com → Cloud Run
 
+**First, verify domain ownership:**
+
+```bash
+# Verify domain ownership (required before domain mapping)
+gcloud domains verify sikaremit.com
+```
+
+If verification fails, GCP will provide a TXT record to add in Namecheap DNS:
+- **TXT** record: `@` → value provided by GCP
+
+After verification succeeds:
+
 ```bash
 # Map custom domain to Cloud Run
-gcloud run domain-mappings create \
+gcloud beta run domain-mappings create \
   --service sikaremit-api \
   --domain api.sikaremit.com \
   --region us-central1

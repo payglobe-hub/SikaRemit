@@ -127,7 +127,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 }, status=status.HTTP_403_FORBIDDEN)
 
             # User is verified, proceed with payment processing
-            customer = Customer.objects.get(user=request.user)
+            customer, _ = Customer.objects.get_or_create(user=request.user)
             merchant = Merchant.objects.get(id=request.data['merchant_id'])
             payment_method = request.payment_method
 

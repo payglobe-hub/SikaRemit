@@ -180,6 +180,20 @@ class BankTransferGateway(PaymentGateway):
                 'raw_response': response.json() if response.content else None
             }
 
+    def get_webhook_secret(self):
+        """Get bank transfer webhook secret"""
+        return self.providers.get('direct_bank', {}).get('webhook_secret', '')
+
+    def parse_webhook(self, request):
+        """Parse bank transfer webhook payload"""
+        import json
+        return json.loads(request.body)
+
+    def process_webhook(self, event):
+        """Process bank transfer webhook event"""
+        from django.http import JsonResponse
+        return JsonResponse({'status': 'received'})
+
     def refund_payment(self, transaction_id, amount=None):
         # Bank transfers are typically not refundable directly
         # Refunds would need to be processed through other means

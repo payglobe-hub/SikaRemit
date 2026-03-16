@@ -534,7 +534,7 @@ class PaymentServiceWithKYC:
             from users.models import Customer
 
             # Get customer profile
-            customer = Customer.objects.get(user=user)
+            customer, _ = Customer.objects.get_or_create(user=user)
 
             # Record transaction attempt for analytics
             customer.record_transaction_attempt()

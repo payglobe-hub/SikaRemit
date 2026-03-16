@@ -16,13 +16,38 @@ class CrossBorderRemittanceServiceTests(TestCase):
     """Tests for CrossBorderRemittanceService"""
     
     def setUp(self):
+        from shared.constants import USER_TYPE_CUSTOMER
+        # Disable signals to avoid automatic Customer creation
+        from django.db.models.signals import post_save
+        from users.signals import create_user_profile, sync_customer_user_type
+        post_save.disconnect(create_user_profile, sender=User)
+        post_save.disconnect(sync_customer_user_type, sender=Customer)
+        
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
             password='TestPass123!',
             first_name='Test',
-            last_name='User'
+            last_name='User',
+            user_type=USER_TYPE_CUSTOMER
         )
+        
+        # Manually create Customer with approved KYC (or update existing)
+        from users.models import Customer
+        self.customer, created = Customer.objects.get_or_create(
+            user=self.user,
+            defaults={'kyc_status': 'approved'}
+        )
+        print(f"After get_or_create: created={created}, kyc_status={self.customer.kyc_status}")
+        
+        # Force approved KYC status regardless of what was set
+        Customer.objects.filter(user=self.user).update(kyc_status='approved')
+        self.customer.refresh_from_db()
+        print(f"After update and refresh: kyc_status={self.customer.kyc_status}")
+        
+        # Reconnect signals
+        post_save.connect(create_user_profile, sender=User)
+        post_save.connect(sync_customer_user_type, sender=Customer)
     
     def test_fee_calculation_mobile_money(self):
         """Test fee calculation for mobile money delivery"""
@@ -220,6 +245,12 @@ class ComplianceChecksTests(TestCase):
         
         service = CrossBorderRemittanceService()
         
+        # Debug: Check if customer profile exists and KYC status
+        print(f"User ID: {self.user.id}")
+        print(f"User has customer_profile: {hasattr(self.user, 'customer_profile')}")
+        if hasattr(self.user, 'customer_profile'):
+            print(f"Customer KYC status: {self.user.customer_profile.kyc_status}")
+        
         result = service._perform_compliance_checks(
             sender_user=self.user,
             recipient_data={'name': 'John Doe'},
@@ -227,6 +258,9 @@ class ComplianceChecksTests(TestCase):
             purpose='family_support'
         )
         
+        print(f"Compliance result: {result}")
+        
+        # High value transactions should pass but be flagged
         self.assertTrue(result['passed'])
         self.assertIn('high_value_transaction', result['flags'])
     

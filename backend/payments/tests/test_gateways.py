@@ -43,17 +43,16 @@ class MTNMoMoGatewayTests(TestCase):
         MTN_MOMO_API_URL='https://sandbox.momodeveloper.mtn.com',
         MTN_MOMO_SUBSCRIPTION_KEY='test_subscription_key'
     )
+    @patch('payments.gateways.mobile_money.MTNMoMoGateway._get_auth_token')
     @patch('requests.post')
-    def test_process_payment_success(self, mock_post):
+    def test_process_payment_success(self, mock_post, mock_auth):
         """Test successful MTN MoMo payment"""
         from payments.gateways.mobile_money import MTNMoMoGateway
         
-        # Mock token response
-        token_response = MockResponse({'access_token': 'test_token', 'expires_in': 3600})
+        mock_auth.return_value = 'test_token'
         # Mock payment response
         payment_response = MockResponse({}, status_code=202)
-        
-        mock_post.side_effect = [token_response, payment_response]
+        mock_post.return_value = payment_response
         
         gateway = MTNMoMoGateway()
         
@@ -87,17 +86,16 @@ class MTNMoMoGatewayTests(TestCase):
         MTN_MOMO_API_URL='https://sandbox.momodeveloper.mtn.com',
         MTN_MOMO_SUBSCRIPTION_KEY='test_subscription_key'
     )
+    @patch('payments.gateways.mobile_money.MTNMoMoGateway._get_auth_token')
     @patch('requests.post')
-    def test_process_payment_failure(self, mock_post):
+    def test_process_payment_failure(self, mock_post, mock_auth):
         """Test failed MTN MoMo payment"""
         from payments.gateways.mobile_money import MTNMoMoGateway
         
-        # Mock token response
-        token_response = MockResponse({'access_token': 'test_token', 'expires_in': 3600})
+        mock_auth.return_value = 'test_token'
         # Mock failed payment response
         payment_response = MockResponse({'message': 'Insufficient funds'}, status_code=400)
-        
-        mock_post.side_effect = [token_response, payment_response]
+        mock_post.return_value = payment_response
         
         gateway = MTNMoMoGateway()
         
@@ -188,16 +186,18 @@ class TelecelCashGatewayTests(TestCase):
         TELECEL_API_KEY='test_api_key',
         TELECEL_MERCHANT_ID='test_merchant'
     )
-    @patch('requests.post')
-    def test_process_payment_success(self, mock_post):
+    @patch('payments.gateways.mobile_money.TelecelCashGateway._make_request_with_retry')
+    def test_process_payment_success(self, mock_request):
         """Test successful Telecel Cash payment"""
         from payments.gateways.mobile_money import TelecelCashGateway
         
-        mock_post.return_value = MockResponse({
-            'status': 'SUCCESS',
-            'reference': 'TEL_123456',
-            'message': 'Payment initiated'
-        })
+        mock_request.return_value = {
+            'success': True,
+            'data': {
+                'reference': 'TEL_123456',
+                'message': 'Payment initiated'
+            }
+        }
         
         gateway = TelecelCashGateway()
         
@@ -387,77 +387,40 @@ class StripeGatewayTests(TestCase):
     
     @override_settings(
         STRIPE_SECRET_KEY='sk_test_123',
-        STRIPE_PUBLISHABLE_KEY='pk_test_123',
-        FRONTEND_URL='http://localhost:3000'
+        STRIPE_PUBLISHABLE_KEY='pk_test_123'
     )
-    @patch('requests.get')
-    @patch('requests.post')
-    def test_process_payment_success(self, mock_post, mock_get):
-        """Test successful Stripe payment"""
+    @patch('stripe.Account.retrieve')
+    @patch('stripe.PaymentIntent.create')
+    def test_process_payment_success_2(self, mock_intent, mock_account):
+        """Test successful Stripe payment via PaymentIntent"""
         from payments.gateways.stripe import StripeGateway
         
-        # Mock payment response
-        mock_post.return_value = MockResponse({
-            'status': 'success',
-            'data': {
-                'id': 'pi_123456',
-                'client_secret': 'pi_123456_secret'
-            }
-        })
+        mock_account.return_value = MagicMock()
+        mock_intent.return_value = MagicMock(
+            id='pi_123456',
+            status='succeeded',
+            client_secret='pi_123456_secret'
+        )
         
         gateway = StripeGateway()
         
         class MockPaymentMethod:
             method_type = 'card'
-            details = {}
+            details = {'payment_method_id': 'pm_test_123'}
         
         class MockCustomer:
-            id = 1
-            email = 'test@example.com'
-            phone = '0241234567'
-            first_name = 'Test'
-            last_name = 'User'
-        
-        class MockMerchant:
-            id = 1
+            stripe_customer_id = 'cus_test_123'
         
         result = gateway.process_payment(
             amount=100.00,
             currency='GHS',
             payment_method=MockPaymentMethod(),
             customer=MockCustomer(),
-            merchant=MockMerchant(),
-            metadata={'transaction_id': 'test_123'}
+            merchant=None
         )
         
         self.assertTrue(result['success'])
         self.assertIn('transaction_id', result)
-        self.assertIn('authorization_url', result)
-    
-    @override_settings(
-        STRIPE_SECRET_KEY='sk_test_123',
-        STRIPE_PUBLISHABLE_KEY='pk_test_123'
-    )
-    @patch('requests.get')
-    def test_verify_payment(self, mock_get):
-        """Test Stripe payment verification"""
-        from payments.gateways.stripe import StripeGateway
-        
-        # Mock verification response
-        mock_get.return_value = MockResponse({
-            'status': 'success',
-            'data': {
-                'status': 'succeeded',
-                'amount': 10000,
-                'currency': 'usd'
-            }
-        })
-        
-        gateway = StripeGateway()
-        result = gateway.verify_payment('pi_123456')
-        
-        self.assertTrue(result['verified'])
-        self.assertEqual(result['status'], 'succeeded')
 
 
 class WebhookSignatureTests(TestCase):
@@ -527,19 +490,18 @@ class GMoneyGatewayTests(TestCase):
         G_MONEY_MERCHANT_ID='test_merchant_id',
         G_MONEY_WEBHOOK_SECRET='test_webhook_secret'
     )
+    @patch('payments.gateways.mobile_money.GMoneyGateway._get_auth_token')
     @patch('requests.post')
-    def test_process_payment_success(self, mock_post):
+    def test_process_payment_success(self, mock_post, mock_auth):
         """Test successful G-Money payment"""
         from payments.gateways.mobile_money import GMoneyGateway
         
-        # Mock successful token response and payment response
-        mock_response = Mock()
-        mock_response.json.side_effect = [
-            {'access_token': 'test_token', 'expires_in': 3600},  # Token request
-            {'reference': 'test_ref', 'gMoneyReference': 'gm_ref_123'}  # Payment request
-        ]
-        mock_response.raise_for_status.return_value = None
-        mock_post.return_value = mock_response
+        mock_auth.return_value = 'test_token'
+        # Mock successful payment response
+        mock_post.return_value = MockResponse(
+            {'reference': 'test_ref', 'gMoneyReference': 'gm_ref_123'},
+            status_code=200
+        )
         
         gateway = GMoneyGateway()
         

@@ -23,7 +23,7 @@ class WalletBalanceModelTests(TestCase):
             username='walletuser', email='wallet@test.com',
             password='testpass123', user_type=USER_TYPE_CUSTOMER
         )
-        self.customer = Customer.objects.get(user=self.user)
+        self.customer, _ = Customer.objects.get_or_create(user=self.user)
         self.currency = Currency.objects.create(
             code='GHS', name='Ghana Cedi', symbol='GH₵',
             decimal_places=2, is_active=True
@@ -117,7 +117,7 @@ class MultiCurrencyWalletTests(TestCase):
             username='multicurrency', email='multi@test.com',
             password='testpass123', user_type=USER_TYPE_CUSTOMER
         )
-        self.customer = Customer.objects.get(user=self.user)
+        self.customer, _ = Customer.objects.get_or_create(user=self.user)
         self.ghs = Currency.objects.create(
             code='GHS', name='Ghana Cedi', symbol='GH₵',
             decimal_places=2, is_active=True
@@ -191,9 +191,9 @@ class WalletTransferTests(TestCase):
             username='recipient', email='recipient@test.com',
             password='testpass123', user_type=USER_TYPE_CUSTOMER
         )
-        # Profiles auto-created by signal
-        self.sender_customer = Customer.objects.get(user=self.sender)
-        self.recipient_customer = Customer.objects.get(user=self.recipient)
+        # Create customer profiles explicitly
+        self.sender_customer, _ = Customer.objects.get_or_create(user=self.sender)
+        self.recipient_customer, _ = Customer.objects.get_or_create(user=self.recipient)
         self.currency = Currency.objects.create(
             code='GHS', name='Ghana Cedi', symbol='GH₵',
             decimal_places=2, is_active=True

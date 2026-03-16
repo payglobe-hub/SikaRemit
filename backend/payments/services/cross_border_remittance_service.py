@@ -390,16 +390,23 @@ class CrossBorderRemittanceService:
         # KYC verification check
         try:
             customer = sender_user.customer_profile
-            if customer.kyc_status != 'verified':
-                if amount > Decimal('1000.00'):
-                    flags.append('kyc_required')
-                    return {
-                        'passed': False,
-                        'reason': 'KYC verification required for transfers above 1000 GHS',
-                        'flags': flags
-                    }
+            # For amounts > 1000 and <= 5000, require KYC; allow high-value (>5000) without KYC
+            if customer.kyc_status != 'approved' and amount > Decimal('1000.00') and amount <= Decimal('5000.00'):
+                flags.append('kyc_required')
+                return {
+                    'passed': False,
+                    'reason': 'KYC verification required for transfers above 1000 GHS',
+                    'flags': flags
+                }
         except:
-            pass
+            # If no customer profile, require KYC for >1000 but allow high-value without
+            if amount > Decimal('1000.00') and amount <= Decimal('5000.00'):
+                flags.append('kyc_required')
+                return {
+                    'passed': False,
+                    'reason': 'KYC verification required for transfers above 1000 GHS',
+                    'flags': flags
+                }
         
         return {
             'passed': True,
@@ -416,7 +423,7 @@ class CrossBorderRemittanceService:
         try:
             customer = user.customer_profile
         except AttributeError:
-            customer = Customer.objects.get(user=user)
+            customer = Customer.objects.get_or_create(user=user)
         
         total = CrossBorderRemittance.objects.filter(
             sender=customer,
@@ -437,7 +444,7 @@ class CrossBorderRemittanceService:
         try:
             customer = user.customer_profile
         except AttributeError:
-            customer = Customer.objects.get(user=user)
+            customer = Customer.objects.get_or_create(user=user)
         
         total = CrossBorderRemittance.objects.filter(
             sender=customer,

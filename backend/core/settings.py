@@ -59,7 +59,7 @@ elif IS_PRODUCTION:
     CSRF_TRUSTED_ORIGINS.extend([
         'https://sikaremit.com',
         'https://www.sikaremit.com',
-        'https://sikaremit.netlify.app',
+        'https://sikaremit.vercel.app',
         'https://api.sikaremit.com',
     ])
 
@@ -581,7 +581,7 @@ SYSTEM_CHECKS = [
     'core.startup_checks.check_production_configuration',
 ]
 
-# Initialize Sentry if DSN is configured
-if SENTRY_DSN:
+# Initialize Sentry if DSN is configured and valid, and not running tests
+if SENTRY_DSN and SENTRY_DSN.startswith(('http://', 'https://')) and 'test' not in sys.argv:
     from core.error_monitoring import initialize_sentry
     initialize_sentry()
