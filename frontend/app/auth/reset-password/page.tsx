@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,7 +9,7 @@ import Link from 'next/link'
 import { resetPassword } from '@/lib/api/auth'
 import { useToast } from '@/hooks/use-toast'
 
-export default function ResetPasswordPage() {
+function ResetPasswordPage() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
   const [password, setPassword] = useState('')
@@ -133,5 +133,13 @@ export default function ResetPasswordPage() {
         </div>
       </form>
     </>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="text-center space-y-4"><p>Loading...</p></div>}>
+      <ResetPasswordPage />
+    </Suspense>
   )
 }
