@@ -9,9 +9,7 @@ import Link from 'next/link'
 import { resetPassword } from '@/lib/api/auth'
 import { useToast } from '@/hooks/use-toast'
 
-function ResetPasswordPage() {
-  const searchParams = useSearchParams()
-  const token = searchParams.get('token')
+function ResetPasswordPage({ token }: { token: string | null }) {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -136,10 +134,18 @@ function ResetPasswordPage() {
   )
 }
 
+function SearchParamsWrapper({ children }: { children: (token: string | null) => React.ReactNode }) {
+  const searchParams = useSearchParams()
+  const token = searchParams.get('token')
+  return <>{children(token)}</>
+}
+
 export default function Page() {
   return (
     <Suspense fallback={<div className="text-center space-y-4"><p>Loading...</p></div>}>
-      <ResetPasswordPage />
+      <SearchParamsWrapper>
+        {(token) => <ResetPasswordPage token={token} />}
+      </SearchParamsWrapper>
     </Suspense>
   )
 }
