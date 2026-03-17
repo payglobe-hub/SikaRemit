@@ -1,0 +1,74 @@
+# SikaRemit Backend Environment Variables for Render
+# Copy this to Render environment variables (NOT to .env file)
+
+# Django Core
+SECRET_KEY=your-render-secret-key-here
+DEBUG=False
+ENVIRONMENT=production
+ALLOWED_HOSTS=https://sikaremit.onrender.com,https://api.sikaremit.com
+CSRF_TRUSTED_ORIGINS=https://sikaremit.onrender.com,https://api.sikaremit.com
+
+# Database (Render PostgreSQL)
+DATABASE_URL=postgresql://sikaremit_db_user:iUHHK1PM2sw3VdOIRuaedP6Zt9kxwzXc@dpg-d6s991q4d50c73bjl340-a.oregon-postgres.render.com/sikaremit_db
+
+# Redis (Render Redis)
+REDIS_URL=redis://red-d6s9ihshg0os73f305s0:6379
+
+# Payment Gateways
+STRIPE_SECRET_KEY=sk_live_your_stripe_secret_key
+STRIPE_PUBLIC_KEY=pk_live_your_stripe_public_key
+STRIPE_WEBHOOK_SECRET=whsec_your_stripe_webhook_secret
+
+MTN_MOMO_API_URL=https://proxy.momoapi.mtn.com
+MTN_MOMO_API_KEY=your_mtn_api_key
+MTN_MOMO_API_SECRET=your_mtn_api_secret
+MTN_MOMO_SUBSCRIPTION_KEY=your_mtn_subscription_key
+MTN_MOMO_WEBHOOK_SECRET=your_mtn_webhook_secret
+
+AIRTEL_API_KEY=your_airtel_api_key
+AIRTEL_API_URL=https://openapi.airtel.africa
+AIRTEL_CLIENT_ID=your_airtel_client_id
+AIRTEL_CLIENT_SECRET=your_airtel_client_secret
+AIRTEL_WEBHOOK_SECRET=your_airtel_webhook_secret
+
+TELECEL_API_KEY=your_telecel_api_key
+TELECEL_API_URL=https://api.telecel.com
+TELECEL_MERCHANT_ID=your_telecel_merchant_id
+TELECEL_WEBHOOK_SECRET=your_telecel_webhook_secret
+
+G_MONEY_API_KEY=your_g_money_api_key
+G_MONEY_API_SECRET=your_g_money_api_secret
+G_MONEY_API_URL=https://api.gcb.com.gh/nexus
+G_MONEY_WEBHOOK_SECRET=your_g_money_webhook_secret
+
+PAYMENT_CALLBACK_URL=https://sikaremit.onrender.com/api/v1/payments/webhooks
+
+# Email (SendGrid)
+SENDGRID_API_KEY=[REDACTED]
+DEFAULT_FROM_EMAIL=noreply@sikaremit.com
+
+# SMS (Africa's Talking)
+AFRICASTALKING_USERNAME=your_at_username
+AFRICASTALKING_API_KEY=your_at_api_key
+AFRICASTALKING_SENDER_ID=SikaRemit
+
+# Monitoring (Sentry)
+SENTRY_DSN=https://payglobe-h1.sentry.io/
+SENTRY_TRACES_SAMPLE_RATE=0.1
+RELEASE_VERSION=1.0.0
+
+# Exchange Rates
+EXCHANGE_RATE_API_KEY=your_exchange_rate_api_key
+
+# OAuth
+GOOGLE_CLIENT_ID=[REDACTED]
+GOOGLE_CLIENT_SECRET=[REDACTED]
+GOOGLE_OAUTH_CLIENT_ID=your_google_oauth_client_id
+GOOGLE_OAUTH_CLIENT_SECRET=your_google_oauth_client_secret
+
+# Monitoring (Grafana)
+GRAFANA_URL=https://payglobesr.grafana.net/
+
+# Celery Configuration
+CELERY_BROKER_URL=redis://red-d6s9ihshg0os73f305s0:6379
+CELERY_RESULT_BACKEND=redis://red-d6s9ihshg0os73f305s0:6379
