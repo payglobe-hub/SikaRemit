@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { verifyEmail } from '@/lib/api/auth'
 import { useToast } from '@/hooks/use-toast'
 
-export default function VerifyEmailPage() {
+function VerifyEmailPage() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'invalid'>('loading')
@@ -93,5 +93,13 @@ export default function VerifyEmailPage() {
         </Link>
       </div>
     </div>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="text-center space-y-4"><p>Loading...</p></div>}>
+      <VerifyEmailPage />
+    </Suspense>
   )
 }
