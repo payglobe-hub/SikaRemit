@@ -18,9 +18,6 @@ export function LoginForm({ userType = 'customer' }: { userType?: 'customer' | '
   const { toast } = useToast()
 
   const handleLogin = async () => {
-    
-    
-    
 
     if (!email || !password) {
       
@@ -32,10 +29,9 @@ export function LoginForm({ userType = 'customer' }: { userType?: 'customer' | '
       return
     }
 
-    
     setIsLoggingIn(true)
     try {
-      
+
       const role = await login(email, password)
 
       toast({
@@ -58,26 +54,21 @@ export function LoginForm({ userType = 'customer' }: { userType?: 'customer' | '
         // Fallback for backward compatibility
         'admin': '/admin/overview'
       }[role] || '/customer/dashboard'
-      
-      
-      
-      
-      
-      // Use Next.js router for reliable navigation
-      
-      window.location.href = redirectPath
-      
-      
-      
+
+      // Add delay to ensure auth state is properly set before redirect
+      setTimeout(() => {
+        
+        window.location.href = redirectPath
+      }, 1000) // Increased delay to 1000ms to prevent race conditions
+
     } catch (error: any) {
-      console.error('âŒ LoginForm: Login failed:', error)
-      console.error('âŒ LoginForm: Error details:', error.response?.data, error.message)
+
       const errorMessage = error.response?.data?.error ||
                            error.response?.data?.non_field_errors?.[0] ||
                            error.response?.data?.detail ||
                            error.message ||
                            'Invalid credentials';
-      console.error('âŒ LoginForm: Error message:', errorMessage)
+      
       toast({
         title: 'Login Failed',
         description: errorMessage,

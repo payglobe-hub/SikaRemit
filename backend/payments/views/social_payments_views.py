@@ -21,7 +21,6 @@ from .serializers.social_payments import (
     GroupSavingsCreateSerializer, SocialPaymentInviteSerializer
 )
 
-
 # Payment Requests Views
 class PaymentRequestViewSet(ModelViewSet):
     """
@@ -161,7 +160,6 @@ class PaymentRequestViewSet(ModelViewSet):
 
         serializer = self.get_serializer(payment_request)
         return Response(serializer.data)
-
 
 # Split Bills Views
 class SplitBillViewSet(ModelViewSet):
@@ -318,7 +316,6 @@ class SplitBillViewSet(ModelViewSet):
 
         serializer = self.get_serializer(split_bill)
         return Response(serializer.data)
-
 
 # Group Savings Views
 class GroupSavingsViewSet(ModelViewSet):
@@ -479,7 +476,6 @@ class GroupSavingsViewSet(ModelViewSet):
         serializer = GroupSavingsSerializer(group_savings)
         return Response(serializer.data)
 
-
 # Social Payment Invites
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -555,7 +551,6 @@ def send_social_invite(request):
 
     serializer = SocialPaymentInviteSerializer(invite)
     return Response(serializer.data)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

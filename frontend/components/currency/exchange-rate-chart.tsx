@@ -173,7 +173,7 @@ export function ExchangeRateChart({
       const response = await getCurrencies()
       setCurrencies(response.data)
     } catch (error) {
-      console.error('Failed to load currencies:', error)
+      
     }
   }
 
@@ -198,7 +198,7 @@ export function ExchangeRateChart({
         setCurrentRate(rate)
       }
     } catch (error) {
-      console.error('Failed to load current rate:', error)
+      
     }
   }
 
@@ -219,7 +219,7 @@ export function ExchangeRateChart({
       
       setHistoricalData(chartData)
     } catch (error) {
-      console.error('Failed to load historical data:', error)
+      
       toast({
         title: 'Error',
         description: 'Failed to load historical exchange rate data',

@@ -14,7 +14,6 @@ import uuid
 
 User = get_user_model()
 
-
 class ShoppingCart(models.Model):
     """Customer shopping cart"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -46,7 +45,6 @@ class ShoppingCart(models.Model):
     @property
     def is_empty(self):
         return self.items.exists() is False
-
 
 class CartItem(models.Model):
     """Individual items in shopping cart"""
@@ -97,7 +95,6 @@ class CartItem(models.Model):
         if not self.product.store.is_active:
             raise ValidationError("Store is not active")
 
-
 class Wishlist(models.Model):
     """Customer wishlist for saved products"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -117,7 +114,6 @@ class Wishlist(models.Model):
     def item_count(self):
         return self.items.count()
 
-
 class WishlistItem(models.Model):
     """Individual items in wishlist"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -134,7 +130,6 @@ class WishlistItem(models.Model):
     
     def __str__(self):
         return f"{self.product.name} in wishlist"
-
 
 class CartService:
     """Business logic for shopping cart operations"""
@@ -238,7 +233,6 @@ class CartService:
                 item.delete()
         
         return unavailable_items
-
 
 class WishlistService:
     """Business logic for wishlist operations"""

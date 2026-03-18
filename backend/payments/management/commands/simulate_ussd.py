@@ -23,8 +23,7 @@ class Command(BaseCommand):
             content_type='application/json'
         )
         data = json.loads(response.content)
-        print(f"USSD Response: {data['response']}")
-        
+
         # User enters amount
         response = client.post(
             reverse('ussd_callback'),
@@ -37,8 +36,7 @@ class Command(BaseCommand):
             content_type='application/json'
         )
         data = json.loads(response.content)
-        print(f"USSD Response: {data['response']}")
-        
+
         # User confirms (1 for yes)
         response = client.post(
             reverse('ussd_callback'),
@@ -51,4 +49,4 @@ class Command(BaseCommand):
             content_type='application/json'
         )
         data = json.loads(response.content)
-        print(f"USSD Response: {data['response']}")
+        

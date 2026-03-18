@@ -31,7 +31,7 @@ function makeQueryClient() {
       mutations: {
         retry: 1,
         onError: (error: any) => {
-          console.error('Mutation error:', error)
+          
         },
       },
     },
@@ -54,23 +54,23 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <PermissionsProvider>
-          <SessionProvider>
-            <ThemeProvider>
-              <CurrencyProvider>
-                <ToastProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <SessionProvider>
+              <PermissionsProvider>
+                <CurrencyProvider>
                   <NotificationProvider>
                     {children}
                     <Toaster />
+                    <ReactQueryDevtools initialIsOpen={false} />
                   </NotificationProvider>
-                </ToastProvider>
-              </CurrencyProvider>
-            </ThemeProvider>
-          </SessionProvider>
-        </PermissionsProvider>
-      </AuthProvider>
-      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+                </CurrencyProvider>
+              </PermissionsProvider>
+            </SessionProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   )
 }

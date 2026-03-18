@@ -14,7 +14,6 @@ from decimal import Decimal
 
 User = get_user_model()
 
-
 class ProductReview(models.Model):
     """Product review with ratings and feedback"""
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
@@ -66,7 +65,6 @@ class ProductReview(models.Model):
         self.is_not_helpful_count += 1
         self.save()
 
-
 class ReviewVote(models.Model):
     """Track user votes on review helpfulness"""
     review = models.ForeignKey(ProductReview, on_delete=models.CASCADE, related_name='votes')
@@ -90,7 +88,6 @@ class ReviewVote(models.Model):
     def __str__(self):
         return f"{self.user.email} - {self.review.id} - {self.vote_type}"
 
-
 class ReviewImage(models.Model):
     """Images associated with product reviews"""
     review = models.ForeignKey(ProductReview, on_delete=models.CASCADE, related_name='images')
@@ -107,7 +104,6 @@ class ReviewImage(models.Model):
     
     def __str__(self):
         return f"Image for {self.review.id}"
-
 
 class ReviewAnalytics(models.Model):
     """Analytics for product reviews"""
@@ -130,7 +126,6 @@ class ReviewAnalytics(models.Model):
     def __str__(self):
         return f"Analytics for {self.product.name} on {self.date}"
 
-
 class ReviewResponse(models.Model):
     """Merchant responses to customer reviews"""
     review = models.OneToOneField(ProductReview, on_delete=models.CASCADE, related_name='response')
@@ -149,7 +144,6 @@ class ReviewResponse(models.Model):
     
     def __str__(self):
         return f"Response to {self.review.id} by {self.merchant.email}"
-
 
 class ReviewFlag(models.Model):
     """Flagged reviews for moderation"""
@@ -195,7 +189,6 @@ class ReviewFlag(models.Model):
     
     def __str__(self):
         return f"Flag on {self.review.id} - {self.reason}"
-
 
 class ReviewService:
     """Service for managing product reviews"""
@@ -509,7 +502,6 @@ class ReviewService:
         analytics.total_not_helpful_votes = reviews.aggregate(Sum('is_not_helpful_count'))['is_not_helpful_count__sum'] or 0
         
         analytics.save()
-
 
 class ReviewModerationService:
     """Service for moderating reviews"""

@@ -7,8 +7,7 @@ import { getMerchantDashboard } from '@/lib/api/merchant'
 import { useCurrency } from '@/hooks/useCurrency'
 import { QUICK_ACTIONS } from '@/lib/constants/merchant-ui'
 import RecentTransactions from '@/components/merchant/recent-transactions'
-import RevenueChart from '@/components/merchant/revenue-chart'
-import SalesChart from '@/components/merchant/sales-chart'
+import { RevenueChart, SalesChart, ChartWrapper } from '@/components/lazy/LazyCharts'
 import { useAuth } from '@/lib/auth/context'
 import { useSession } from '@/lib/auth/session-provider'
 import Link from 'next/link'
@@ -161,7 +160,9 @@ export default function MerchantDashboard() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="h-72 w-full">
-                <RevenueChart />
+                <ChartWrapper title="Revenue Trends">
+                  <RevenueChart />
+                </ChartWrapper>
               </div>
             </CardContent>
           </Card>
@@ -200,7 +201,9 @@ export default function MerchantDashboard() {
           </CardHeader>
           <CardContent className="pt-0">
             <div className="h-72 w-full">
-              <SalesChart />
+              <ChartWrapper title="Sales Analytics">
+                <SalesChart />
+              </ChartWrapper>
             </div>
           </CardContent>
         </Card>

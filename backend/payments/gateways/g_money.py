@@ -19,7 +19,6 @@ from .base import PaymentGateway
 
 logger = logging.getLogger(__name__)
 
-
 class GMoneyGateway(PaymentGateway):
     """
     G-Money payment gateway integration via GCB Bank Nexus API

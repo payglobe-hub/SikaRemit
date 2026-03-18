@@ -69,7 +69,7 @@ export function UnifiedTransferForm({ transferMode, onSubmit, onCancel }: Unifie
         const currencyList = Array.isArray(data) ? data : (data.results || [])
         setCurrencies(currencyList.filter((c: any) => c.is_active))
       } catch (error) {
-        console.error('Failed to load currencies:', error)
+        
       }
     }
     
@@ -80,7 +80,7 @@ export function UnifiedTransferForm({ transferMode, onSubmit, onCancel }: Unifie
         const countryList = Array.isArray(data) ? data : (data.results || [])
         setCountries(countryList.filter((c: any) => c.is_active))
       } catch (error) {
-        console.error('Failed to load countries:', error)
+        
       }
     }
     
@@ -209,7 +209,7 @@ export function UnifiedTransferForm({ transferMode, onSubmit, onCancel }: Unifie
         toCurrency: result.toCurrency
       })
     } catch (error) {
-      console.error('Currency conversion failed:', error)
+      
       setConversionResult(null)
     }
   }

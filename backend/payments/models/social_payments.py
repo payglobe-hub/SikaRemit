@@ -6,7 +6,6 @@ from decimal import Decimal
 
 User = get_user_model()
 
-
 class PaymentRequest(models.Model):
     """
     Model for requesting payments from other users
@@ -64,7 +63,6 @@ class PaymentRequest(models.Model):
             return (self.due_date - timezone.now()).days
         return None
 
-
 class SplitBill(models.Model):
     """
     Model for splitting bills among multiple people
@@ -116,7 +114,6 @@ class SplitBill(models.Model):
         self.settled_at = timezone.now()
         self.save()
 
-
 class SplitParticipant(models.Model):
     """
     Participants in a split bill with their share amounts
@@ -165,7 +162,6 @@ class SplitParticipant(models.Model):
 
         self.save()
 
-
 class SplitPayment(models.Model):
     """
     Individual payments made towards a split bill
@@ -190,7 +186,6 @@ class SplitPayment(models.Model):
 
     def __str__(self):
         return f"Split payment: {self.payer} paid ${self.amount} for {self.split_bill.title}"
-
 
 class GroupSavings(models.Model):
     """
@@ -273,7 +268,6 @@ class GroupSavings(models.Model):
 
         return contribution
 
-
 class GroupSavingsParticipant(models.Model):
     """
     Participants in group savings goals
@@ -310,7 +304,6 @@ class GroupSavingsParticipant(models.Model):
     def __str__(self):
         return f"{self.user} in {self.group_savings.title} ({self.role})"
 
-
 class GroupSavingsContribution(models.Model):
     """
     Individual contributions to group savings goals
@@ -335,7 +328,6 @@ class GroupSavingsContribution(models.Model):
 
     def __str__(self):
         return f"Contribution: {self.contributor} added ${self.amount} to {self.group_savings.title}"
-
 
 class SocialPaymentInvite(models.Model):
     """

@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.utils.html import format_html
 from payments.models import TelecomProvider, TelecomPackage, BusinessRule
 
-
 @admin.register(TelecomProvider)
 class TelecomProviderAdmin(admin.ModelAdmin):
     list_display = ['name', 'code', 'country', 'is_active', 'packages_count', 'created_at']
@@ -30,7 +29,6 @@ class TelecomProviderAdmin(admin.ModelAdmin):
     def packages_count(self, obj):
         return obj.packages.filter(is_active=True).count()
     packages_count.short_description = "Active Packages"
-
 
 @admin.register(TelecomPackage)
 class TelecomPackageAdmin(admin.ModelAdmin):
@@ -71,7 +69,6 @@ class TelecomPackageAdmin(admin.ModelAdmin):
     def formatted_price(self, obj):
         return format_html('<strong>{}</strong>', obj.formatted_price)
     formatted_price.short_description = "Price"
-
 
 @admin.register(BusinessRule)
 class BusinessRuleAdmin(admin.ModelAdmin):

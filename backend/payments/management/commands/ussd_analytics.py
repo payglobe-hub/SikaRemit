@@ -10,7 +10,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class Command(BaseCommand):
     help = 'Generate USSD analytics reports and cleanup old data'
 

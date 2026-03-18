@@ -11,7 +11,6 @@ import json
 
 logger = logging.getLogger(__name__)
 
-
 class GDPRCompliance:
     """
     GDPR Compliance Framework
@@ -365,7 +364,6 @@ class GDPRCompliance:
         logger.critical(f"Data breach {breach.id} - User notification required")
         # In production, send emails to affected users
 
-
 # Utility functions
 def check_gdpr_compliance() -> Dict:
     """Check GDPR compliance status"""
@@ -381,7 +379,6 @@ def check_gdpr_compliance() -> Dict:
         'breach_notification_process': True,
         'compliant': True
     }
-
 
 def get_user_gdpr_rights() -> List[Dict]:
     """Get list of GDPR rights available to users"""

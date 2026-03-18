@@ -7,7 +7,6 @@ from django.conf import settings
 import re
 import os
 
-
 @register
 def check_user_type_hardcoded_values(app_configs, **kwargs):
     """
@@ -78,7 +77,6 @@ def check_user_type_hardcoded_values(app_configs, **kwargs):
     
     return errors
 
-
 @register
 def check_user_type_constants_import(app_configs, **kwargs):
     """
@@ -139,7 +137,6 @@ def check_user_type_constants_import(app_configs, **kwargs):
             continue
     
     return warnings
-
 
 @register  
 def check_user_type_signal_consistency(app_configs, **kwargs):

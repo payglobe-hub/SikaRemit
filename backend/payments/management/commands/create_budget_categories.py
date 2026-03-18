@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 from payments.models.budgeting import BudgetCategory
 
-
 class Command(BaseCommand):
     help = 'Create default budget categories'
 

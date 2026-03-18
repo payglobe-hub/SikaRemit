@@ -4,7 +4,6 @@ from payments.models.subscriptions import (
     SubscriptionPlan, SubscriptionFeature, PlanFeature
 )
 
-
 class Command(BaseCommand):
     help = 'Create default subscription plans and features'
 

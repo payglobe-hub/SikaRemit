@@ -4,7 +4,6 @@ from ..models.currency import ExchangeRate
 
 User = get_user_model()
 
-
 class ExchangeRateSerializer(serializers.ModelSerializer):
     """Serializer for ExchangeRate model from currency.py"""
     from_currency_code = serializers.CharField(source='from_currency.code', read_only=True)
@@ -20,7 +19,6 @@ class ExchangeRateSerializer(serializers.ModelSerializer):
             'timestamp', 'is_latest', 'valid_from', 'valid_to', 'spread', 'metadata'
         ]
         read_only_fields = ['id', 'timestamp', 'inverse_rate']
-
 
 class ExchangeRateBulkUpdateSerializer(serializers.Serializer):
     """Serializer for bulk updating exchange rates"""

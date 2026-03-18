@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from ..models import Currency, ExchangeRate, CurrencyPreference, WalletBalance
 
-
 class CurrencySerializer(serializers.ModelSerializer):
     """Serializer for Currency model"""
     class Meta:
@@ -11,7 +10,6 @@ class CurrencySerializer(serializers.ModelSerializer):
             'is_active', 'is_base_currency', 'flag_emoji',
             'exchange_api_supported', 'minimum_amount', 'maximum_amount'
         ]
-
 
 class ExchangeRateSerializer(serializers.ModelSerializer):
     """Serializer for ExchangeRate model"""
@@ -24,7 +22,6 @@ class ExchangeRateSerializer(serializers.ModelSerializer):
             'id', 'from_currency', 'to_currency', 'rate',
             'inverse_rate', 'source', 'timestamp', 'is_latest'
         ]
-
 
 class CurrencyPreferenceSerializer(serializers.ModelSerializer):
     """Serializer for CurrencyPreference model"""
@@ -80,7 +77,6 @@ class CurrencyPreferenceSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(f"Invalid display currency code: {display_code}")
 
         return super().update(instance, validated_data)
-
 
 class WalletBalanceSerializer(serializers.ModelSerializer):
     """Serializer for WalletBalance model"""

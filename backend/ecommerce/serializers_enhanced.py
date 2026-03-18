@@ -11,7 +11,6 @@ from .models_enhanced_wishlist import (
     WishlistAnalytics, EnhancedWishlistService
 )
 
-
 class EnhancedWishlistItemSerializer(serializers.ModelSerializer):
     """Serializer for enhanced wishlist items"""
     product_name = serializers.CharField(source='product.name', read_only=True)
@@ -44,7 +43,6 @@ class EnhancedWishlistItemSerializer(serializers.ModelSerializer):
     def get_days_in_wishlist(self, obj):
         return (timezone.now() - obj.added_at).days
 
-
 class EnhancedWishlistSerializer(serializers.ModelSerializer):
     """Serializer for enhanced wishlist"""
     items = EnhancedWishlistItemSerializer(many=True, read_only=True)
@@ -58,7 +56,6 @@ class EnhancedWishlistSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'items', 'item_count', 'total_value', 'created_at', 'updated_at'
         ]
-
 
 class ProductRecommendationSerializer(serializers.ModelSerializer):
     """Serializer for product recommendations"""
@@ -86,7 +83,6 @@ class ProductRecommendationSerializer(serializers.ModelSerializer):
             'created_at', 'expires_at'
         ]
 
-
 class WishlistAnalyticsSerializer(serializers.ModelSerializer):
     """Serializer for wishlist analytics"""
     date = serializers.DateField(read_only=True)
@@ -106,7 +102,6 @@ class WishlistAnalyticsSerializer(serializers.ModelSerializer):
             'items_purchased', 'most_expensive_item', 'average_item_price', 'top_category'
         ]
 
-
 class PublicWishlistSerializer(serializers.ModelSerializer):
     """Serializer for public wishlists"""
     user_email = serializers.CharField(source='user.email', read_only=True)
@@ -123,7 +118,6 @@ class PublicWishlistSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-
 class WishlistExportSerializer(serializers.Serializer):
     """Serializer for wishlist export"""
     filename = serializers.CharField(read_only=True)
@@ -134,12 +128,10 @@ class WishlistExportSerializer(serializers.Serializer):
     class Meta:
         fields = ['filename', 'items']
 
-
 class BulkAddToWishlistRequest(serializers.Serializer):
     """Request serializer for bulk adding to wishlist"""
     product_ids = serializers.ListField(child=serializers.CharField())
     source = serializers.CharField(default='manual')
-
 
 class BulkAddToWishlistResponse(serializers.Serializer):
     """Response serializer for bulk add operations"""
@@ -152,16 +144,13 @@ class BulkAddToWishlistResponse(serializers.Serializer):
     added = serializers.IntegerField()
     failed = serializers.IntegerField()
 
-
 class TrackProductViewRequest(serializers.Serializer):
     """Request serializer for tracking product views"""
     product_id = serializers.UUIDField()
 
-
 class ProductViewTrackingResponse(serializers.Serializer):
     """Response serializer for product view tracking"""
     message = serializers.CharField()
-
 
 class RecommendationRefreshRequest(serializers.Serializer):
     """Request serializer for refreshing recommendations"""

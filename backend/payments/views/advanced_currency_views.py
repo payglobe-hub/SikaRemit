@@ -11,7 +11,6 @@ from decimal import Decimal
 from payments.services.currency_service import AdvancedCurrencyService, CurrencyService
 from payments.models import Currency
 
-
 class AdvancedCurrencyViewSet(viewsets.ViewSet):
     """
     Advanced currency operations API

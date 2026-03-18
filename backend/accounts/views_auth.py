@@ -21,7 +21,7 @@ from functools import wraps
 import time
 import logging
 
-from notifications.services import NotificationService
+from .api.notifications import NotificationService
 from .serializers import (
     UserLoginSerializer, UserRegisterSerializer, AccountsUserSerializer,
     MyTokenObtainPairSerializer,
@@ -30,7 +30,6 @@ from .services import AuthService
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
-
 
 def validate_token(view_func):
     @wraps(view_func)
@@ -45,7 +44,6 @@ def validate_token(view_func):
             logger.warning(f'Token validation failed: {str(e)}')
             return Response({'error': 'Invalid or expired token'}, status=401)
     return wrapped_view
-
 
 from django.http import JsonResponse
 
@@ -66,7 +64,6 @@ class SessionMonitorMiddleware:
                 return JsonResponse({'error': 'Session expired'}, status=401)
             request.session['last_activity'] = time.time()
         return self.get_response(request)
-
 
 class UserRegisterView(APIView):
     """
@@ -146,7 +143,6 @@ class UserRegisterView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 @method_decorator(csrf_exempt, name='dispatch')
 class UserLoginView(APIView):
@@ -245,10 +241,15 @@ class UserLoginView(APIView):
                 
                 # Check if this is a new device (simplified check using AuthLog if it exists)
                 from accounts.models import AuthLog
+                import hashlib
+                
+                # Generate a simple device fingerprint from user agent and IP
+                device_fingerprint = hashlib.md5(f"{user_agent}:{ip_address}".encode()).hexdigest()[:32]
+                
                 recent_logins = AuthLog.objects.filter(
                     user=user,
-                    action='login',
-                    ip_address=ip_address
+                    device_id=device_fingerprint,
+                    success=True
                 ).exists()
                 
                 if not recent_logins:
@@ -269,9 +270,8 @@ class UserLoginView(APIView):
                 # Log this login attempt
                 AuthLog.objects.create(
                     user=user,
-                    action='login',
                     ip_address=ip_address,
-                    user_agent=user_agent[:500] if user_agent else '',
+                    device_id=device_fingerprint,
                     success=True
                 )
             except Exception as e:
@@ -285,7 +285,6 @@ class UserLoginView(APIView):
                 {'error': 'An unexpected error occurred. Please try again.'},
                 status=500
             )
-
 
 class UserRefreshView(APIView):
     """
@@ -306,7 +305,6 @@ class UserRefreshView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class UserLogoutView(APIView):
     """
@@ -352,7 +350,6 @@ class UserLogoutView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-
 class LogoutOtherSessionsView(APIView):
     """
     Logout from all other active sessions (keep current session active)
@@ -388,7 +385,6 @@ class LogoutOtherSessionsView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class ActiveSessionsView(APIView):
     """
@@ -428,7 +424,6 @@ class ActiveSessionsView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-
 class TokenValidateView(APIView):
     """
     Token validation endpoint
@@ -450,7 +445,6 @@ class TokenValidateView(APIView):
                 {'valid': False, 'error': str(e)},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-
 
 class ProfileView(APIView):
     """
@@ -496,7 +490,6 @@ class ProfileView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer

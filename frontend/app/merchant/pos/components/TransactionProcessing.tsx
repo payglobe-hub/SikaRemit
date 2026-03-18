@@ -41,7 +41,7 @@ const TransactionProcessing = ({ devices, onTransactionComplete }: TransactionPr
         const currencyList = Array.isArray(response.data) ? response.data : (response.data.results || [])
         setCurrencies(currencyList.filter((c: any) => c.is_active))
       } catch (error) {
-        console.error('Failed to load currencies:', error)
+        
       }
     }
     fetchCurrencies()

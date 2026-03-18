@@ -2,7 +2,6 @@ from rest_framework import serializers
 from ..models.dispute import Dispute
 from ..models.transaction import Transaction
 
-
 class DisputeCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating disputes by customers"""
     
@@ -35,7 +34,6 @@ class DisputeCreateSerializer(serializers.ModelSerializer):
             )
         
         return value
-
 
 class DisputeDetailSerializer(serializers.ModelSerializer):
     """Detailed serializer for dispute information"""
@@ -99,7 +97,6 @@ class DisputeDetailSerializer(serializers.ModelSerializer):
             return obj.merchant.business_name
         return None
 
-
 class MerchantDisputeSerializer(serializers.ModelSerializer):
     """Serializer for merchants to view and respond to disputes"""
     
@@ -153,7 +150,6 @@ class MerchantDisputeSerializer(serializers.ModelSerializer):
         deadline = obj.created_at + datetime.timedelta(hours=48)
         return deadline
 
-
 class MerchantResponseSerializer(serializers.Serializer):
     """Serializer for merchant response to dispute"""
     
@@ -162,7 +158,6 @@ class MerchantResponseSerializer(serializers.Serializer):
         required=True,
         help_text="Merchant's response to the dispute"
     )
-
 
 class MerchantResolutionSerializer(serializers.Serializer):
     """Serializer for merchant resolution of dispute"""
@@ -173,7 +168,6 @@ class MerchantResolutionSerializer(serializers.Serializer):
         help_text="Resolution details for the dispute"
     )
 
-
 class EscalationSerializer(serializers.Serializer):
     """Serializer for escalating disputes to admin"""
     
@@ -182,7 +176,6 @@ class EscalationSerializer(serializers.Serializer):
         required=True,
         help_text="Reason for escalating to admin"
     )
-
 
 class CustomerFeedbackSerializer(serializers.Serializer):
     """Serializer for customer feedback on resolution"""
@@ -194,7 +187,6 @@ class CustomerFeedbackSerializer(serializers.Serializer):
         allow_blank=True,
         help_text="Customer feedback on resolution"
     )
-
 
 class CustomerDisputeListSerializer(serializers.ModelSerializer):
     """Serializer for customers to view their disputes"""

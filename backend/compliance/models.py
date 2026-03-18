@@ -11,7 +11,6 @@ class RegulatorySubmission(models.Model):
     def __str__(self):
         return f"Submission for {self.user.email}"
 
-
 class GDPRConsent(models.Model):
     """Record of user consent per GDPR Article 7"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gdpr_consents')
@@ -27,7 +26,6 @@ class GDPRConsent(models.Model):
     
     def __str__(self):
         return f"{self.user.email} - {self.purpose}"
-
 
 class GDPRDataDeletion(models.Model):
     """Right to erasure requests"""
@@ -51,7 +49,6 @@ class GDPRDataDeletion(models.Model):
     def __str__(self):
         return f"Deletion request for {self.user.email}"
 
-
 class GDPRDataRectification(models.Model):
     """Right to rectification log"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rectifications')
@@ -60,7 +57,6 @@ class GDPRDataRectification(models.Model):
     
     def __str__(self):
         return f"Rectification for {self.user.email}"
-
 
 class GDPRDataBreach(models.Model):
     """Data breach records per Article 33"""
@@ -86,7 +82,6 @@ class GDPRDataBreach(models.Model):
     
     def __str__(self):
         return f"Breach {self.id} - {self.severity}"
-
 
 class SuspiciousActivityReport(models.Model):
     """
@@ -164,7 +159,6 @@ class SuspiciousActivityReport(models.Model):
         self.submitted_to_fic_at = timezone.now()
         self.fic_reference = fic_reference
         self.save()
-
 
 class BOGMonthlyReport(models.Model):
     """

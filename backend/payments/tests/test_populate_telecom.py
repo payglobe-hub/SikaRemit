@@ -13,7 +13,6 @@ try:
 except ImportError:
     _HAS_POPULATE_TELECOM = False
 
-
 @unittest.skipUnless(_HAS_POPULATE_TELECOM, "populate_telecom management command not available")
 class PopulateTelecomCommandTest(TestCase):
     """Test cases for populate_telecom management command"""

@@ -14,7 +14,6 @@ from functools import wraps
 
 logger = logging.getLogger(__name__)
 
-
 def initialize_sentry():
     """
     Initialize Sentry error monitoring
@@ -57,7 +56,6 @@ def initialize_sentry():
     
     logger.info("Sentry error monitoring initialized")
 
-
 def filter_sensitive_data(event, hint):
     """
     Filter sensitive data before sending to Sentry
@@ -84,7 +82,6 @@ def filter_sensitive_data(event, hint):
                 event['request']['data'][field] = '[Filtered]'
     
     return event
-
 
 class ErrorTracker:
     """
@@ -171,7 +168,6 @@ class ErrorTracker:
             data=data or {}
         )
 
-
 class PaymentErrorTracker:
     """
     Specialized error tracking for payment operations
@@ -231,7 +227,6 @@ class PaymentErrorTracker:
             level='error'
         )
 
-
 class APIErrorTracker:
     """
     Track API-specific errors
@@ -270,7 +265,6 @@ class APIErrorTracker:
             context=context,
             level='error'
         )
-
 
 # Decorator for automatic error tracking
 def track_errors(category: str = 'general'):
@@ -317,7 +311,6 @@ def track_errors(category: str = 'general'):
         return wrapper
     return decorator
 
-
 # Performance monitoring
 class PerformanceMonitor:
     """
@@ -360,7 +353,6 @@ class PerformanceMonitor:
             )
             
             sentry_sdk.set_tag('performance_issue', 'slow_query')
-
 
 # Middleware for automatic error tracking
 class ErrorTrackingMiddleware:
@@ -409,7 +401,6 @@ class ErrorTrackingMiddleware:
         )
         
         return None  # Let Django handle the exception
-
 
 # Health check for monitoring
 class HealthCheckMonitor:

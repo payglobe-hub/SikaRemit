@@ -20,11 +20,10 @@ const getRecentTransactions = async (): Promise<Transaction[]> => {
     // For now, return empty array for production
     return []
   } catch (error) {
-    console.error('Failed to fetch recent transactions:', error)
+    
     return []
   }
 }
-
 
 const getTransactionIcon = (type: Transaction['type']) => {
   switch (type) {
@@ -82,7 +81,7 @@ export function PhoneMockup() {
           currency: 'GHS'
         })
       } catch (error) {
-        console.error('Failed to fetch phone mockup data:', error)
+        
       } finally {
         setIsLoading(false)
       }

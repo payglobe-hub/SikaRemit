@@ -15,7 +15,6 @@ from payments.models.payment_method import PaymentMethod
 
 logger = logging.getLogger(__name__)
 
-
 class RemittanceDeliveryMethod:
     """Delivery method constants"""
     MOBILE_MONEY = 'mobile_money'
@@ -23,7 +22,6 @@ class RemittanceDeliveryMethod:
     CASH_PICKUP = 'cash_pickup'
     DIGITAL_WALLET = 'digital_wallet'
     SIKAREMIT_USER = 'sikaremit_user'
-
 
 class RemittanceStatus:
     """Remittance status constants"""
@@ -34,7 +32,6 @@ class RemittanceStatus:
     FAILED = 'failed'
     CANCELLED = 'cancelled'
     REFUNDED = 'refunded'
-
 
 class CrossBorderRemittanceService:
     """
@@ -1032,7 +1029,6 @@ class CrossBorderRemittanceService:
                 'success': False,
                 'error': f'Refund failed: {str(e)}'
             }
-
 
 # Import models at module level to avoid circular imports
 from django.db import models

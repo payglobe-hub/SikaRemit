@@ -7,7 +7,6 @@ from datetime import timedelta
 
 User = get_user_model()
 
-
 class SubscriptionPlan(models.Model):
     """
     Subscription plans with pricing and features
@@ -85,7 +84,6 @@ class SubscriptionPlan(models.Model):
         else:  # monthly
             return self.price * 12
 
-
 class SubscriptionFeature(models.Model):
     """
     Features available in subscription plans
@@ -114,7 +112,6 @@ class SubscriptionFeature(models.Model):
 
     def __str__(self):
         return self.display_name
-
 
 class PlanFeature(models.Model):
     """
@@ -150,7 +147,6 @@ class PlanFeature(models.Model):
             return self.limit_value
         else:  # unlimited
             return None
-
 
 class Subscription(models.Model):
     """
@@ -297,7 +293,6 @@ class Subscription(models.Model):
             status='pending'  # Would be updated when payment processes
         )
 
-
 class SubscriptionPayment(models.Model):
     """
     Records of subscription payments
@@ -375,7 +370,6 @@ class SubscriptionPayment(models.Model):
 
         self.save()
 
-
 class SubscriptionUsage(models.Model):
     """
     Track usage against subscription limits
@@ -438,7 +432,6 @@ class SubscriptionUsage(models.Model):
         # This would create a notification or alert
         # For now, just log or could send email/SMS
         pass
-
 
 class SubscriptionDiscount(models.Model):
     """

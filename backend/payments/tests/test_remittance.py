@@ -11,7 +11,6 @@ import json
 
 User = get_user_model()
 
-
 class CrossBorderRemittanceServiceTests(TestCase):
     """Tests for CrossBorderRemittanceService"""
     
@@ -38,13 +37,11 @@ class CrossBorderRemittanceServiceTests(TestCase):
             user=self.user,
             defaults={'kyc_status': 'approved'}
         )
-        print(f"After get_or_create: created={created}, kyc_status={self.customer.kyc_status}")
-        
+
         # Force approved KYC status regardless of what was set
         Customer.objects.filter(user=self.user).update(kyc_status='approved')
         self.customer.refresh_from_db()
-        print(f"After update and refresh: kyc_status={self.customer.kyc_status}")
-        
+
         # Reconnect signals
         post_save.connect(create_user_profile, sender=User)
         post_save.connect(sync_customer_user_type, sender=Customer)
@@ -165,7 +162,6 @@ class CrossBorderRemittanceServiceTests(TestCase):
         # Random countries not supported
         self.assertFalse(service._validate_corridor('XX', 'YY'))
 
-
 class ComplianceChecksTests(TestCase):
     """Tests for AML/CTF compliance checks"""
     
@@ -246,20 +242,17 @@ class ComplianceChecksTests(TestCase):
         service = CrossBorderRemittanceService()
         
         # Debug: Check if customer profile exists and KYC status
-        print(f"User ID: {self.user.id}")
-        print(f"User has customer_profile: {hasattr(self.user, 'customer_profile')}")
-        if hasattr(self.user, 'customer_profile'):
-            print(f"Customer KYC status: {self.user.customer_profile.kyc_status}")
         
+        }")
+        if hasattr(self.user, 'customer_profile'):
+
         result = service._perform_compliance_checks(
             sender_user=self.user,
             recipient_data={'name': 'John Doe'},
             amount=Decimal('6000.00'),  # Above 5000 threshold
             purpose='family_support'
         )
-        
-        print(f"Compliance result: {result}")
-        
+
         # High value transactions should pass but be flagged
         self.assertTrue(result['passed'])
         self.assertIn('high_value_transaction', result['flags'])
@@ -275,7 +268,6 @@ class ComplianceChecksTests(TestCase):
         
         # Empty name should pass
         self.assertFalse(service._check_sanctions_list(''))
-
 
 class RemittanceStatusTests(TestCase):
     """Tests for remittance status tracking"""
@@ -300,7 +292,6 @@ class RemittanceStatusTests(TestCase):
         self.assertEqual(RemittanceDeliveryMethod.CASH_PICKUP, 'cash_pickup')
         self.assertEqual(RemittanceDeliveryMethod.DIGITAL_WALLET, 'digital_wallet')
         self.assertEqual(RemittanceDeliveryMethod.SIKAREMIT_USER, 'sikaremit_user')
-
 
 class DeliveryMethodTests(TestCase):
     """Tests for different delivery methods"""
@@ -333,7 +324,6 @@ class DeliveryMethodTests(TestCase):
             self.assertIn(method, service.FEE_STRUCTURE)
             self.assertIn('percentage', service.FEE_STRUCTURE[method])
             self.assertIn('fixed', service.FEE_STRUCTURE[method])
-
 
 class ExchangeRateTests(TestCase):
     """Tests for exchange rate functionality"""

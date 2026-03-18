@@ -13,7 +13,6 @@ from .base import PaymentGateway
 
 logger = logging.getLogger(__name__)
 
-
 class SikaRemitBalanceGateway(PaymentGateway):
     """
     Internal wallet gateway for SikaRemit balance payments.

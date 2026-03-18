@@ -14,7 +14,6 @@ from shared.constants import USER_TYPE_CUSTOMER
 
 User = get_user_model()
 
-
 class ReferralCodeTests(TestCase):
     """Test referral code creation and usage tracking."""
 
@@ -76,7 +75,6 @@ class ReferralCodeTests(TestCase):
         ReferralCode.objects.create(user=self.user, code='SAME1234')
         with self.assertRaises(Exception):
             ReferralCode.objects.create(user=user2, code='SAME1234')
-
 
 class ReferralTests(TestCase):
     """Test referral tracking and qualification."""

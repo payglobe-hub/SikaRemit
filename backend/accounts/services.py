@@ -664,7 +664,6 @@ class AuthService:
         logger.info(f"Backup code verified for {user.email}")
         return recovery_token
 
-
 class PaymentService:
     @staticmethod
     def process_subscription_payment(user, plan, payment_token):
@@ -1005,7 +1004,6 @@ class PaymentService:
             payment.save()
             raise Exception(f'Bank transfer payment failed: {str(e)}')
 
-
     @staticmethod
     def _process_google_pay(payment, data):
         """Process Google Pay via Stripe"""
@@ -1142,7 +1140,6 @@ class PaymentService:
             payment.status = 'failed'
             payment.save()
             raise Exception(f'QR payment failed: {str(e)}')
-
 
 def log_audit_action(action, admin, user=None, metadata=None):
     """

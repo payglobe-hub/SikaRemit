@@ -7,7 +7,6 @@ from decimal import Decimal
 
 User = get_user_model()
 
-
 class POSDevice(models.Model):
     """Modern POS devices including smartphones, NFC readers, and soft POS terminals"""
     
@@ -114,7 +113,6 @@ class POSDevice(models.Model):
         if self.supports_mobile_money:
             methods.extend(['mtn_money', 'telecel_cash', 'airtel_tigo_money'])
         return methods
-
 
 class POSTransaction(models.Model):
     """Enhanced POS transaction records supporting NFC, mobile money, and modern payment methods"""
@@ -262,7 +260,6 @@ class POSTransaction(models.Model):
         """Check if transaction can be refunded"""
         return self.status == 'completed' and self.transaction_type == 'sale'
 
-
 class NFCPayment(models.Model):
     """NFC payment processing data"""
     
@@ -303,7 +300,6 @@ class NFCPayment(models.Model):
             models.Index(fields=['nfc_id']),
             models.Index(fields=['wallet_provider']),
         ]
-
 
 class MobileMoneyPayment(models.Model):
     """Mobile money payment processing"""
@@ -383,7 +379,6 @@ class MobileMoneyPayment(models.Model):
         if confirmation_code:
             self.confirmation_code = confirmation_code
         self.save()
-
 
 class SmartphonePOSDevice(models.Model):
     """Smartphone POS device configuration and management"""

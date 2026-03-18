@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 from payments.services.currency_service import CurrencyService
 
-
 class Command(BaseCommand):
     help = 'Initialize default currencies in the system'
 

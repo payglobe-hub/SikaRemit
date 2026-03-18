@@ -15,7 +15,6 @@ from shared.constants import USER_TYPE_MERCHANT
 
 User = get_user_model()
 
-
 class StoreTests(TestCase):
     """Test merchant store creation and properties."""
 
@@ -89,7 +88,6 @@ class StoreTests(TestCase):
         self.assertTrue(store.pickup_available)
         self.assertEqual(store.total_products, 0)
         self.assertEqual(store.total_orders, 0)
-
 
 class ProductTests(TestCase):
     """Test product creation and properties."""
@@ -179,7 +177,6 @@ class ProductTests(TestCase):
         self.assertEqual(product.category, 'Electronics')
         self.assertIn('gadget', product.tags)
 
-
 class ProductStockTests(TestCase):
     """Test product stock/inventory management."""
 
@@ -264,7 +261,6 @@ class ProductStockTests(TestCase):
         product.update_stock(-50)
         product.refresh_from_db()
         self.assertEqual(product.stock_quantity, 0)
-
 
 class ProductPricingTests(TestCase):
     """Test product pricing and discount calculations."""

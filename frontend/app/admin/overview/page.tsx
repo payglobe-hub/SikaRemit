@@ -72,7 +72,7 @@ async function fetchDashboardStats(): Promise<DashboardStats> {
     const response = await api.get('/api/v1/dashboard/stats/')
     return response.data
   } catch (error) {
-    console.error('Failed to fetch dashboard stats:', error)
+    
     // Return empty data - no mock data
     return {
       overview: {
@@ -118,7 +118,7 @@ export default function AdminOverviewPage() {
     try {
       await refetch()
     } catch (error) {
-      console.error('Failed to refresh data', error)
+      
     }
     setRefreshing(false)
   }

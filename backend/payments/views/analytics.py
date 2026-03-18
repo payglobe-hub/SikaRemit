@@ -8,7 +8,6 @@ from datetime import timedelta, datetime
 from .services.analytics_service import AnalyticsService
 from .models import AnalyticsMetric, DashboardSnapshot, MerchantAnalytics, PerformanceAlert
 
-
 class AnalyticsDashboardViewSet(viewsets.ViewSet):
     """
     Comprehensive analytics dashboard API
@@ -108,7 +107,6 @@ class AnalyticsDashboardViewSet(viewsets.ViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-
 class PerformanceAlertViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API for performance alerts and monitoring
@@ -151,7 +149,6 @@ class PerformanceAlertViewSet(viewsets.ReadOnlyModelViewSet):
             'message': f'Created {len(alerts_created)} alerts',
             'alerts': [{'id': alert.id, 'title': alert.title} for alert in alerts_created]
         })
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -227,7 +224,6 @@ def analytics_overview(request):
         ),
         'alerts_count': PerformanceAlert.objects.filter(is_active=True).count(),
     })
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

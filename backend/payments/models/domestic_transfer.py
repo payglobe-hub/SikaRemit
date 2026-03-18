@@ -4,7 +4,6 @@ from accounts.models import Recipient
 from .payment_method import PaymentMethod
 import datetime
 
-
 class DomesticTransfer(models.Model):
     """Model for domestic P2P money transfers"""
     PENDING = 'pending'

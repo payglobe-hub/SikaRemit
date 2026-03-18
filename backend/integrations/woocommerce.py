@@ -9,7 +9,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class WooCommerceIntegration:
     """
     WooCommerce payment gateway integration
@@ -120,7 +119,6 @@ class WooCommerceIntegration:
                 'success': False,
                 'error': str(e)
             }
-
 
 def generate_woocommerce_plugin():
     """

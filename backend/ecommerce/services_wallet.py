@@ -15,7 +15,6 @@ from payments.models import WalletBalance
 
 User = get_user_model()
 
-
 class WalletPaymentService:
     """Service for processing wallet payments"""
     

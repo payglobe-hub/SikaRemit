@@ -75,10 +75,12 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
   const [userRole, setUserRole] = useState<string>('')
   const [userLevel, setUserLevel] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [loadedUserId, setLoadedUserId] = useState<string | null>(null)
 
   useEffect(() => {
     const loadPermissions = async () => {
-      if (!user) {
+      // Don't load if no user or already loaded for this user
+      if (!user || loadedUserId === user.id) {
         setIsLoading(false)
         return
       }
@@ -92,32 +94,68 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
 
         if (isAdminUser) {
           // Try to load actual permissions from backend for admin users
-          const permissionOverview = await getPermissionOverview()
-          setUserPermissions(permissionOverview.user_permissions as Permission[])
-          setUserRole(permissionOverview.user_role)
-          setUserLevel(permissionOverview.user_level)
+          try {
+            
+            const permissionOverview = await getPermissionOverview()
+            setUserPermissions(permissionOverview.user_permissions as Permission[])
+            setUserRole(permissionOverview.user_role)
+            setUserLevel(permissionOverview.user_level)
+            setLoadedUserId(user.id) // Mark as loaded for this user
+            
+          } catch (permissionError: any) {
+            
+            // If it's a 401, wait a moment for token refresh and retry once
+            if (permissionError?.response?.status === 401) {
+              
+              await new Promise(resolve => setTimeout(resolve, 2000)) // Wait longer for token refresh
+              try {
+                const permissionOverview = await getPermissionOverview()
+                setUserPermissions(permissionOverview.user_permissions as Permission[])
+                setUserRole(permissionOverview.user_role)
+                setUserLevel(permissionOverview.user_level)
+                setLoadedUserId(user.id)
+                
+              } catch (retryError) {
+                
+                // Use fallback permissions
+                const fallbackPermissions = ROLE_PERMISSIONS[user.role] || []
+                setUserPermissions(fallbackPermissions)
+                setUserRole(user.role)
+                setUserLevel(getUserLevel(user.role))
+                setLoadedUserId(user.id)
+              }
+            } else {
+              // Use fallback permissions for other errors
+              const fallbackPermissions = ROLE_PERMISSIONS[user.role] || []
+              setUserPermissions(fallbackPermissions)
+              setUserRole(user.role)
+              setUserLevel(getUserLevel(user.role))
+              setLoadedUserId(user.id)
+            }
+          }
         } else {
           // For non-admin users (merchants, customers), use role-based permissions directly
           const fallbackPermissions = ROLE_PERMISSIONS[user.role] || []
           setUserPermissions(fallbackPermissions)
           setUserRole(user.role)
           setUserLevel(getUserLevel(user.role))
+          setLoadedUserId(user.id)
         }
       } catch (error) {
-        console.error('Failed to load permissions from backend, using fallback:', error)
 
         // Fallback to role-based permissions
         const fallbackPermissions = ROLE_PERMISSIONS[user.role] || []
         setUserPermissions(fallbackPermissions)
         setUserRole(user.role)
         setUserLevel(getUserLevel(user.role))
+        setLoadedUserId(user.id)
       } finally {
         setIsLoading(false)
       }
     }
 
     loadPermissions()
-  }, [user])
+  }, [user?.id]) // Only depend on user.id instead of whole user object
 
   const getUserLevel = (role: string): number => {
     const roleLevels: Record<string, number> = {

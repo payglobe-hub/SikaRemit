@@ -1,7 +1,6 @@
 from django.contrib import admin
 from .models import USSDSession, USSDTransaction, USSDService
 
-
 @admin.register(USSDSession)
 class USSDSessionAdmin(admin.ModelAdmin):
     """Admin interface for USSD sessions"""
@@ -29,7 +28,6 @@ class USSDSessionAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False  # Don't allow manual deletion
-
 
 @admin.register(USSDTransaction)
 class USSDTransactionAdmin(admin.ModelAdmin):
@@ -62,7 +60,6 @@ class USSDTransactionAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False  # Transactions are created automatically
-
 
 @admin.register(USSDService)
 class USSDServiceAdmin(admin.ModelAdmin):

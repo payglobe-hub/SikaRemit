@@ -10,7 +10,6 @@ from django.utils import timezone
 from payments.throttling import RateLimitAnalytics, AdvancedRateLimiter
 from payments.models import Transaction
 
-
 class RateLimitingViewSet(viewsets.ViewSet):
     """
     API endpoints for rate limiting analytics and monitoring
@@ -269,7 +268,6 @@ class RateLimitingViewSet(viewsets.ViewSet):
                 {'error': f'Performance metrics retrieval failed: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
 
 class RateLimitMonitoringViewSet(viewsets.ViewSet):
     """

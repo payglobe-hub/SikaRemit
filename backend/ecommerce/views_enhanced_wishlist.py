@@ -23,7 +23,6 @@ from .serializers_enhanced import (
 )
 from .services_enhanced import EnhancedWishlistService
 
-
 class EnhancedWishlistViewSet(viewsets.ModelViewSet):
     """Enhanced wishlist management"""
     permission_classes = [IsAuthenticated]
@@ -119,7 +118,6 @@ class EnhancedWishlistViewSet(viewsets.ModelViewSet):
         serializer = WishlistAnalyticsSerializer(analytics, many=True)
         return Response(serializer.data)
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def public_wishlists(request):
@@ -129,7 +127,6 @@ def public_wishlists(request):
     wishlists = WishlistSocialService.get_public_wishlists(limit=limit)
     serializer = PublicWishlistSerializer(wishlists, many=True)
     return Response(serializer.data)
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -141,7 +138,6 @@ def trending_wishlists(request):
     serializer = PublicWishlistSerializer(wishlists, many=True)
     return Response(serializer.data)
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def influencer_wishlists(request):
@@ -151,7 +147,6 @@ def influencer_wishlists(request):
     wishlists = WishlistSocialService.get_influencer_wishlists(limit=limit)
     serializer = PublicWishlistSerializer(wishlists, many=True)
     return Response(serializer.data)
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -179,7 +174,6 @@ def popular_products(request):
             for product in products
         ]
     })
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -212,7 +206,6 @@ def hot_items(request):
             for item in items
         ]
     })
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -247,7 +240,6 @@ def abandoned_items(request):
         ]
     })
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def export_wishlist_csv(request):
@@ -264,7 +256,6 @@ def export_wishlist_csv(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def export_wishlist_json(request):
@@ -277,7 +268,6 @@ def export_wishlist_json(request):
             {'error': str(e)}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 class ProductRecommendationViewSet(viewsets.ModelViewSet):
     """Product recommendation management"""
@@ -317,7 +307,6 @@ class ProductRecommendationViewSet(viewsets.ModelViewSet):
         serializer = ProductRecommendationSerializer(recommendations, many=True)
         return Response(serializer.data)
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def track_product_view(request):
@@ -344,7 +333,6 @@ def track_product_view(request):
             {'error': str(e)}, 
             status=status.HTTP_400_BAD_REQUEST
         )
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

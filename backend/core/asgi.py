@@ -40,25 +40,24 @@ class JWTAuthMiddleware(BaseMiddleware):
                 # Validate the token
                 access_token = AccessToken(token)
                 user_id = access_token.payload.get('user_id')
-                print(f"WebSocket auth: Token valid, user_id={user_id}")
 
                 if user_id:
                     try:
                         user = await User.objects.aget(id=user_id)
                         scope['user'] = user
-                        print(f"WebSocket auth: User {user.username} authenticated")
+                        
                     except User.DoesNotExist:
-                        print(f"WebSocket auth: User {user_id} not found")
+                        
                         scope['user'] = AnonymousUser()
                 else:
-                    print("WebSocket auth: No user_id in token")
+                    
                     scope['user'] = AnonymousUser()
             except Exception as e:
-                print(f"WebSocket auth: Token validation failed: {e}")
+                
                 # Token is invalid
                 scope['user'] = AnonymousUser()
         else:
-            print("WebSocket auth: No token provided")
+            
             scope['user'] = AnonymousUser()
 
         return await super().__call__(scope, receive, send)

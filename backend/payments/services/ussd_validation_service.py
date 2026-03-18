@@ -10,7 +10,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class USSDValidationService:
     """
     Service for validating USSD user inputs with comprehensive error handling

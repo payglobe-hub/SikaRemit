@@ -11,7 +11,6 @@ from shared.constants import (
     KYC_STATUS_IN_PROGRESS, KYC_STATUS_PENDING_REVIEW, KYC_STATUS_NOT_REQUIRED,
 )
 
-
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -34,7 +33,6 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('Superuser must have is_superuser=True.')
 
         return self.create_user(email, password, **extra_fields)
-
 
 class User(AbstractUser):
     # Override email to make it unique since it's used as USERNAME_FIELD
@@ -269,7 +267,6 @@ class Customer(models.Model):
 
         self.save()
 
-
 class MerchantCustomer(models.Model):
     """
     Merchant's end-customers they onboard and manage.
@@ -315,7 +312,6 @@ class MerchantCustomer(models.Model):
     @property
     def needs_admin_review(self):
         return self.kyc_status == KYC_STATUS_PENDING_REVIEW
-
 
 class MerchantKYCSubmission(models.Model):
     """KYC submissions for merchant's customers that need admin review"""

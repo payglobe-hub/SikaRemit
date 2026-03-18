@@ -160,7 +160,6 @@ class FeeConfigurationAdmin(admin.ModelAdmin):
             return obj.created_by == request.user
         return super().has_delete_permission(request, obj)
 
-
 @admin.register(FeeCalculationLog)
 class FeeCalculationLogAdmin(admin.ModelAdmin):
     list_display = [
@@ -203,7 +202,6 @@ class FeeCalculationLogAdmin(admin.ModelAdmin):
     def breakdown_json(self, obj):
         return format_html('<pre>{}</pre>', json.dumps(obj.breakdown, indent=2))
     breakdown_json.short_description = 'Calculation Breakdown'
-
 
 @admin.register(MerchantFeeOverride)
 class MerchantFeeOverrideAdmin(admin.ModelAdmin):
@@ -307,7 +305,6 @@ class MerchantFeeOverrideAdmin(admin.ModelAdmin):
             return False  # Can't modify approved/rejected overrides
         return super().has_change_permission(request, obj)
 
-
 # Analytics Admin Classes
 @admin.register(DashboardSnapshot)
 class DashboardSnapshotAdmin(admin.ModelAdmin):
@@ -332,7 +329,6 @@ class DashboardSnapshotAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         return False  # Snapshots are read-only
 
-
 @admin.register(MerchantAnalytics)
 class MerchantAnalyticsAdmin(admin.ModelAdmin):
     list_display = [
@@ -354,7 +350,6 @@ class MerchantAnalyticsAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
-
 
 @admin.register(PerformanceAlert)
 class PerformanceAlertAdmin(admin.ModelAdmin):
@@ -388,7 +383,6 @@ class PerformanceAlertAdmin(admin.ModelAdmin):
             is_active=False
         )
         self.message_user(request, f'Resolved {updated} alerts')
-
 
 @admin.register(TransactionAnalytics)
 class TransactionAnalyticsAdmin(admin.ModelAdmin):

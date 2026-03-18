@@ -9,7 +9,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator, RegexValidator
 from django.utils.translation import gettext_lazy as _
 
-
 class PhoneNumberValidator:
     """Validate phone numbers for Ghana and international formats"""
     
@@ -62,7 +61,6 @@ class PhoneNumberValidator:
         _, _, provider = cls.validate(phone, 'GH')
         return provider
 
-
 class AmountValidator:
     """Validate monetary amounts"""
     
@@ -102,7 +100,6 @@ class AmountValidator:
             return False, decimal_amount, 'Amount cannot have more than 2 decimal places'
         
         return True, decimal_amount, ''
-
 
 class NameValidator:
     """Validate names (first name, last name, business name)"""
@@ -152,7 +149,6 @@ class NameValidator:
         
         return True, cleaned, ''
 
-
 class EmailValidatorCustom:
     """Enhanced email validation"""
     
@@ -185,7 +181,6 @@ class EmailValidatorCustom:
                 return False, cleaned, 'Disposable email addresses are not allowed'
         
         return True, cleaned, ''
-
 
 class PasswordValidator:
     """Strong password validation"""
@@ -228,7 +223,6 @@ class PasswordValidator:
             errors.append('Password contains common patterns')
         
         return len(errors) == 0, errors
-
 
 class BankAccountValidator:
     """Validate bank account details"""
@@ -275,7 +269,6 @@ class BankAccountValidator:
         
         return True, cleaned, ''
 
-
 class DocumentValidator:
     """Validate identity documents"""
     
@@ -303,7 +296,6 @@ class DocumentValidator:
                 return False, cleaned, f'Invalid {document_type.replace("_", " ")} format'
         
         return True, cleaned, ''
-
 
 class TransactionValidator:
     """Validate transaction data"""
@@ -400,7 +392,6 @@ class TransactionValidator:
             validated_data['recipient_country'] = recipient_country
         
         return len(errors) == 0, validated_data, errors
-
 
 # Django model validators
 phone_validator = RegexValidator(

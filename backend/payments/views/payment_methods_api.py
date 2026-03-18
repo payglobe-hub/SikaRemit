@@ -8,7 +8,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 @require_GET
 @login_required
 def get_available_payment_methods(request):

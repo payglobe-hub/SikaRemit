@@ -5,7 +5,6 @@ Pagination for Customer APIs
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
-
 class StandardResultsSetPagination(PageNumberPagination):
     """
     Standard pagination for customer-facing APIs
@@ -23,7 +22,6 @@ class StandardResultsSetPagination(PageNumberPagination):
             'current_page': self.page.number,
             'results': data
         })
-
 
 class SmallResultsSetPagination(PageNumberPagination):
     """

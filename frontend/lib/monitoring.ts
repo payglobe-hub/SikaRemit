@@ -77,7 +77,7 @@ export function MaintenanceMode() {
 // Global error boundary placeholder
 export function GlobalErrorFallback({ error, resetError }: { error: Error; resetError: () => void }) {
   // Component implementation would be in a separate .tsx file
-  console.error('Global error:', error)
+  
   return null
 }
 

@@ -71,7 +71,7 @@ export default function AdminAnalyticsPage() {
     try {
       await refetchRealtime()
     } catch (error) {
-      console.error('Failed to refresh data', error)
+      
     }
     setRefreshing(false)
   }

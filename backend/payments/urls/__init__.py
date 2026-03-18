@@ -108,7 +108,6 @@ router.register(r'admin/disputes', DisputeViewSet, basename='admin-disputes')
 router.register(r'customer/disputes', CustomerDisputeViewSet, basename='customer-disputes')
 router.register(r'merchant/disputes', MerchantDisputeViewSet, basename='merchant-disputes')
 
-
 urlpatterns = [
     # Currency endpoints
     path('currencies/', currencies_list, name='currencies_list'),

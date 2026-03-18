@@ -24,7 +24,6 @@ import json
 
 logger = logging.getLogger(__name__)
 
-
 class MLFraudDetectionService:
     """
     Machine Learning-based fraud detection service
@@ -528,7 +527,6 @@ class MLFraudDetectionService:
         except Exception as e:
             logger.error(f"Failed to get fraud statistics: {str(e)}")
             return {}
-
 
 class BehavioralAnalysisService:
     """

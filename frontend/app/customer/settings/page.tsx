@@ -68,7 +68,7 @@ function CustomerSettingsContent() {
           marketingEmails: false
         })
       } catch (error) {
-        console.error('Failed to load notification preferences:', error)
+        
       }
     }
     loadNotificationPreferences()

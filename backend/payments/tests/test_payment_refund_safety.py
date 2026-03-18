@@ -18,7 +18,6 @@ import logging
 
 User = get_user_model()
 
-
 class PaymentTestMixin:
     """Shared setup for payment tests — creates user, customer, merchant, payment method."""
 
@@ -61,7 +60,6 @@ class PaymentTestMixin:
             method_type=method_type,
             details=details,
         )
-
 
 # =============================================================================
 # TEST 1: Core PaymentProcessor.process_payment — refund on DB failure
@@ -221,7 +219,6 @@ class TestPaymentProcessorRefundOnDBFailure(TransactionTestCase, PaymentTestMixi
         mock_gateway.refund_payment.assert_not_called()
         self.assertEqual(result.status, 'failed')
 
-
 # =============================================================================
 # TEST 2: PaymentServiceWithKYC.process_payment — refund on DB failure
 # =============================================================================
@@ -318,7 +315,6 @@ class TestPaymentProcessingServiceRefund(TransactionTestCase, PaymentTestMixin):
         if isinstance(result, dict):
             self.assertFalse(result.get('success', True))
 
-
 # =============================================================================
 # TEST 3: Stripe Gateway — process_payment and refund_payment
 # =============================================================================
@@ -408,7 +404,6 @@ class TestStripeGateway(TestCase, PaymentTestMixin):
         self.assertTrue(result['success'])
         mock_refund.assert_called_once()
 
-
 # =============================================================================
 # TEST 4: Wallet Card Deposit — Stripe charge + atomic rollback + refund
 # =============================================================================
@@ -494,7 +489,6 @@ class TestWalletCardDepositRefund(TransactionTestCase, PaymentTestMixin):
         self.assertTrue(len(critical_logs) > 0)
         self.assertIn('pi_deposit_critical_456', critical_logs[0])
 
-
 # =============================================================================
 # TEST 5: Subscription Payment — Stripe charge + DB failure refund
 # =============================================================================
@@ -533,7 +527,6 @@ class TestSubscriptionPaymentRefund(TestCase, PaymentTestMixin):
 
         mock_refund.assert_called_once()
         self.assertIn('pi_sub_123', str(mock_refund.call_args))
-
 
 # =============================================================================
 # TEST 6: Global Payments — Payment.objects.create failure after charge
@@ -608,7 +601,6 @@ class TestGlobalPaymentRefund(TestCase, PaymentTestMixin):
         self.assertTrue(len(critical_logs) > 0)
         self.assertIn('gp_tx_critical_789', critical_logs[0])
 
-
 # =============================================================================
 # TEST 7: USSD Payment — mark_completed failure after charge
 # =============================================================================
@@ -644,7 +636,6 @@ class TestUSSDPaymentRefund(TestCase, PaymentTestMixin):
 
         mock_gateway.refund_payment.assert_called_once()
 
-
 # =============================================================================
 # TEST 8: B2B Bulk Payment — item save failure after charge
 # =============================================================================
@@ -675,7 +666,6 @@ class TestB2BBulkPaymentSafety(TestCase):
         critical_logs = [log for log in cm.output if 'CRITICAL' in log]
         self.assertTrue(len(critical_logs) > 0)
         self.assertIn('b2b_item_tx_123', critical_logs[0])
-
 
 # =============================================================================
 # TEST 9: Cross-Border Remittance — delivery failure triggers sender refund
@@ -743,7 +733,6 @@ class TestCrossBorderRemittanceRefund(TestCase, PaymentTestMixin):
         self.assertTrue(len(critical_logs) > 0)
         self.assertIn('cb_critical_tx_789', critical_logs[0])
 
-
 # =============================================================================
 # TEST 10: Webhook Signature Verification
 # =============================================================================
@@ -792,7 +781,6 @@ class TestStripeWebhookVerification(TestCase):
         with self.assertRaises(stripe.error.SignatureVerificationError):
             gateway.parse_webhook(mock_request)
 
-
 # =============================================================================
 # TEST 11: POS / Soft POS — NFC payment refund on DB failure
 # =============================================================================
@@ -827,7 +815,6 @@ class TestPOSPaymentRefund(TestCase):
                 )
 
         mock_gateway.refund_payment.assert_called_once()
-
 
 # =============================================================================
 # TEST 12: Mobile Money Gateway — process and refund
@@ -896,7 +883,6 @@ class TestMTNMoMoGateway(TestCase):
         )
 
         self.assertFalse(result.get('success', False))
-
 
 # =============================================================================
 # TEST 13: Bank Transfer Gateway — no simulation in production

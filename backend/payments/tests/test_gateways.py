@@ -11,7 +11,6 @@ import json
 
 User = get_user_model()
 
-
 class MockResponse:
     """Mock HTTP response for testing"""
     def __init__(self, json_data, status_code=200):
@@ -25,7 +24,6 @@ class MockResponse:
     def raise_for_status(self):
         if self.status_code >= 400:
             raise Exception(f"HTTP Error: {self.status_code}")
-
 
 class MTNMoMoGatewayTests(TestCase):
     """Tests for MTN Mobile Money gateway"""
@@ -177,7 +175,6 @@ class MTNMoMoGatewayTests(TestCase):
         self.assertEqual(result['amount'], '100')
         self.assertEqual(result['currency'], 'GHS')
 
-
 class TelecelCashGatewayTests(TestCase):
     """Tests for Telecel Cash gateway"""
     
@@ -243,7 +240,6 @@ class TelecelCashGatewayTests(TestCase):
         
         self.assertEqual(result['transaction_id'], 'TEL_123456')
         self.assertEqual(result['status'], 'SUCCESS')
-
 
 class AirtelTigoGatewayTests(TestCase):
     """Tests for AirtelTigo Money gateway"""
@@ -320,7 +316,6 @@ class AirtelTigoGatewayTests(TestCase):
                 'PENDING': 'pending'
             }
             self.assertEqual(airtel_status_map.get(airtel_status, 'pending'), expected_status)
-
 
 class StripeGatewayTests(TestCase):
     """Tests for Stripe gateway"""
@@ -422,7 +417,6 @@ class StripeGatewayTests(TestCase):
         self.assertTrue(result['success'])
         self.assertIn('transaction_id', result)
 
-
 class WebhookSignatureTests(TestCase):
     """Tests for webhook signature verification"""
     
@@ -468,7 +462,6 @@ class WebhookSignatureTests(TestCase):
         
         result = gateway.verify_webhook_signature(MockRequest(), None)
         self.assertFalse(result)
-
 
 class GMoneyGatewayTests(TestCase):
     """Tests for G-Money gateway"""

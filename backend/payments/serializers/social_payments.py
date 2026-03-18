@@ -10,13 +10,11 @@ from .social_payments import (
 
 User = get_user_model()
 
-
 class UserSerializer(serializers.ModelSerializer):
     """Basic user serializer for social payments"""
     class Meta:
         model = User
         fields = ['id', 'email', 'first_name', 'last_name', 'phone_number']
-
 
 class PaymentRequestSerializer(serializers.ModelSerializer):
     """Serializer for payment requests"""
@@ -34,7 +32,6 @@ class PaymentRequestSerializer(serializers.ModelSerializer):
             'days_until_due'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'paid_at', 'is_overdue', 'days_until_due']
-
 
 class PaymentRequestCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating payment requests"""
@@ -66,7 +63,6 @@ class PaymentRequestCreateSerializer(serializers.ModelSerializer):
             **validated_data
         )
 
-
 class SplitParticipantSerializer(serializers.ModelSerializer):
     """Serializer for split bill participants"""
     user = UserSerializer(read_only=True)
@@ -81,7 +77,6 @@ class SplitParticipantSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'settled_at', 'amount_remaining', 'is_paid_in_full']
 
-
 class SplitPaymentSerializer(serializers.ModelSerializer):
     """Serializer for split bill payments"""
     payer = UserSerializer(read_only=True)
@@ -89,7 +84,6 @@ class SplitPaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = SplitPayment
         fields = ['id', 'payer', 'amount', 'currency', 'description', 'transaction', 'created_at']
-
 
 class SplitBillSerializer(serializers.ModelSerializer):
     """Serializer for split bills"""
@@ -107,7 +101,6 @@ class SplitBillSerializer(serializers.ModelSerializer):
             'participants', 'payments', 'total_paid', 'is_fully_paid'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'settled_at', 'total_paid', 'is_fully_paid']
-
 
 class SplitBillCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating split bills"""
@@ -161,7 +154,6 @@ class SplitBillCreateSerializer(serializers.ModelSerializer):
 
         return split_bill
 
-
 class GroupSavingsParticipantSerializer(serializers.ModelSerializer):
     """Serializer for group savings participants"""
     user = UserSerializer(read_only=True)
@@ -174,7 +166,6 @@ class GroupSavingsParticipantSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'total_contributed', 'joined_at']
 
-
 class GroupSavingsContributionSerializer(serializers.ModelSerializer):
     """Serializer for group savings contributions"""
     contributor = UserSerializer(read_only=True)
@@ -182,7 +173,6 @@ class GroupSavingsContributionSerializer(serializers.ModelSerializer):
     class Meta:
         model = GroupSavingsContribution
         fields = ['id', 'contributor', 'amount', 'currency', 'message', 'transaction', 'created_at']
-
 
 class GroupSavingsSerializer(serializers.ModelSerializer):
     """Serializer for group savings goals"""
@@ -207,7 +197,6 @@ class GroupSavingsSerializer(serializers.ModelSerializer):
             'days_remaining', 'is_completed', 'is_expired'
         ]
 
-
 class GroupSavingsCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating group savings goals"""
 
@@ -217,7 +206,6 @@ class GroupSavingsCreateSerializer(serializers.ModelSerializer):
             'title', 'description', 'target_amount', 'currency', 'target_date',
             'is_public', 'allow_auto_contributions'
         ]
-
 
 class SocialPaymentInviteSerializer(serializers.ModelSerializer):
     """Serializer for social payment invites"""

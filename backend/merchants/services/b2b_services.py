@@ -3,7 +3,6 @@ from django.utils import timezone
 from merchants.models import BulkPayment, BulkPaymentItem, ApprovalWorkflow
 from payments.services import PaymentService
 
-
 class BulkPaymentService:
     """
     Service for handling bulk payment operations
@@ -118,7 +117,6 @@ class BulkPaymentService:
             'total_amount': total_amount
         }
 
-
 class ApprovalWorkflowService:
     """
     Service for handling approval workflow operations
@@ -211,7 +209,6 @@ class ApprovalWorkflowService:
                     break
 
         return user_approvable_payments
-
 
 class BusinessAnalyticsService:
     """

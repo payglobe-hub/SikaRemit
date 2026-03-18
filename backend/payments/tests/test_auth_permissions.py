@@ -20,7 +20,6 @@ from unittest.mock import patch, MagicMock
 
 User = get_user_model()
 
-
 class AuthTestMixin:
     """Shared helpers for auth tests."""
 
@@ -55,7 +54,6 @@ class AuthTestMixin:
 
     def _get_anon_client(self):
         return APIClient()
-
 
 # =============================================================================
 # TEST 1: Unauthenticated Access Denied
@@ -93,7 +91,6 @@ class TestUnauthenticatedAccessDenied(TestCase, AuthTestMixin):
     def test_subscriptions_list_requires_auth(self):
         response = self.client.get('/api/v1/payments/subscriptions/')
         self.assertIn(response.status_code, [301, 401, 403])
-
 
 # =============================================================================
 # TEST 2: Transaction Isolation — Customers See Only Their Own
@@ -148,7 +145,6 @@ class TestTransactionIsolation(TestCase, AuthTestMixin):
                 self.assertIn(self.tx_b.id, tx_ids)
                 self.assertNotIn(self.tx_a.id, tx_ids)
 
-
 # =============================================================================
 # TEST 3: Payment Method Isolation — Users See Only Their Own
 # =============================================================================
@@ -194,7 +190,6 @@ class TestPaymentMethodIsolation(TestCase, AuthTestMixin):
         response = client.post(f'/api/v1/payments/methods/{self.pm_a.id}/set_default/')
         self.assertIn(response.status_code, [403, 404])
 
-
 # =============================================================================
 # TEST 4: Merchant Transaction Isolation
 # =============================================================================
@@ -234,7 +229,6 @@ class TestMerchantTransactionIsolation(TestCase, AuthTestMixin):
             self.assertIn(self.tx_to_a.id, tx_ids)
             self.assertNotIn(self.tx_to_b.id, tx_ids)
 
-
 # =============================================================================
 # TEST 5: Webhook Endpoints — No Auth Required (Signature Verified Instead)
 # =============================================================================
@@ -262,7 +256,6 @@ class TestWebhookEndpointAccess(TestCase):
         # It may be 400/500 due to invalid signature, but not 401
         self.assertNotEqual(response.status_code, 401)
 
-
 # =============================================================================
 # TEST 6: Rate Limiting Presence
 # =============================================================================
@@ -284,7 +277,6 @@ class TestRateLimitingConfigured(TestCase):
             hasattr(TransactionViewSet, 'throttle_classes') and len(TransactionViewSet.throttle_classes) > 0,
             'TransactionViewSet should have throttle_classes for rate limiting'
         )
-
 
 # =============================================================================
 # TEST 7: Admin Permission Boundaries
@@ -317,7 +309,6 @@ class TestAdminPermissionBoundaries(TestCase, AuthTestMixin):
 
         response = client.get('/api/v1/accounts/admin/users/')
         self.assertIn(response.status_code, [301, 403, 404])
-
 
 # =============================================================================
 # TEST 8: Health Check — No Auth Required

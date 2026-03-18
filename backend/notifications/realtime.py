@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 channel_layer = get_channel_layer()
 
-
 class RealtimeService:
     """Service for sending real-time updates to connected clients"""
 

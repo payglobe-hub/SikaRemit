@@ -3,7 +3,6 @@ from django.core.validators import MinValueValidator
 from django.utils import timezone
 import uuid
 
-
 class Currency(models.Model):
     """
     Supported currencies in the system
@@ -57,7 +56,6 @@ class Currency(models.Model):
     @property
     def display_name(self):
         return f"{self.flag_emoji} {self.name} ({self.code})" if self.flag_emoji else f"{self.name} ({self.code})"
-
 
 class ExchangeRate(models.Model):
     """
@@ -161,7 +159,6 @@ class ExchangeRate(models.Model):
 
         return None
 
-
 class CurrencyPreference(models.Model):
     """
     User currency preferences
@@ -188,7 +185,6 @@ class CurrencyPreference(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.display_currency.code}"
-
 
 class WalletBalance(models.Model):
     """

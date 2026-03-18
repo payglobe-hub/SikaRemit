@@ -14,9 +14,7 @@ export default function LoginPage() {
       const scope = 'openid email profile'
       
       // Debug: Log the client ID being used
-      
-      
-      
+
       if (!clientId) {
         alert('Google OAuth Client ID is not configured. Please check your environment variables.')
         return
@@ -29,11 +27,10 @@ export default function LoginPage() {
         `scope=${encodeURIComponent(scope)}&` +
         `access_type=offline&` +
         `prompt=consent`
-      
-      
+
       window.location.href = authUrl
     } catch (error) {
-      console.error('Google sign in failed:', error)
+      
       alert('Failed to initiate Google sign-in. Please try again.')
     }
   }

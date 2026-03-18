@@ -8,7 +8,6 @@ from .budgeting import (
 
 User = get_user_model()
 
-
 class BudgetCategorySerializer(serializers.ModelSerializer):
     """Serializer for budget categories"""
     class Meta:
@@ -17,7 +16,6 @@ class BudgetCategorySerializer(serializers.ModelSerializer):
             'id', 'name', 'description', 'category_type', 'icon', 'color',
             'is_default', 'is_active'
         ]
-
 
 class BudgetItemSerializer(serializers.ModelSerializer):
     """Serializer for budget items"""
@@ -39,7 +37,6 @@ class BudgetItemSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'remaining_amount',
                           'percentage_used', 'is_over_budget', 'status']
-
 
 class BudgetSerializer(serializers.ModelSerializer):
     """Serializer for budgets"""
@@ -75,7 +72,6 @@ class BudgetSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
 
-
 class BudgetCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating budgets"""
     categories = serializers.ListField(
@@ -103,7 +99,6 @@ class BudgetCreateSerializer(serializers.ModelSerializer):
 
         return data
 
-
 class BudgetAlertSerializer(serializers.ModelSerializer):
     """Serializer for budget alerts"""
     budget = BudgetSerializer(read_only=True)
@@ -118,7 +113,6 @@ class BudgetAlertSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at']
 
-
 class BudgetReportSerializer(serializers.Serializer):
     """Serializer for budget reports"""
     budget_id = serializers.IntegerField()
@@ -128,7 +122,6 @@ class BudgetReportSerializer(serializers.Serializer):
     financial_summary = serializers.DictField()
     status = serializers.DictField()
     category_breakdown = serializers.ListField()
-
 
 class BudgetAnalyticsSerializer(serializers.Serializer):
     """Serializer for budget analytics"""

@@ -11,7 +11,6 @@ import hashlib
 
 logger = logging.getLogger(__name__)
 
-
 class PCIDSSCompliance:
     """
     PCI DSS 4.0 Compliance Framework
@@ -259,7 +258,6 @@ class PCIDSSCompliance:
             }
         ]
 
-
 class PCIDSSAuditLog:
     """
     PCI DSS Audit Logging (Requirement 10)
@@ -301,14 +299,12 @@ class PCIDSSAuditLog:
             result='success'
         )
 
-
 # Utility functions
 def is_pci_compliant() -> bool:
     """Check if system is PCI DSS compliant"""
     compliance = PCIDSSCompliance()
     report = compliance.generate_compliance_report()
     return report['compliance_score'] >= 100
-
 
 def get_compliance_status() -> Dict:
     """Get current PCI DSS compliance status"""

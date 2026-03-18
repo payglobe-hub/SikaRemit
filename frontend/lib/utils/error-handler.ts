@@ -125,9 +125,9 @@ export function logError(error: AppError, additionalContext?: Record<string, any
 
   // Always log to console in development
   if (!isProduction) {
-    console.error('App Error:', errorLog);
+    
     if (error.originalError) {
-      console.error('Original Error:', error.originalError);
+      
     }
   }
 
@@ -141,7 +141,7 @@ export function logError(error: AppError, additionalContext?: Record<string, any
       });
     } catch (e) {
       // Sentry not available, skip
-      console.error('Sentry error tracking failed:', e);
+      
     }
   }
 }

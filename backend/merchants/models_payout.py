@@ -11,7 +11,6 @@ from ecommerce.models import Order, OrderItem
 
 User = get_user_model()
 
-
 class MerchantRevenue(models.Model):
     """
     Tracks revenue earned by merchants from orders
@@ -49,7 +48,6 @@ class MerchantRevenue(models.Model):
         if self.gross_amount > 0:
             return round((self.platform_fee / self.gross_amount) * 100, 2)
         return 0
-
 
 class MerchantPayout(models.Model):
     """
@@ -136,7 +134,6 @@ class MerchantPayout(models.Model):
             self.failure_reason = reason
         self.save()
 
-
 class MerchantSettlementSettings(models.Model):
     """
     Merchant payout preferences and settings
@@ -184,7 +181,6 @@ class MerchantSettlementSettings(models.Model):
 
     def __str__(self):
         return f"Settlement settings for {self.merchant.get_full_name()}"
-
 
 class MerchantRevenueSummary(models.Model):
     """

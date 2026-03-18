@@ -20,7 +20,6 @@ from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
 
-
 # =============================================================================
 # SECURITY CONSTANTS
 # =============================================================================
@@ -42,7 +41,6 @@ SUSPICIOUS_THRESHOLDS = {
     'ip_changes': 5,  # Per day
     'device_changes': 3,  # Per day
 }
-
 
 # =============================================================================
 # INPUT VALIDATION
@@ -89,7 +87,6 @@ class InputValidator:
         """Validate ISO country code"""
         valid_codes = ['GH', 'US', 'GB', 'NG', 'KE', 'ZA', 'CI', 'SN', 'TG', 'BJ', 'BF']
         return code.upper() in valid_codes
-
 
 # =============================================================================
 # RATE LIMITING
@@ -148,7 +145,6 @@ class RateLimiter:
         current_count = cache.get(key, 0)
         return max(0, config['requests'] - current_count)
 
-
 def rate_limit(action: str):
     """Decorator for rate limiting views"""
     def decorator(view_func):
@@ -173,7 +169,6 @@ def rate_limit(action: str):
         return wrapper
     return decorator
 
-
 # =============================================================================
 # IP AND DEVICE TRACKING
 # =============================================================================
@@ -187,8 +182,7 @@ def get_client_ip(request) -> str:
         ip = request.META.get('REMOTE_ADDR', '')
     return ip
 
-
-def get_device_fingerprint(request) -> str:
+def get_device_fingerprint() -> str:
     """Generate device fingerprint from request headers"""
     components = [
         request.META.get('HTTP_USER_AGENT', ''),
@@ -197,7 +191,6 @@ def get_device_fingerprint(request) -> str:
     ]
     fingerprint_string = '|'.join(components)
     return hashlib.sha256(fingerprint_string.encode()).hexdigest()[:32]
-
 
 class DeviceTracker:
     """Track user devices for security"""
@@ -226,7 +219,6 @@ class DeviceTracker:
     def get_device_count(user_id: int) -> int:
         """Get number of known devices"""
         return len(DeviceTracker.get_known_devices(user_id))
-
 
 # =============================================================================
 # SUSPICIOUS ACTIVITY DETECTION
@@ -288,7 +280,6 @@ class SuspiciousActivityDetector:
         
         # Could also send notification to admin here
 
-
 # =============================================================================
 # SECURE TOKEN GENERATION
 # =============================================================================
@@ -325,7 +316,6 @@ class SecureTokenGenerator:
             salt.encode(),
             100000
         ).hex()
-
 
 # =============================================================================
 # WEBHOOK SECURITY
@@ -366,7 +356,6 @@ class WebhookSecurity:
         cache.set(key, True, window * 2)
         return False
 
-
 # =============================================================================
 # AUDIT LOGGING
 # =============================================================================
@@ -401,7 +390,6 @@ class AuditLogger:
         logger.info(
             f"ADMIN: admin={admin_id} action={action} target={target_user} details={details}"
         )
-
 
 # =============================================================================
 # PASSWORD SECURITY
@@ -472,7 +460,6 @@ class PasswordValidator:
         else:
             return 'strong'
 
-
 # =============================================================================
 # SECURITY MIDDLEWARE HELPERS
 # =============================================================================
@@ -489,7 +476,6 @@ def add_security_headers(response):
         response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
     
     return response
-
 
 def mask_sensitive_data(data: str, visible_chars: int = 4) -> str:
     """Mask sensitive data for logging"""

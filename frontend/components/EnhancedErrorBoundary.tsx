@@ -28,7 +28,7 @@ class EnhancedErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBou
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by enhanced boundary:', error, errorInfo)
+    
     this.setState({
       error,
       errorInfo,

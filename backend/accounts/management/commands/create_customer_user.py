@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand, CommandError
 from users.models import User, Customer
 from shared.constants import USER_TYPE_CUSTOMER
 
-
 class Command(BaseCommand):
     help = 'Create a customer user account with custom credentials'
 

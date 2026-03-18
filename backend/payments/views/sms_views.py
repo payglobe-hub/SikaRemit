@@ -5,7 +5,6 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .services.sms_service import sms_service
 
-
 class SMSVerificationViewSet(viewsets.ViewSet):
     """
     SMS verification endpoints

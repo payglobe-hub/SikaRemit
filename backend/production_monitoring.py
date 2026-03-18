@@ -25,7 +25,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 class ProductionMonitoringManager:
     """Main production monitoring manager for SikaRemit"""
 
@@ -208,7 +207,6 @@ class ProductionMonitoringManager:
             }
         }
 
-
 class MonitoringMiddleware:
     """Monitoring middleware for request/response tracking"""
 
@@ -237,7 +235,6 @@ class MonitoringMiddleware:
         response['X-Response-Time'] = f"{duration:.3f}s"
 
         return response
-
 
 class ErrorTrackingHandler:
     """Custom error tracking and reporting"""
@@ -272,53 +269,27 @@ class ErrorTrackingHandler:
 
                 sentry_sdk.capture_message(message, level=level)
 
-
 def setup_monitoring():
     """Initialize monitoring stack"""
     manager = ProductionMonitoringManager()
 
-    print("📊 Setting up SikaRemit Production Monitoring")
-    print("=" * 50)
-
     try:
         config = manager.setup_monitoring_stack()
 
-        print("\n✅ Monitoring stack configured successfully!")
-        print(f"📄 Configuration saved to: {manager.reports_path}")
+        }")
+        }")
 
-        print("\n🔧 Monitoring Components:")
-        print(f"   • APM: {config['apm_setup']['provider']}")
-        print(f"   • Logs: {config['log_aggregation']['provider']}")
-        print(f"   • Alerts: {config['alerting_system']['provider']}")
-        print(f"   • Errors: {config['error_tracking']['provider']}")
-        print(f"   • Metrics: {config['metrics_collection']['provider']}")
-
-        print(f"\n📈 Health Check Endpoints: {len(config['health_checks']['endpoints'])}")
-        print(f"🔍 Alert Rules: {len(config['alerting_system']['alert_rules'])}")
-
-        print("\n🎯 Key Metrics Monitored:")
         for metric in config['metrics_collection']['key_metrics'][:3]:
-            print(f"   • {metric}")
-
-        print("\n📋 Next Steps:")
-        print("   1. Deploy ELK stack for log aggregation")
-        print("   2. Configure Grafana dashboards")
-        print("   3. Set up Alertmanager notifications")
-        print("   4. Test health check endpoints")
-        print("   5. Verify error tracking integration")
 
     except Exception as e:
         logger.error(f"Monitoring setup failed: {str(e)}")
-        print(f"❌ Monitoring setup failed: {str(e)}")
+        }")
         return 1
 
     return 0
 
-
 def run_monitoring_health_check():
     """Run health check for monitoring systems"""
-    print("🏥 Running Monitoring Health Check")
-    print("=" * 40)
 
     checks = {
         'Sentry APM': check_sentry_health(),
@@ -330,17 +301,15 @@ def run_monitoring_health_check():
     all_healthy = True
     for service, status in checks.items():
         status_icon = "✅" if status['healthy'] else "❌"
-        print(f"{status_icon} {service}: {status['message']}")
+        
         if not status['healthy']:
             all_healthy = False
 
     if all_healthy:
-        print("\n🎉 All monitoring systems are healthy!")
+        
     else:
-        print("\n⚠️ Some monitoring systems need attention.")
 
     return 0 if all_healthy else 1
-
 
 def check_sentry_health():
     """Check Sentry APM health"""
@@ -353,7 +322,6 @@ def check_sentry_health():
     except ImportError:
         return {'healthy': False, 'message': 'Sentry SDK not installed'}
 
-
 def check_redis_health():
     """Check Redis health"""
     try:
@@ -365,7 +333,6 @@ def check_redis_health():
     except Exception as e:
         return {'healthy': False, 'message': f'Connection failed: {str(e)}'}
 
-
 def check_database_health():
     """Check database health"""
     try:
@@ -375,7 +342,6 @@ def check_database_health():
         return {'healthy': True, 'message': 'Connected'}
     except Exception as e:
         return {'healthy': False, 'message': f'Connection failed: {str(e)}'}
-
 
 def check_celery_health():
     """Check Celery health"""
@@ -391,7 +357,6 @@ def check_celery_health():
             return {'healthy': False, 'message': 'No workers found'}
     except Exception as e:
         return {'healthy': False, 'message': f'Celery check failed: {str(e)}'}
-
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == 'health':

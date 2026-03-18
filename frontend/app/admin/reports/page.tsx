@@ -369,7 +369,6 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
 
-
       {/* Generate Report Dialog */}
       <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
         <DialogContent className="max-w-2xl">

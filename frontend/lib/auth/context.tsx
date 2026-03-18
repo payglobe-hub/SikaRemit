@@ -19,7 +19,7 @@ function getCookie(name: string): string | null {
     if (parts.length === 2) return parts.pop()?.split(';').shift() || null
     return null
   } catch (error) {
-    console.warn('Failed to read cookie:', error)
+    
     return null
   }
 }
@@ -75,15 +75,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Get auth state from cookies
         const { user: storedUser, userTypeInfo: storedUserTypeInfo, isAuthenticated } = authState.getAuthState()
 
-        if (!isAuthenticated || !storedUser) {
-          
+        // More robust authentication check
+        if (!isAuthenticated || !storedUser || !storedUser.id) {
           setUser(null)
           setUserTypeInfo(null)
           setLoading(false)
           return
         }
-
-        
 
         // Verify token with backend if needed
         const token = authTokens.getAccessToken()
@@ -95,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUserTypeInfo(storedUserTypeInfo || null)
 
       } catch (error) {
-        console.error('âŒ Auth check failed:', error)
+        
         authState.clearAuthState()
         setUser(null)
         setUserTypeInfo(null)
@@ -121,7 +119,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     setLoading(true)
-    
 
     try {
       
@@ -130,10 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password
       })
 
-      
-
       const { access, refresh, user, user_type_info } = response.data
-      
 
       // Create user object
       const userObj = {
@@ -148,25 +142,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: user.role
       }
 
-      
-      
-
-      // Store auth state in cookies
+      // Store auth state in cookies first
+      console.log('Auth state set:', { access: access?.substring(0, 20) + '...', refresh: refresh?.substring(0, 20) + '...', user: userObj })
       authState.setAuthState(access, refresh, userObj, user_type_info)
 
-      // Update context state
+      // Update context state immediately after cookies are set
       setUser(userObj)
       setUserTypeInfo(user_type_info || null)
-
       
+      // Verify cookies were set correctly
+      setTimeout(() => {
+        const { user: currentUser, isAuthenticated } = authState.getAuthState()
+
+        // Also check individual cookies
+        const accessToken = authTokens.getAccessToken()
+        const refreshToken = authTokens.getRefreshToken()
+        
+        console.log('Auth verification:', { currentUser, isAuthenticated, hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken })
+      }, 50)
+
+      // Return the role for redirect logic
       return userObj.role
 
     } catch (error: any) {
-      console.error('âŒ Auth Context: Login failed:', error)
-      console.error('âŒ Auth Context: Login failed details:', {
-        status: error?.response?.status,
-        data: error?.response?.data,
-      })
+
       setLoading(false)
 
       if (error.code === 'ECONNABORTED' || error.message === 'Network Error') {
@@ -186,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await api.post('/api/v1/accounts/logout/', { refresh: refreshToken })
       }
     } catch (error) {
-      console.error('Logout API error:', error)
+      
     } finally {
       // Clear all auth data
       authState.clearAuthState()
@@ -197,8 +196,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear state
       setUser(null)
       setUserTypeInfo(null)
-
-      
 
       // Use window.location for hard redirect to avoid hook issues
       if (typeof window !== 'undefined') {

@@ -19,7 +19,6 @@ import uuid
 
 logger = logging.getLogger(__name__)
 
-
 def _get_telecom_gateway(provider):
     """Get the appropriate mobile money gateway for telecom top-up."""
     from payments.gateways.mobile_money import (
@@ -86,7 +85,6 @@ def telecom_packages(request, country_code=None):
             {'error': 'Failed to fetch packages'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -199,7 +197,6 @@ def purchase_airtime(request):
             {'error': 'Failed to process airtime purchase'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

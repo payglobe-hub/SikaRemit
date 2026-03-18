@@ -5,17 +5,17 @@ if (typeof window === 'undefined') {
   // Server-side - create localStorage polyfill
   const localStoragePolyfill = {
     getItem: function(key: string): string | null {
-      console.warn('localStorage.getItem called on server-side for key:', key);
+      
       return null;
     },
     setItem: function(key: string, value: string): void {
-      console.warn('localStorage.setItem called on server-side for key:', key);
+      
     },
     removeItem: function(key: string): void {
-      console.warn('localStorage.removeItem called on server-side for key:', key);
+      
     },
     clear: function(): void {
-      console.warn('localStorage.clear called on server-side');
+      
     },
     length: 0,
     key: function(index: number): string | null {

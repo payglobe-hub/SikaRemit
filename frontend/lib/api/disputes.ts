@@ -39,11 +39,10 @@ export async function getDisputes(params?: {
     return response.data
   } catch (error: any) {
     // Log error for monitoring
-    console.error('Disputes API error:', error)
-    
+
     // Only fallback for 404 (endpoint not found), not for auth errors
     if (error?.response?.status === 404) {
-      console.warn('Disputes endpoint not found, checking transactions endpoint for dispute data')
+      
       try {
         // Fallback: get disputes from transactions endpoint
         const txResponse = await api.get('/api/v1/payments/admin/transactions/', {
@@ -70,7 +69,7 @@ export async function getDisputes(params?: {
           }))
         return { results: disputes, count: disputes.length }
       } catch (fallbackError) {
-        console.error('Fallback disputes endpoint also failed:', fallbackError)
+        
         // Return empty result rather than throwing
         return { results: [], count: 0 }
       }

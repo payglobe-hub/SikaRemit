@@ -5,7 +5,6 @@ Run once after migrations: python manage.py setup_ledger_accounts
 from django.core.management.base import BaseCommand
 from payments.models.ledger import LedgerAccount
 
-
 SYSTEM_ACCOUNTS = [
     # Assets
     {'code': 'ASSET-CASH', 'name': 'Platform Cash', 'account_type': LedgerAccount.ASSET},
@@ -24,7 +23,6 @@ SYSTEM_ACCOUNTS = [
     # Equity
     {'code': 'EQ-RETAINED', 'name': 'Retained Earnings', 'account_type': LedgerAccount.EQUITY},
 ]
-
 
 class Command(BaseCommand):
     help = 'Create system ledger accounts for double-entry bookkeeping'

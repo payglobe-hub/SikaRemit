@@ -22,7 +22,6 @@ from ..serializers.subscriptions import (
     SubscriptionAnalyticsSerializer
 )
 
-
 # Subscription Plans
 class SubscriptionPlanViewSet(generics.ListAPIView):
     """
@@ -40,7 +39,6 @@ class SubscriptionPlanViewSet(generics.ListAPIView):
             queryset = queryset.filter(plan_type=plan_type)
 
         return queryset.order_by('display_order', 'price')
-
 
 # User Subscriptions
 class SubscriptionViewSet(ModelViewSet):
@@ -298,7 +296,6 @@ class SubscriptionViewSet(ModelViewSet):
             for payment in payments
         ]
 
-
 # Subscription Payments
 class SubscriptionPaymentViewSet(generics.ListAPIView):
     """
@@ -311,7 +308,6 @@ class SubscriptionPaymentViewSet(generics.ListAPIView):
         return SubscriptionPayment.objects.filter(
             subscription__user=self.request.user
         ).select_related('subscription__plan').order_by('-created_at')
-
 
 # Subscription Usage
 class SubscriptionUsageViewSet(generics.ListAPIView):
@@ -331,7 +327,6 @@ class SubscriptionUsageViewSet(generics.ListAPIView):
         return SubscriptionUsage.objects.filter(
             subscription__user=self.request.user
         ).select_related('feature')
-
 
 # Utility APIs
 @api_view(['POST'])
@@ -493,7 +488,6 @@ def create_subscription(request):
             'trial_days': plan.trial_days if plan.has_trial else 0,
         })
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def validate_discount_code(request):
@@ -568,7 +562,6 @@ def validate_discount_code(request):
             status=status.HTTP_404_NOT_FOUND
         )
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def subscription_features(request):
@@ -581,7 +574,6 @@ def subscription_features(request):
     return Response({
         'features': serializer.data
     })
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -660,7 +652,6 @@ def check_feature_access(request):
             }
 
     return Response(results)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

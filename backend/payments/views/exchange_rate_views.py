@@ -9,7 +9,6 @@ from decimal import Decimal
 from ..models.currency import ExchangeRate, Currency
 from ..serializers.exchange_rate_serializers import ExchangeRateSerializer
 
-
 class ExchangeRateViewSet(viewsets.ModelViewSet):
     """
     Admin viewset for managing exchange rates

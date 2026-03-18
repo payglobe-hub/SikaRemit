@@ -41,7 +41,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 class SecurityHardeningManager:
     """Main security hardening manager for SikaRemit platform"""
 
@@ -241,7 +240,6 @@ class SecurityHardeningManager:
 
         return recommendations
 
-
 class SecurityHeadersMiddleware(MiddlewareMixin):
     """Django middleware for comprehensive security headers"""
 
@@ -278,41 +276,30 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
 
         return response
 
-
 def run_security_hardening():
     """Main function to run security hardening"""
     manager = SecurityHardeningManager()
 
-    print("🔒 SikaRemit Security Hardening Suite")
-    print("=" * 50)
-
     try:
         results = manager.run_full_security_audit()
 
-        print("\n✅ Security audit completed successfully!")
-        print(f"📄 Report saved to: {manager.reports_path}")
+        .get('safety_scan', {}).get('vulnerabilities', []))}")
+        )}")
 
-        print("\n🔍 Key Findings:")
-        print(f"   • Vulnerabilities found: {len(results.get('vulnerability_scan', {}).get('safety_scan', {}).get('vulnerabilities', []))}")
-        print(f"   • Security recommendations: {len(results.get('recommendations', []))}")
-
-        print("\n🛡️ Security Status:")
-        print(f"   • SSL/TLS: {'✅' if results.get('ssl_tls_check', {}).get('certificate_present') else '⚠️'}")
-        print(f"   • Rate Limiting: {'✅' if results.get('rate_limiting', {}).get('enabled') else '❌'}")
-        print(f"   • Security Headers: {'✅' if results.get('security_headers') else '❌'}")
+        .get('certificate_present') else '⚠️'}")
+        .get('enabled') else '❌'}")
+         else '❌'}")
 
         if results.get('recommendations'):
-            print("\n📋 Top Recommendations:")
+            
             for i, rec in enumerate(results['recommendations'][:5], 1):
-                print(f"   {i}. {rec}")
 
     except Exception as e:
         logger.error(f"Security hardening failed: {str(e)}")
-        print(f"❌ Security hardening failed: {str(e)}")
+        }")
         return 1
 
     return 0
-
 
 if __name__ == '__main__':
     sys.exit(run_security_hardening())

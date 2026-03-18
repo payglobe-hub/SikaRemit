@@ -7,6 +7,7 @@ import AppLayout from '@/components/shared/AppLayout'
 import { CUSTOMER_NAVIGATION } from '@/lib/navigation/customer'
 import { useAuth } from '@/lib/auth/context'
 import { useSession } from '@/lib/auth/session-provider'
+import { authState } from '@/lib/utils/cookie-auth'
 
 interface CustomerLayoutProps {
   children: ReactNode
@@ -47,7 +48,13 @@ export default function CustomerLayout({ children }: CustomerLayoutProps) {
   // Check if user has customer role
   if (user.role !== 'customer') {
     const roleRedirects = {
+      // Admin types - redirect to admin overview
+      super_admin: '/admin/overview',
+      business_admin: '/admin/overview',
+      operations_admin: '/admin/overview',
+      verification_admin: '/admin/overview',
       admin: '/admin/overview',
+      // Other user types
       merchant: '/merchant/dashboard',
       customer: '/customer/dashboard'
     }

@@ -62,7 +62,7 @@ async function initializeCurrencies() {
       currenciesLoaded = true
     }
   } catch (error) {
-    console.error('Failed to initialize currencies:', error)
+    
   }
 }
 
@@ -90,17 +90,41 @@ export async function getExchangeRates(options: { base?: string } = {}): Promise
     } else {
       throw new Error('Invalid response format')
     }
-  } catch (error) {
-    console.error('Failed to fetch exchange rates:', error)
+  } catch (error: any) {
+
+    // If rate limited, return fallback rates
+    if (error.response?.status === 429) {
+      
+      return {
+        base,
+        rates: {
+          'USD': base === 'USD' ? 1.0 : 0.082,
+          'EUR': base === 'EUR' ? 1.0 : 0.075,
+          'GBP': base === 'GBP' ? 1.0 : 0.064,
+          'GHS': base === 'GHS' ? 1.0 : 1.0
+        }
+      }
+    }
+    
+    // For other network errors, return minimal fallback
+    if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
+      
+      return {
+        base,
+        rates: { [base]: 1.0 }
+      }
+    }
+    
     throw new Error('Unable to fetch exchange rates')
   }
 }
 
 export async function getCurrencies() {
   try {
+    
     const response = await api.get('/api/v1/payments/currencies/')
     const currencies = response.data.results || response.data
-    
+
     // Update the global arrays
     if (currencies && currencies.length > 0) {
       CURRENCIES.length = 0 // Clear array
@@ -113,9 +137,38 @@ export async function getCurrencies() {
     }
     
     return currencies
-  } catch (error) {
-    console.error('Failed to fetch currencies:', error)
-    throw new Error('Unable to fetch currencies')
+  } catch (error: any) {
+
+    // Check for different types of errors
+    const isRateLimit = error.response?.status === 429
+    const isNetworkError = error.code === 'NETWORK_ERROR' || 
+                         error.message === 'Network Error' || 
+                         !error.response
+    
+    if (isRateLimit) {
+      
+    } else if (isNetworkError) {
+      
+    } else {
+      
+    }
+    
+    // Return fallback currencies for any error
+    const fallbackCurrencies = [
+      { code: 'USD', symbol: '$', name: 'US Dollar' },
+      { code: 'EUR', symbol: '€', name: 'Euro' },
+      { code: 'GBP', symbol: '£', name: 'British Pound' },
+      { code: 'GHS', symbol: '₵', name: 'Ghana Cedi' }
+    ]
+    
+    // Update global arrays with fallback
+    CURRENCIES.length = 0
+    CURRENCIES.push(...fallbackCurrencies.map((c: any) => c.code))
+    fallbackCurrencies.forEach((c: any) => {
+      CURRENCY_SYMBOLS[c.code] = c.symbol
+    })
+    
+    return fallbackCurrencies
   }
 }
 
@@ -124,7 +177,7 @@ export async function getCurrencyPreferences() {
     const response = await api.get('/api/v1/payments/currency-preferences/')
     return response.data
   } catch (error) {
-    console.error('Failed to fetch currency preferences:', error)
+    
     return null
   }
 }

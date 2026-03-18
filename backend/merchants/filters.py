@@ -5,7 +5,6 @@ Product Filters for Customer API
 from django_filters import rest_framework as filters
 from merchants.models import Product
 
-
 class ProductFilter(filters.FilterSet):
     """
     Advanced filtering for products

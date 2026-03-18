@@ -61,7 +61,7 @@ export default function NotificationsPage() {
       const result = await getNotificationPreferences()
       setPreferences(result)
     } catch (error) {
-      console.error('Failed to load preferences:', error)
+      
     }
   }
 

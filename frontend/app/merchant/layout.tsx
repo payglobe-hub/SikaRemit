@@ -7,6 +7,7 @@ import AppLayout from '@/components/shared/AppLayout'
 import { MERCHANT_NAVIGATION } from '@/lib/navigation/merchant'
 import { useAuth } from '@/lib/auth/context'
 import { useSession } from '@/lib/auth/session-provider'
+import { authState } from '@/lib/utils/cookie-auth'
 
 interface MerchantLayoutProps {
   children: ReactNode

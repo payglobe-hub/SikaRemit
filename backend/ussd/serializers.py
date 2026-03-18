@@ -2,7 +2,6 @@ from rest_framework import serializers
 from .models import USSDSession, USSDTransaction, USSDService
 from payments.models.ussd import USSDMenu
 
-
 class USSDSessionSerializer(serializers.ModelSerializer):
     """Serializer for USSD sessions"""
 
@@ -14,7 +13,6 @@ class USSDSessionSerializer(serializers.ModelSerializer):
             'menu_history', 'data', 'steps'
         ]
         read_only_fields = ['id', 'started_at', 'created_at', 'last_activity']
-
 
 class USSDTransactionSerializer(serializers.ModelSerializer):
     """Serializer for USSD transactions"""
@@ -29,7 +27,6 @@ class USSDTransactionSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-
 class USSDStatsSerializer(serializers.Serializer):
     """Serializer for USSD statistics"""
     total_sessions = serializers.IntegerField()
@@ -43,13 +40,11 @@ class USSDStatsSerializer(serializers.Serializer):
     by_service = serializers.ListField(child=serializers.DictField())
     popular_menus = serializers.ListField(child=serializers.DictField())
 
-
 class USSDSimulateSerializer(serializers.Serializer):
     """Serializer for USSD simulation request"""
     phone_number = serializers.CharField(max_length=20)
     service_code = serializers.CharField(max_length=50)
     input = serializers.CharField(max_length=100, required=False, allow_blank=True)
-
 
 class USSDServiceSerializer(serializers.ModelSerializer):
     """Serializer for USSD services"""
@@ -61,7 +56,6 @@ class USSDServiceSerializer(serializers.ModelSerializer):
             'menu_config', 'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
-
 
 class USSDMenuSerializer(serializers.ModelSerializer):
     """Serializer for USSD menus"""
@@ -92,7 +86,6 @@ class USSDMenuSerializer(serializers.ModelSerializer):
             if 'input' not in option or 'text' not in option:
                 raise serializers.ValidationError("Each option must have 'input' and 'text' fields")
         return value
-
 
 class USSDMenuCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating USSD menus"""

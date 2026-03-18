@@ -15,7 +15,6 @@ import uuid
 
 User = get_user_model()
 
-
 class OrderTracking(models.Model):
     """Order tracking information"""
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='tracking')
@@ -85,7 +84,6 @@ class OrderTracking(models.Model):
             return (self.actual_delivery - self.created_at).days
         return (timezone.now() - self.created_at).days
 
-
 class TrackingEvent(models.Model):
     """Individual tracking events"""
     tracking = models.ForeignKey(OrderTracking, on_delete=models.CASCADE, related_name='events')
@@ -121,7 +119,6 @@ class TrackingEvent(models.Model):
     
     def __str__(self):
         return f"{self.event_type} - {self.tracking.tracking_number}"
-
 
 class DeliveryAddress(models.Model):
     """Delivery address for orders"""
@@ -162,7 +159,6 @@ class DeliveryAddress(models.Model):
         parts.append(self.country)
         return ", ".join(parts)
 
-
 class DeliveryAttempt(models.Model):
     """Record of delivery attempts"""
     tracking = models.ForeignKey(OrderTracking, on_delete=models.CASCADE, related_name='delivery_attempts')
@@ -195,7 +191,6 @@ class DeliveryAttempt(models.Model):
     
     def __str__(self):
         return f"Attempt {self.attempt_number} for {self.tracking.tracking_number}"
-
 
 class ShippingLabel(models.Model):
     """Shipping label information"""
@@ -246,7 +241,6 @@ class ShippingLabel(models.Model):
         volumetric = self.volumetric_weight
         return max(float(self.weight), volumetric)
 
-
 class NotificationPreference(models.Model):
     """User notification preferences for order updates"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='notification_preferences')
@@ -270,7 +264,6 @@ class NotificationPreference(models.Model):
     
     def __str__(self):
         return f"Notification preferences for {self.user.email}"
-
 
 class TrackingNotification(models.Model):
     """Tracking notification records"""
@@ -300,7 +293,6 @@ class TrackingNotification(models.Model):
     
     def __str__(self):
         return f"{self.notification_type} notification for {self.order.order_number}"
-
 
 class OrderTrackingService:
     """Service for managing order tracking"""

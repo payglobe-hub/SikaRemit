@@ -19,7 +19,6 @@ from merchants.services import BusinessKYCService, DocumentVerificationService
 from merchants.permissions import IsBusinessOwnerOrAdmin, CanManageBusinessUsers
 from merchants.services import BulkPaymentService, ApprovalWorkflowService
 
-
 class BusinessAccountViewSet(viewsets.ModelViewSet):
     """
     ViewSet for business accounts
@@ -127,7 +126,6 @@ class BusinessAccountViewSet(viewsets.ModelViewSet):
         for role_data in default_roles:
             BusinessRole.objects.create(business_account=business_account, **role_data)
 
-
 class BusinessRoleViewSet(viewsets.ModelViewSet):
     """
     ViewSet for business roles
@@ -142,7 +140,6 @@ class BusinessRoleViewSet(viewsets.ModelViewSet):
         # Get business account from user's primary business account
         business_account = BusinessAccount.objects.get(primary_contact=self.request.user)
         serializer.save(business_account=business_account)
-
 
 class BusinessUserViewSet(viewsets.ModelViewSet):
     """
@@ -177,7 +174,6 @@ class BusinessUserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(business_user)
         return Response(serializer.data)
 
-
 class ApprovalWorkflowViewSet(viewsets.ModelViewSet):
     """
     ViewSet for approval workflows
@@ -191,7 +187,6 @@ class ApprovalWorkflowViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         business_account = BusinessAccount.objects.get(primary_contact=self.request.user)
         serializer.save(business_account=business_account)
-
 
 class BulkPaymentViewSet(viewsets.ModelViewSet):
     """
@@ -284,7 +279,6 @@ class BulkPaymentViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(bulk_payment)
         return Response(serializer.data)
 
-
 class BusinessAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for business analytics
@@ -296,7 +290,6 @@ class BusinessAnalyticsViewSet(viewsets.ReadOnlyModelViewSet):
         return BusinessAnalytics.objects.filter(
             business_account__primary_contact=self.request.user
         )
-
 
 class AccountingIntegrationViewSet(viewsets.ModelViewSet):
     """
@@ -338,7 +331,6 @@ class AccountingIntegrationViewSet(viewsets.ModelViewSet):
 
         return Response({'status': 'success', 'message': 'Connection successful'})
 
-
 class BusinessKYCViewSet(viewsets.ModelViewSet):
     """
     ViewSet for business KYC information
@@ -377,7 +369,6 @@ class BusinessKYCViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(kyc)
         return Response(serializer.data)
-
 
 class BusinessDocumentViewSet(viewsets.ModelViewSet):
     """
@@ -426,7 +417,6 @@ class BusinessDocumentViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(document)
         return Response(serializer.data)
 
-
 class ComplianceReportViewSet(viewsets.ModelViewSet):
     """
     ViewSet for compliance reports
@@ -465,7 +455,6 @@ class ComplianceReportViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(report)
         return Response(serializer.data)
 
-
 class BusinessComplianceLogViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for business compliance audit logs
@@ -477,7 +466,6 @@ class BusinessComplianceLogViewSet(viewsets.ReadOnlyModelViewSet):
         return BusinessComplianceLog.objects.filter(
             business_account__primary_contact=self.request.user
         )
-
 
 # Enhanced Business Account ViewSet with KYC details
 class BusinessAccountDetailViewSet(BusinessAccountViewSet):

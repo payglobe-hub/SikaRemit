@@ -9,7 +9,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class MagentoIntegration:
     """
     Magento 2 payment module integration
@@ -148,7 +147,6 @@ class MagentoIntegration:
                 'success': False,
                 'error': str(e)
             }
-
 
 def generate_magento_module():
     """

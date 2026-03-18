@@ -77,7 +77,7 @@ export function useBiometricAuth() {
         })
       }
     } catch (error) {
-      console.error('Error checking biometric capabilities:', error)
+      
       setCapabilities({
         available: false,
         methods: [],
@@ -138,7 +138,7 @@ export function useBiometricAuth() {
         // Store credential ID associated with payment method
         // In production, send this to your backend
         // NOTE: localStorage disabled for SSR safety
-        ')
+        console.log('Biometric credential stored:', credential.id)
         
         setIsAuthenticating(false)
         return {
@@ -184,7 +184,7 @@ export function useBiometricAuth() {
 
     // Check if biometric is registered for this payment method
     // NOTE: localStorage disabled for SSR safety - biometric auth disabled
-    ')
+    console.log('Biometric auth check - localStorage disabled')
     return {
       success: false,
       error: 'Biometric authentication disabled for SSR safety'
@@ -253,7 +253,7 @@ export function useBiometricAuth() {
    */
   const isBiometricRegistered = useCallback((paymentMethodId: string): boolean => {
     // NOTE: localStorage disabled for SSR safety - always return false
-    ')
+    console.log('Biometric registration check - localStorage disabled')
     return false
   }, [])
 
@@ -262,7 +262,7 @@ export function useBiometricAuth() {
    */
   const removeBiometric = useCallback((paymentMethodId: string): void => {
     // NOTE: localStorage disabled for SSR safety - biometric removal disabled
-    ')
+    console.log('Biometric removal - localStorage disabled')
   }, [])
 
   return {

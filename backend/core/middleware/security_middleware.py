@@ -20,7 +20,6 @@ from core.security import (
 
 logger = logging.getLogger(__name__)
 
-
 class IPTrackingMiddleware:
     """Track IP addresses for security monitoring"""
     
@@ -51,7 +50,6 @@ class IPTrackingMiddleware:
         
         cache.set(key, current_ip, 86400)  # 24 hours
 
-
 class DeviceTrackingMiddleware:
     """Track devices for security monitoring"""
     
@@ -60,7 +58,7 @@ class DeviceTrackingMiddleware:
     
     def __call__(self, request):
         # Generate device fingerprint
-        device_fingerprint = get_device_fingerprint(request)
+        device_fingerprint = get_device_finger
         request.device_fingerprint = device_fingerprint
         
         # Track device for authenticated users
@@ -73,7 +71,6 @@ class DeviceTrackingMiddleware:
         
         response = self.get_response(request)
         return response
-
 
 class APIRateLimitMiddleware:
     """Rate limiting for API endpoints"""
@@ -122,7 +119,6 @@ class APIRateLimitMiddleware:
         
         return response
 
-
 class AuditLoggingMiddleware:
     """Log all API requests for audit purposes"""
     
@@ -167,7 +163,6 @@ class AuditLoggingMiddleware:
         else:
             logger.info(f"API Request: {log_data}")
 
-
 class SQLInjectionProtectionMiddleware:
     """Basic SQL injection protection"""
     
@@ -198,7 +193,6 @@ class SQLInjectionProtectionMiddleware:
                 )
         
         return self.get_response(request)
-
 
 class XSSProtectionMiddleware:
     """Basic XSS protection"""

@@ -15,9 +15,7 @@ from ..exceptions import (
     InvalidPaymentMethodException, TransactionLimitExceededException
 )
 
-
 logger = logging.getLogger(__name__)
-
 
 class WalletViewSet(viewsets.ViewSet):
     """
@@ -55,9 +53,8 @@ class WalletViewSet(viewsets.ViewSet):
             return Response(balance)
         except Exception as e:
             logger.error(f"Error in wallet list view: {str(e)}", exc_info=True)
-            print(f"DEBUG: Wallet list view error: {str(e)}")
             import traceback
-            print(traceback.format_exc())
+            traceback.print_exc()
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -195,7 +192,6 @@ class WalletViewSet(viewsets.ViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-
 class CurrencyViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API for currency information
@@ -240,7 +236,6 @@ class CurrencyViewSet(viewsets.ReadOnlyModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-
 class CurrencyPreferenceViewSet(viewsets.ViewSet):
     """
     API for managing currency preferences
@@ -266,7 +261,6 @@ class CurrencyPreferenceViewSet(viewsets.ViewSet):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 @api_view(['GET'])
 @authentication_classes([])
@@ -329,7 +323,6 @@ def exchange_rates(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-
 @api_view(['POST'])
 @authentication_classes([])
 @permission_classes([])
@@ -387,7 +380,6 @@ def convert_currency(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-
 @api_view(['GET'])
 @permission_classes([])
 def currencies_list_view(request):
@@ -403,7 +395,6 @@ def currencies_list_view(request):
             {'error': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 # ============== DEPOSIT ENDPOINTS ==============
 
@@ -566,7 +557,6 @@ def deposit_mobile_money(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def deposit_bank_transfer(request):
@@ -661,7 +651,6 @@ def deposit_bank_transfer(request):
             {'error': 'Failed to process deposit'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -840,7 +829,6 @@ def deposit_card(request):
             {'error': 'Failed to process deposit'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 # ============== WITHDRAW ENDPOINTS ==============
 
@@ -1092,7 +1080,6 @@ def withdraw_mobile_money(request):
             {'error': 'Failed to process withdrawal'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -1358,7 +1345,6 @@ def withdraw_bank_transfer(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_withdrawal_limits(request):
@@ -1405,7 +1391,6 @@ def get_withdrawal_limits(request):
             {'error': 'Failed to get withdrawal limits'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -1591,7 +1576,6 @@ def transfer_to_sikaremit_wallet(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def lookup_sikaremit_user(request):
@@ -1673,7 +1657,6 @@ def lookup_sikaremit_user(request):
             {'error': 'Failed to look up user'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

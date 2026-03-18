@@ -121,7 +121,7 @@ export default function MerchantSettingsPage() {
         } else if (typeof savedRates === 'object' && savedRates !== null) {
           rates = savedRates as Record<string, number>
         } else {
-          console.warn('Invalid currency rates format:', savedRates)
+          
           return
         }
         
@@ -130,7 +130,7 @@ export default function MerchantSettingsPage() {
           currencyRates: { ...prev.currencyRates, ...rates }
         }))
       } catch (error) {
-        console.error('Failed to load saved currency rates:', error)
+        
       }
     }
 
@@ -145,7 +145,7 @@ export default function MerchantSettingsPage() {
         } else if (typeof savedSettings === 'object' && savedSettings !== null) {
           settingsData = savedSettings
         } else {
-          console.warn('Invalid currency settings format:', savedSettings)
+          
           return
         }
         
@@ -154,7 +154,7 @@ export default function MerchantSettingsPage() {
           currencySettings: { ...prev.currencySettings, ...settingsData }
         }))
       } catch (error) {
-        console.error('Failed to load saved currency settings:', error)
+        
       }
     }
   }, [])

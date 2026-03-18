@@ -5,7 +5,6 @@ import uuid
 
 User = get_user_model()
 
-
 class CustomerStatement(models.Model):
     """Customer account statements"""
     STATUS_CHOICES = [
@@ -55,7 +54,6 @@ class CustomerStatement(models.Model):
 
     def __str__(self):
         return f"{self.customer.user.email} - {self.period_name}"
-
 
 class MerchantReport(models.Model):
     """Merchant-generated reports"""
@@ -117,7 +115,6 @@ class MerchantReport(models.Model):
     def __str__(self):
         return f"{self.merchant.business_name} - {self.get_report_type_display()}"
 
-
 class ReportTemplate(models.Model):
     """Report templates for merchants"""
     REPORT_TYPES = [
@@ -148,7 +145,6 @@ class ReportTemplate(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class ScheduledReport(models.Model):
     """Scheduled reports for automated generation"""
@@ -203,7 +199,6 @@ class ScheduledReport(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class AdminReport(models.Model):
     """Admin-generated reports"""
@@ -274,7 +269,6 @@ class AdminReport(models.Model):
     def __str__(self):
         return f"{self.admin_user.email} - {self.get_report_type_display()}"
 
-
 class ReportGenerationJob(models.Model):
     """Background job for report generation"""
     STATUS_CHOICES = [
@@ -314,7 +308,6 @@ class ReportGenerationJob(models.Model):
 
     def __str__(self):
         return f"{self.job_type} - {self.object_id}"
-
 
 class ReportCache(models.Model):
     """Cache for frequently accessed report data"""

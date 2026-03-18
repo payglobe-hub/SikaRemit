@@ -24,7 +24,6 @@ from .serializers import (
     MerchantDashboardStatsSerializer
 )
 
-
 class MerchantStoreViewSet(viewsets.ModelViewSet):
     """
     Merchant store management - allows merchants to manage their store details
@@ -48,7 +47,6 @@ class MerchantStoreViewSet(viewsets.ModelViewSet):
         store = self.get_object()
         store.update_product_count()
         return Response({'message': 'Product count updated successfully'})
-
 
 class MerchantProductViewSet(viewsets.ModelViewSet):
     """
@@ -134,7 +132,6 @@ class MerchantProductViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(products, many=True)
         return Response(serializer.data)
 
-
 class MerchantProductImageViewSet(viewsets.ModelViewSet):
     """
     Product image management for merchants
@@ -191,7 +188,6 @@ class MerchantProductImageViewSet(viewsets.ModelViewSet):
         image.sort_order = new_order
         image.save(update_fields=['sort_order'])
         return Response({'message': 'Image reordered successfully'})
-
 
 class MerchantOrderViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -271,7 +267,6 @@ class MerchantOrderViewSet(viewsets.ReadOnlyModelViewSet):
 
         serializer = self.get_serializer(orders, many=True)
         return Response(serializer.data)
-
 
 class MerchantDashboardViewSet(viewsets.ViewSet):
     """

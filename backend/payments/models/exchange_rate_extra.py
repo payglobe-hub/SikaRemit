@@ -6,7 +6,6 @@ from django.dispatch import receiver
 from django.conf import settings
 from django.utils import timezone
 
-
 class ExchangeRateHistory(models.Model):
     """
     Historical record of exchange rate changes for audit trails
@@ -30,7 +29,6 @@ class ExchangeRateHistory(models.Model):
 
     def __str__(self):
         return f"Rate change: {self.rate} - {self.old_rate} → {self.new_rate}"
-
 
 class ExchangeRateAlert(models.Model):
     """
@@ -69,7 +67,6 @@ class ExchangeRateAlert(models.Model):
     def __str__(self):
         return f"{self.alert_type}: {self.from_currency}/{self.to_currency}"
 
-
 class MultiCurrencyPayment(models.Model):
     """Track multi-currency payment transactions"""
     payment = models.OneToOneField('payments.Payment', on_delete=models.CASCADE, related_name='multi_currency')
@@ -89,7 +86,6 @@ class MultiCurrencyPayment(models.Model):
         verbose_name = 'Multi-Currency Payment'
         verbose_name_plural = 'Multi-Currency Payments'
 
-
 class ReportDashboard(models.Model):
     """
     Model for storing reporting dashboard configurations
@@ -99,7 +95,6 @@ class ReportDashboard(models.Model):
 
     def __str__(self):
         return self.name
-
 
 # Signal to track rate changes
 @receiver(post_save, sender='payments.ExchangeRate')

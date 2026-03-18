@@ -6,7 +6,6 @@ from decimal import Decimal
 
 User = get_user_model()
 
-
 class BudgetCategory(models.Model):
     """
     Predefined budget categories that users can choose from
@@ -31,7 +30,6 @@ class BudgetCategory(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.category_type})"
-
 
 class Budget(models.Model):
     """
@@ -140,7 +138,6 @@ class Budget(models.Model):
                 return min(max((elapsed_days / total_days) * 100, 0), 100)
         return 0
 
-
 class BudgetItem(models.Model):
     """
     Individual budget items within a budget (income, expense, or savings categories)
@@ -195,7 +192,6 @@ class BudgetItem(models.Model):
         else:
             return 'good'
 
-
 class BudgetTransaction(models.Model):
     """
     Links transactions to budget items for automatic tracking
@@ -221,7 +217,6 @@ class BudgetTransaction(models.Model):
 
     def __str__(self):
         return f"Transaction link: {self.transaction} → {self.budget_item}"
-
 
 class BudgetAlert(models.Model):
     """

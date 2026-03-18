@@ -26,7 +26,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 class ComplianceValidator:
     """Main compliance validation manager for SikaRemit"""
 
@@ -199,7 +198,6 @@ class ComplianceValidator:
 
         return recommendations
 
-
 class ComplianceReporting:
     """Compliance reporting and documentation utilities"""
 
@@ -264,41 +262,28 @@ SikaRemit maintains compliance with applicable regulatory requirements and indus
         }
         return evidence
 
-
 def run_compliance_validation():
     """Main function to run compliance validation"""
     validator = ComplianceValidator()
 
-    print("📋 SikaRemit Compliance Validation Suite")
-    print("=" * 50)
-
     try:
         results = validator.run_compliance_audit()
 
-        print("\n✅ Compliance audit completed successfully!")
-        print(f"📄 Report saved to: {validator.reports_path}")
-
-        print("\n🏛️ Compliance Status:")
         pci = results.get('pci_dss_compliance', {})
-        print(f"   • PCI DSS: {pci.get('level', 'Unknown')} - ✅ Compliant")
+        } - ✅ Compliant")
 
         regulatory = results.get('regulatory_compliance', {})
-        print(f"   • Bank of Ghana: ✅ Compliant")
-        print(f"   • Ghana Payments System: ✅ Compliant")
 
         data_protection = results.get('data_protection', {})
-        print(f"   • Data Protection: ✅ Compliant (GDPR)")
+        ")
 
         audit_trails = results.get('audit_trails', {})
-        print(f"   • Audit Trails: ✅ Implemented")
 
         security = results.get('security_controls', {})
-        print(f"   • Security Controls: ✅ Implemented")
 
         if results.get('recommendations'):
-            print("\n💡 Compliance Recommendations:")
+            
             for i, rec in enumerate(results['recommendations'][:5], 1):
-                print(f"   {i}. {rec}")
 
         # Generate and save compliance report
         report = ComplianceReporting.generate_compliance_report(results)
@@ -306,15 +291,12 @@ def run_compliance_validation():
         with open(report_file, 'w') as f:
             f.write(report)
 
-        print(f"\n📄 Detailed compliance report saved to: {report_file}")
-
     except Exception as e:
         logger.error(f"Compliance validation failed: {str(e)}")
-        print(f"❌ Compliance validation failed: {str(e)}")
+        }")
         return 1
 
     return 0
-
 
 if __name__ == '__main__':
     sys.exit(run_compliance_validation())

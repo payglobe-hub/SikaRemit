@@ -511,7 +511,6 @@ class PEPSanctionsService:
         except Exception as e:
             logger.error(f"Failed to log screening activity: {str(e)}")
 
-
 class ComplianceReportingService:
     """
     Service for generating compliance reports and regulatory filings

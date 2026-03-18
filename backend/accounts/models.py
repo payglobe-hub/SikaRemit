@@ -30,7 +30,6 @@ class PasswordResetToken(models.Model):
     def __str__(self):
         return f"Reset token for {self.user.email}"
 
-
 class BlacklistedToken(models.Model):
     """Store blacklisted JWT tokens to prevent reuse"""
     token = models.TextField(unique=True)
@@ -203,7 +202,6 @@ class PaymentLog(models.Model):
 # NOTE: Product model removed - use merchants.Product instead
 # This avoids duplicate Product models across apps
 
-
 class Session(models.Model):
     """Tracks user sessions for security and analytics"""
     user = models.ForeignKey(
@@ -312,7 +310,6 @@ class UserActivity(models.Model):
 
 # NOTE: Notification model removed - use notifications.Notification instead
 # This avoids duplicate Notification models across apps
-
 
 class Payout(models.Model):
     merchant = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payouts')

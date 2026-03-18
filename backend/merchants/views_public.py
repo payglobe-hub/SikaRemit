@@ -15,7 +15,6 @@ from merchants.serializers import ProductSerializer, StoreSerializer
 from .filters import ProductFilter
 from .pagination import StandardResultsSetPagination
 
-
 class PublicProductListView(generics.ListAPIView):
     """
     Public API for customers to browse products
@@ -52,7 +51,6 @@ class PublicProductListView(generics.ListAPIView):
         
         return queryset
 
-
 class PublicProductDetailView(generics.RetrieveAPIView):
     """
     Public API for customers to view product details
@@ -67,7 +65,6 @@ class PublicProductDetailView(generics.RetrieveAPIView):
             stock_quantity__gt=0,
             store__is_active=True
         ).select_related('store')
-
 
 class PublicStoreListView(generics.ListAPIView):
     """
@@ -88,7 +85,6 @@ class PublicStoreListView(generics.ListAPIView):
             product_count=Count('products', filter=Q(products__is_available=True))
         ).filter(product_count__gt=0)
 
-
 class PublicStoreDetailView(generics.RetrieveAPIView):
     """
     Public API for customers to view store details
@@ -102,7 +98,6 @@ class PublicStoreDetailView(generics.RetrieveAPIView):
         ).annotate(
             product_count=Count('products', filter=Q(products__is_available=True))
         )
-
 
 class StoreProductListView(generics.ListAPIView):
     """
@@ -126,7 +121,6 @@ class StoreProductListView(generics.ListAPIView):
             store__is_active=True
         ).select_related('store')
 
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def product_categories(request):
@@ -142,7 +136,6 @@ def product_categories(request):
     return Response({
         'categories': sorted(list(categories))
     })
-
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -160,7 +153,6 @@ def featured_products(request):
     serializer = ProductSerializer(products, many=True, context={'request': request})
     return Response(serializer.data)
 
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def trending_products(request):
@@ -176,7 +168,6 @@ def trending_products(request):
     
     serializer = ProductSerializer(products, many=True, context={'request': request})
     return Response(serializer.data)
-
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

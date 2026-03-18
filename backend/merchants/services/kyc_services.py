@@ -5,7 +5,6 @@ from accounts.models import User
 
 logger = logging.getLogger(__name__)
 
-
 class BusinessKYCService:
     """
     Service for handling business KYC and compliance operations
@@ -272,7 +271,6 @@ class BusinessKYCService:
             'current_risk_level': business_account.risk_level,
             'compliance_status': business_account.compliance_status,
         }
-
 
 class DocumentVerificationService:
     """

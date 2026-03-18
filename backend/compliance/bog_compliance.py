@@ -12,7 +12,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class BOGTransactionLimits:
     """
     Bank of Ghana Transaction Limits per KYC Tier
@@ -163,7 +162,6 @@ class BOGTransactionLimits:
             'upgrade_available': tier < 3,
         }
 
-
 class SuspiciousActivityReport:
     """
     Suspicious Activity Report (SAR) generation for FIC reporting
@@ -257,7 +255,6 @@ class SuspiciousActivityReport:
             return 'rapid_movement'
         
         return None
-
 
 class BOGReportGenerator:
     """
@@ -369,7 +366,6 @@ class BOGReportGenerator:
         }
         
         return report
-
 
 # BoG Contact Information for Consumer Protection
 BOG_CONTACT_INFO = {

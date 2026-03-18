@@ -4,7 +4,6 @@ from shared.constants import (
     ADMIN_HIERARCHY_LEVELS
 )
 
-
 class IsSuperAdmin(BasePermission):
     """
     Allows access only to super admins (user_type=1).
@@ -16,7 +15,6 @@ class IsSuperAdmin(BasePermission):
             and request.user.user_type == USER_TYPE_SUPER_ADMIN
         )
 
-
 class IsBusinessAdmin(BasePermission):
     """
     Allows access to business admins (user_type=2) and super admins (user_type=1).
@@ -27,7 +25,6 @@ class IsBusinessAdmin(BasePermission):
         return request.user.user_type in (
             USER_TYPE_SUPER_ADMIN, USER_TYPE_BUSINESS_ADMIN
         )
-
 
 class IsAdminUser(BasePermission):
     """

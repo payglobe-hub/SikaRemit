@@ -44,11 +44,10 @@ export async function getNotifications(params?: {
       count: response.data.count
     }
   } catch (error: any) {
-    console.error('Notifications API Error:', error)
-    
+
     // If 401, try to refresh the page to re-authenticate
     if (error.response?.status === 401) {
-      console.warn('Authentication expired, redirecting to login...')
+      
       // Token refresh is handled by the api interceptor
     }
     

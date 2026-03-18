@@ -38,7 +38,7 @@ export function QRScanner({ transactionContext, onSuccess, onCancel, onScanCompl
         const { default: QrScanner } = await import('qr-scanner')
         setQrcodeScanner(QrScanner)
       } catch (error) {
-        console.error('Failed to load QR scanner:', error)
+        
         setError('QR scanner not available')
       }
     }
@@ -73,7 +73,7 @@ export function QRScanner({ transactionContext, onSuccess, onCancel, onScanCompl
         scanQRCode()
       }
     } catch (error) {
-      console.error('Camera access failed:', error)
+      
       setError('Camera access denied. Please allow camera permission to scan QR codes.')
       setIsScanning(false)
     }
@@ -102,7 +102,7 @@ export function QRScanner({ transactionContext, onSuccess, onCancel, onScanCompl
       // Store scanner instance for cleanup
       ;(window as any).currentQRScanner = qrScanner
     } catch (error) {
-      console.error('QR scanner setup failed:', error)
+      
       setError('Failed to start QR scanner')
     }
   }
@@ -118,9 +118,7 @@ export function QRScanner({ transactionContext, onSuccess, onCancel, onScanCompl
       if ('vibrate' in navigator) {
         navigator.vibrate(100)
       }
-      
-      
-      
+
       // Validate the QR code
       const validationResult = await validateQRPayment({ qr_data: result.data })
 

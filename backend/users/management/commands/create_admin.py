@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from shared.constants import USER_TYPE_SUPER_ADMIN
 
-
 class Command(BaseCommand):
     help = 'Create an admin user for SikaRemit'
 

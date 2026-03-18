@@ -20,7 +20,6 @@ from .serializers_cart import (
 )
 from .models_cart import CartService, WishlistService
 
-
 class CartViewSet(viewsets.ModelViewSet):
     """Shopping cart management"""
     permission_classes = [IsAuthenticated]
@@ -150,7 +149,6 @@ class CartViewSet(viewsets.ModelViewSet):
             'items_count': cart.items.count()
         })
 
-
 class WishlistViewSet(viewsets.ModelViewSet):
     """Wishlist management"""
     permission_classes = [IsAuthenticated]
@@ -235,7 +233,6 @@ class WishlistViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def cart_count(request):
@@ -245,7 +242,6 @@ def cart_count(request):
         'count': cart.total_items,
         'is_empty': cart.is_empty
     })
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -288,7 +284,6 @@ def bulk_add_to_cart(request):
         'added_count': len(results),
         'error_count': len(errors)
     })
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -340,7 +335,6 @@ def recommended_products(request):
         'recommended_products': serializer.data,
         'recommendation_type': 'category_based' if all_categories else 'featured'
     })
-
 
 # Import Decimal for calculations
 from decimal import Decimal

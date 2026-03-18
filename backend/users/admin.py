@@ -4,11 +4,9 @@ from django.utils.html import format_html
 from django.urls import reverse
 from .models import User, Merchant, Customer, MerchantCustomer, MerchantKYCSubmission, KYCDocument
 
-
 class CustomUserAdmin(UserAdmin):
     list_display = ('email', 'username', 'user_type', 'is_staff', 'is_verified')
     list_filter = ('user_type', 'is_staff', 'is_verified')
-
 
 @admin.register(MerchantCustomer)
 class MerchantCustomerAdmin(admin.ModelAdmin):
@@ -50,7 +48,6 @@ class MerchantCustomerAdmin(admin.ModelAdmin):
         queryset.update(status='active', suspended_at=None, suspended_by=None, suspension_reason='')
         self.message_user(request, f'Activated {queryset.count()} merchant customers.')
     activate_customers.short_description = 'Activate selected customers'
-
 
 @admin.register(MerchantKYCSubmission)
 class MerchantKYCSubmissionAdmin(admin.ModelAdmin):
@@ -136,7 +133,6 @@ class MerchantKYCSubmissionAdmin(admin.ModelAdmin):
         self.message_user(request, f'Escalated {count} KYC submissions.')
     mark_escalated.short_description = 'Escalate selected submissions'
 
-
 @admin.register(KYCDocument)
 class KYCDocumentAdmin(admin.ModelAdmin):
     list_display = ('user', 'document_type', 'status', 'reviewed_by', 'reviewed_at', 'created_at')
@@ -160,7 +156,6 @@ class KYCDocumentAdmin(admin.ModelAdmin):
         count = queryset.filter(status='PENDING').update(status='REJECTED')
         self.message_user(request, f'Rejected {count} KYC documents.')
     mark_rejected.short_description = 'Reject selected documents'
-
 
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Merchant)

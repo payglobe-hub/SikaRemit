@@ -10,7 +10,6 @@ from ..models.subscriptions import (
 
 User = get_user_model()
 
-
 class SubscriptionFeatureSerializer(serializers.ModelSerializer):
     """Serializer for subscription features"""
     class Meta:
@@ -19,7 +18,6 @@ class SubscriptionFeatureSerializer(serializers.ModelSerializer):
             'id', 'name', 'display_name', 'description', 'feature_type',
             'default_limit', 'icon', 'color', 'is_active'
         ]
-
 
 class PlanFeatureSerializer(serializers.ModelSerializer):
     """Serializer for plan features"""
@@ -30,7 +28,6 @@ class PlanFeatureSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'feature', 'enabled', 'limit_value', 'custom_description'
         ]
-
 
 class SubscriptionPlanSerializer(serializers.ModelSerializer):
     """Serializer for subscription plans"""
@@ -50,7 +47,6 @@ class SubscriptionPlanSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
 
-
 class SubscriptionPaymentSerializer(serializers.ModelSerializer):
     """Serializer for subscription payments"""
     class Meta:
@@ -61,7 +57,6 @@ class SubscriptionPaymentSerializer(serializers.ModelSerializer):
             'failure_reason', 'retry_count', 'next_retry_date',
             'refunded_amount', 'refund_reason', 'created_at', 'processed_at'
         ]
-
 
 class SubscriptionUsageSerializer(serializers.ModelSerializer):
     """Serializer for subscription usage"""
@@ -76,7 +71,6 @@ class SubscriptionUsageSerializer(serializers.ModelSerializer):
             'period_start', 'period_end', 'auto_reset', 'usage_percentage',
             'is_over_limit', 'created_at', 'updated_at'
         ]
-
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     """Serializer for subscriptions"""
@@ -102,7 +96,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             'days_until_next_billing', 'created_at', 'updated_at'
         ]
 
-
 class SubscriptionCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating subscriptions"""
     plan_id = serializers.IntegerField()
@@ -120,7 +113,6 @@ class SubscriptionCreateSerializer(serializers.ModelSerializer):
         except SubscriptionPlan.DoesNotExist:
             raise serializers.ValidationError("Plan not found or inactive")
 
-
 class SubscriptionDiscountSerializer(serializers.ModelSerializer):
     """Serializer for subscription discounts"""
     is_valid = serializers.ReadOnlyField()
@@ -134,18 +126,15 @@ class SubscriptionDiscountSerializer(serializers.ModelSerializer):
             'is_active', 'is_valid', 'created_at'
         ]
 
-
 class SubscriptionAnalyticsSerializer(serializers.Serializer):
     """Serializer for subscription analytics"""
     overview = serializers.DictField()
     subscriptions = serializers.ListField()
     billing_history = serializers.ListField()
 
-
 class FeatureAccessCheckSerializer(serializers.Serializer):
     """Serializer for feature access checks"""
     features = serializers.ListField(child=serializers.CharField())
-
 
 class FeatureAccessResultSerializer(serializers.Serializer):
     """Serializer for feature access results"""

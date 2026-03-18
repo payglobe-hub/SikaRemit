@@ -55,23 +55,30 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
           setAvailableCurrencies(currencyCodes)
         }
 
-        // Load exchange rates
-        const response = await getExchangeRates({ base: baseCurrency }) as any
-        let ratesWithBase = { ...response.rates, [baseCurrency]: 1.0 }
-        
-        // If no rates are available, add some fallback rates for common currencies
-        if (Object.keys(ratesWithBase).length === 1) { // Only base currency
-          const fallbackRates = {
-            'USD': baseCurrency === 'GHS' ? 0.083 : 12.0,  // GHS to USD or USD to GHS
-            'EUR': baseCurrency === 'GHS' ? 0.076 : 13.2,  // GHS to EUR or EUR to GHS  
-            'GBP': baseCurrency === 'GHS' ? 0.065 : 15.4,  // GHS to GBP or GBP to GHS
+        // Load exchange rates with error handling
+        try {
+          const response = await getExchangeRates({ base: baseCurrency }) as any
+          let ratesWithBase = { ...response.rates, [baseCurrency]: 1.0 }
+          
+          // If no rates are available, add some fallback rates for common currencies
+          if (Object.keys(ratesWithBase).length === 1) { // Only base currency
+            const fallbackRates = {
+              'USD': baseCurrency === 'GHS' ? 0.083 : 12.0,  // GHS to USD or USD to GHS
+              'EUR': baseCurrency === 'GHS' ? 0.076 : 13.2,  // GHS to EUR or EUR to GHS  
+              'GBP': baseCurrency === 'GHS' ? 0.065 : 15.4,  // GHS to GBP or GBP to GHS
+            }
+            ratesWithBase = { ...ratesWithBase, ...fallbackRates }
+            
           }
-          ratesWithBase = { ...ratesWithBase, ...fallbackRates }
-          console.warn('Using fallback exchange rates - no rates available from API')
+          
+          setExchangeRates(ratesWithBase)
+          setLastRateUpdate(new Date())
+        } catch (rateError) {
+          
+          // Set minimal fallback rates
+          setExchangeRates({ [baseCurrency]: 1.0 })
+          setLastRateUpdate(new Date())
         }
-        
-        setExchangeRates(ratesWithBase)
-        setLastRateUpdate(new Date())
 
         // Apply custom merchant rates if available
         const customRatesValue = cookieUtils.getCookie('merchant-currency-rates')
@@ -85,21 +92,21 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
             } else if (typeof customRatesValue === 'object' && customRatesValue !== null) {
               customRates = customRatesValue as Record<string, number>
             } else {
-              console.warn('Invalid custom rates format:', customRatesValue)
+              
               return
             }
             
             setExchangeRates(prev => ({ ...prev, ...customRates }))
           } catch (error) {
-            console.error('Failed to apply custom rates:', error)
+            
           }
         }
       } catch (error: any) {
         if (error?.response?.status === 429) {
-          console.warn('Currency API rate limited, will retry later')
+          
           // Optionally set fallback currencies here
         } else {
-          console.error('Failed to load currency data:', error)
+          
           // No fallback data - let components handle empty state
         }
       } finally {
@@ -134,13 +141,13 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
           'GBP': baseCurrency === 'GHS' ? 0.065 : 15.4,  // GHS to GBP or GBP to GHS
         }
         ratesWithBase = { ...ratesWithBase, ...fallbackRates }
-        console.warn('Using fallback exchange rates - no rates available from API')
+        
       }
       
       setExchangeRates(ratesWithBase)
       setLastRateUpdate(new Date())
     } catch (error) {
-      console.error('Failed to refresh exchange rates:', error)
+      
       throw error
     } finally {
       setIsLoadingRates(false)
@@ -169,7 +176,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       }).format(amount)
     } catch (error) {
       // Fallback to default currency if the provided currency is invalid
-      console.warn(`Invalid currency code: ${currency}, falling back to ${DEFAULT_CURRENCY}`)
+      
       return new Intl.NumberFormat('en-GH', {
         style: 'currency',
         currency: DEFAULT_CURRENCY

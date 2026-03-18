@@ -9,7 +9,6 @@ import os
 from pathlib import Path
 from django.conf import settings
 
-
 class RequestIdFilter(logging.Filter):
     """Add request ID to log records for tracing"""
     def filter(self, record):
@@ -27,14 +26,12 @@ class RequestIdFilter(logging.Filter):
             
         return True
 
-
 def get_client_ip(request):
     """Extract client IP from request"""
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         return x_forwarded_for.split(',')[0].strip()
     return request.META.get('REMOTE_ADDR', 'unknown')
-
 
 def get_logging_config(is_production: bool = False):
     """
@@ -188,13 +185,11 @@ def get_logging_config(is_production: bool = False):
     
     return base_config
 
-
 def configure_logging():
     """Configure logging based on current environment"""
     is_production = getattr(settings, 'IS_PRODUCTION', False)
     config = get_logging_config(is_production)
     logging.config.dictConfig(config)
-
 
 class PaymentLogger:
     """Specialized logger for payment operations"""
@@ -252,7 +247,6 @@ class PaymentLogger:
             }
         )
 
-
 class SecurityLogger:
     """Specialized logger for security events"""
     
@@ -298,7 +292,6 @@ class SecurityLogger:
                 'ip_address': ip_address,
             }
         )
-
 
 # Global logger instances
 payment_logger = PaymentLogger()

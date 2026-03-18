@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
-
 class ReportConsumer(AsyncWebsocketConsumer):
     """WebSocket consumer for real-time report updates"""
     
@@ -144,7 +143,6 @@ class ReportConsumer(AsyncWebsocketConsumer):
             'timestamp': timezone.now().isoformat()
         }))
 
-
 # Channel layer methods for sending updates
 async def send_report_update(report_id, data):
     """Send report update to all subscribed users"""
@@ -159,7 +157,6 @@ async def send_report_update(report_id, data):
         }
     )
 
-
 async def send_report_completed(report_id, data):
     """Send report completion notification"""
     from channels.layers import get_channel_layer
@@ -173,7 +170,6 @@ async def send_report_completed(report_id, data):
         }
     )
 
-
 async def send_report_failed(report_id, data):
     """Send report failure notification"""
     from channels.layers import get_channel_layer
@@ -186,7 +182,6 @@ async def send_report_failed(report_id, data):
             'data': data
         }
     )
-
 
 async def send_system_metrics(data):
     """Send system metrics to admin users"""

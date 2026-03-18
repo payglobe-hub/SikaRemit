@@ -1245,7 +1245,6 @@ from .serializers import (
     MerchantPayoutSettingsSerializer
 )
 
-
 class MerchantSettingsViewSet(viewsets.ModelViewSet):
     """
     API endpoint for managing merchant settings

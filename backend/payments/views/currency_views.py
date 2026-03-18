@@ -10,7 +10,6 @@ from ..services.currency_service import CurrencyService
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
-
 class CurrencyViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for Currency management
@@ -18,7 +17,6 @@ class CurrencyViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Currency.objects.filter(is_active=True)
     serializer_class = CurrencySerializer
     permission_classes = [AllowAny]  # Currencies list should be public
-
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -35,7 +33,6 @@ def currencies_list(request):
             {'error': f'Failed to fetch currencies: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -74,7 +71,6 @@ def historical_rates(request):
             {'error': f'Failed to fetch historical rates: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdminUser])
@@ -146,7 +142,6 @@ def set_exchange_rates(request):
             {'error': f'Failed to update rates: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 def _broadcast_rate_update(rates: dict, source: str):
     """

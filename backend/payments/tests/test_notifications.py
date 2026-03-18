@@ -13,7 +13,6 @@ from shared.constants import USER_TYPE_CUSTOMER
 
 User = get_user_model()
 
-
 class NotificationPreferenceTests(TestCase):
     """Test customer notification preferences."""
 

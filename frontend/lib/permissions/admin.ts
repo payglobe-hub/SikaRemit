@@ -17,7 +17,7 @@ export class AdminPermissionChecker {
       this.permissions = overview.user_permissions
       this.userLevel = overview.user_level
     } catch (error) {
-      console.error('Failed to load admin permissions:', error)
+      
     } finally {
       this.loading = false
     }

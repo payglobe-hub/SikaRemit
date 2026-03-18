@@ -148,7 +148,6 @@ def create_transaction_notification(sender, instance, created, **kwargs):
                 }
             )
 
-
 @receiver(post_save, sender=Transaction)
 def send_payment_status_updates(sender, instance, created, **kwargs):
     """Send real-time payment status updates"""
@@ -165,7 +164,6 @@ def send_payment_status_updates(sender, instance, created, **kwargs):
                 'merchant': instance.merchant.business_name if instance.merchant else None
             }
         )
-
 
 @receiver(pre_save, sender=Customer)
 def track_balance_changes(sender, instance, **kwargs):
@@ -186,7 +184,6 @@ def track_balance_changes(sender, instance, **kwargs):
                 instance._old_pending_balance = old_instance.pending_balance
         except Customer.DoesNotExist:
             pass
-
 
 @receiver(post_save, sender=Customer)
 def send_balance_updates(sender, instance, created, **kwargs):

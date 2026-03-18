@@ -84,7 +84,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       setNotifications(result.data)
       setUnreadCount(result.data.filter((n: Notification) => !n.is_read).length)
     } catch (error) {
-      console.error('Failed to fetch notifications:', error)
+      
     } finally {
       setLoading(false)
     }
@@ -102,7 +102,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       )
       setUnreadCount(prev => Math.max(0, prev - 1))
     } catch (error) {
-      console.error('Error marking notification as read:', error)
+      
     }
   }
 
@@ -114,7 +114,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       )
       setUnreadCount(0)
     } catch (error) {
-      console.error('Error marking all notifications as read:', error)
+      
     }
   }
 

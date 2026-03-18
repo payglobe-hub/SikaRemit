@@ -4,24 +4,23 @@ import { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
 import AppLayout from '@/components/shared/AppLayout'
 import { ADMIN_NAVIGATION } from '@/lib/navigation/admin'
-import { useAuth } from '@/lib/auth/context'
+import { useSession } from '@/lib/auth/session-provider'
 import { PermissionsProvider } from '@/lib/permissions/context'
+import { ADMIN_ROLES, isAdminRole as checkIsAdminRole } from '@/lib/constants/admin-roles'
+import { authState } from '@/lib/utils/cookie-auth'
 
 interface AdminLayoutProps {
   children: ReactNode
 }
 
-// Check if user has any admin role
-const isAdminRole = (role: string): boolean => {
-  const adminRoles = ['super_admin', 'business_admin', 'operations_admin', 'verification_admin']
-  return adminRoles.includes(role)
-}
+// Check if user has any admin role using centralized definition
+const isAdminRole = checkIsAdminRole
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const { user, loading } = useAuth()
+  const { user, status } = useSession()
 
   // Loading state
-  if (loading) {
+  if (status === 'loading') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-6">
@@ -43,13 +42,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   // Authentication check
-  if (!user) {
+  if (status === 'unauthenticated' || !user) {
+
     redirect('/auth')
     return null
   }
 
   // Admin role check
   if (!isAdminRole(user.role)) {
+
     // Redirect based on user role
     const roleRedirects = {
       customer: '/customer/dashboard',

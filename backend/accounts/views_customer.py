@@ -23,7 +23,6 @@ from payments.models.payment import Payment
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
-
 class CustomerBalanceView(APIView):
     """
     Customer balance endpoint
@@ -50,7 +49,6 @@ class CustomerBalanceView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class CustomerPaymentsView(APIView):
     """
@@ -79,7 +77,6 @@ class CustomerPaymentsView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-
 class CustomerReceiptsView(APIView):
     """
     Customer receipts endpoint
@@ -106,7 +103,6 @@ class CustomerReceiptsView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class CustomerStatsView(APIView):
     """
@@ -155,7 +151,6 @@ class CustomerStatsView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class CustomerViewSet(viewsets.ModelViewSet):
     """
@@ -380,7 +375,6 @@ class CustomerViewSet(viewsets.ModelViewSet):
             logger.error(f"Error with customer profile: {str(e)}")
             return Response({'error': 'Failed to process profile request'}, status=500)
 
-
 class LoyaltyPointsView(APIView):
     """
     Get current loyalty points balance for authenticated user
@@ -396,7 +390,6 @@ class LoyaltyPointsView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class RedeemPointsView(APIView):
     """
@@ -424,7 +417,6 @@ class RedeemPointsView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-
 class BalanceView(APIView):
     """
     Get current account balance for authenticated user
@@ -441,7 +433,6 @@ class BalanceView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class UserSearchView(APIView):
     """

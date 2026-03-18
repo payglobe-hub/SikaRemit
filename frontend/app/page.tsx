@@ -7,8 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
 import { Shield, CreditCard, Users, BarChart3, Smartphone, Globe, Menu, X, ArrowRight, CheckCircle, Star, TrendingUp, Zap, Lock, Sparkles, Globe2 } from 'lucide-react'
-import { PhoneMockup } from '@/components/ui/phone-mockup'
 import { useState, useEffect } from 'react'
+import PhoneMockup from '@/components/ui/PhoneMockup'
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)

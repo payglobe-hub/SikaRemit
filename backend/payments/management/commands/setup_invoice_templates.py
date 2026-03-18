@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-
 class Command(BaseCommand):
     help = 'Create default invoice templates for existing users'
 

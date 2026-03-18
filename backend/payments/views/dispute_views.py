@@ -15,7 +15,6 @@ from datetime import timedelta
 from ..models.dispute import Dispute
 from ..models.transaction import Transaction
 
-
 class DisputeSerializer(serializers.ModelSerializer):
     transaction_id = serializers.CharField(source='transaction.id', read_only=True)
     transaction_amount = serializers.DecimalField(
@@ -57,7 +56,6 @@ class DisputeSerializer(serializers.ModelSerializer):
         if obj.resolved_by:
             return f"{obj.resolved_by.first_name} {obj.resolved_by.last_name}".strip() or obj.resolved_by.email
         return None
-
 
 class DisputeViewSet(viewsets.ModelViewSet):
     """

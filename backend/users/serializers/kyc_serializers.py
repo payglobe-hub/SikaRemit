@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from users.models import Customer, KYCDocument
 
-
 class KYCDocumentSerializer(serializers.ModelSerializer):
     """Serializer for KYC document uploads"""
 
@@ -27,7 +26,6 @@ class KYCDocumentSerializer(serializers.ModelSerializer):
             return obj.back_image.url
         return None
 
-
 class CustomerKYCSerializer(serializers.ModelSerializer):
     """Serializer for customer KYC status and information"""
 
@@ -50,7 +48,6 @@ class CustomerKYCSerializer(serializers.ModelSerializer):
             'transaction_attempts_count', 'can_make_transactions',
             'needs_kyc_verification'
         ]
-
 
 class KYCSubmissionSerializer(serializers.Serializer):
     """Serializer for KYC submission data"""

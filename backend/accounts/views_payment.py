@@ -26,7 +26,6 @@ from .views_auth import validate_token
 
 logger = logging.getLogger(__name__)
 
-
 class CheckoutAPIView(APIView):
     """
     Handle checkout operations
@@ -40,7 +39,6 @@ class CheckoutAPIView(APIView):
             # Process checkout logic here
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class CheckoutStatusView(APIView):
     """
@@ -62,7 +60,6 @@ class CheckoutStatusView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class StripeWebhookView(APIView):
     """
@@ -86,7 +83,6 @@ class StripeWebhookView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class MobileMoneyWebhookView(APIView):
     """
@@ -116,7 +112,6 @@ class MobileMoneyWebhookView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class SubscriptionPaymentView(APIView):
     """
@@ -205,7 +200,6 @@ class SubscriptionPaymentView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-
 class RemittancePaymentView(APIView):
     """
     Handle remittance payments
@@ -243,7 +237,6 @@ class RemittancePaymentView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class BillPaymentView(APIView):
     """
@@ -283,7 +276,6 @@ class BillPaymentView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class PaymentView(APIView):
     """

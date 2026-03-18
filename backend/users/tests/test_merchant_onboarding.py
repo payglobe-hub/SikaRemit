@@ -17,7 +17,6 @@ from shared.constants import (
 
 User = get_user_model()
 
-
 def _get_merchant(user, **kwargs):
     """Get the signal-created Merchant and update its fields."""
     merchant = Merchant.objects.get(user=user)
@@ -26,7 +25,6 @@ def _get_merchant(user, **kwargs):
     if kwargs:
         merchant.save()
     return merchant
-
 
 class MerchantRegistrationTests(TestCase):
     """Test merchant account creation and profile setup."""
@@ -59,7 +57,6 @@ class MerchantRegistrationTests(TestCase):
         self.assertTrue(Merchant.objects.filter(user=user).exists())
         with self.assertRaises(Exception):
             Merchant.objects.create(user=user, business_name='Two', tax_id='TX2')
-
 
 class MerchantApprovalTests(TestCase):
     """Test merchant approval workflow."""
@@ -105,7 +102,6 @@ class MerchantApprovalTests(TestCase):
         self.merchant.refresh_from_db()
         self.assertFalse(self.merchant.is_approved)
 
-
 class MerchantSpecializationTests(TestCase):
     """Test merchant specialization fields."""
 
@@ -140,7 +136,6 @@ class MerchantSpecializationTests(TestCase):
         )
         self.assertTrue(merchant.is_remittance_agent)
         self.assertIn('GH', merchant.supported_countries)
-
 
 class MerchantCustomerOnboardingTests(TestCase):
     """Test merchant onboarding customers."""

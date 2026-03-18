@@ -44,7 +44,6 @@ class UserService:
             
         return queryset
 
-
 class KYCService:
     @staticmethod
     def initiate_verification(user, document_type, document_file):

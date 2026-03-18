@@ -13,7 +13,6 @@ from .exceptions import *
 
 logger = logging.getLogger('payments')
 
-
 class PaymentErrorHandlingMiddleware(MiddlewareMixin):
     """
     Middleware for handling payment-related errors with proper logging and user feedback
@@ -109,7 +108,6 @@ class PaymentErrorHandlingMiddleware(MiddlewareMixin):
             ip = request.META.get('REMOTE_ADDR')
         return ip
 
-
 class PaymentRequestLoggingMiddleware(MiddlewareMixin):
     """
     Middleware for logging all payment-related requests for audit and debugging
@@ -167,7 +165,6 @@ class PaymentRequestLoggingMiddleware(MiddlewareMixin):
         else:
             ip = request.META.get('REMOTE_ADDR')
         return ip
-
 
 class PaymentSecurityMiddleware(MiddlewareMixin):
     """

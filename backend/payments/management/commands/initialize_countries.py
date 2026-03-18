@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 from payments.models import Country, Currency
 
-
 class Command(BaseCommand):
     help = 'Initialize countries that match the 24 BoG currencies'
 

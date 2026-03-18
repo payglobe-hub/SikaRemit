@@ -6,7 +6,6 @@ from decimal import Decimal
 from datetime import timedelta
 import json
 
-
 class AnalyticsMetric(models.Model):
     """
     Real-time analytics metrics for dashboard
@@ -58,7 +57,6 @@ class AnalyticsMetric(models.Model):
     def __str__(self):
         return f"{self.metric_type} ({self.frequency}) - {self.period_start.date()}"
 
-
 class DashboardSnapshot(models.Model):
     """
     Daily snapshots of key dashboard metrics
@@ -105,7 +103,6 @@ class DashboardSnapshot(models.Model):
         total = self.successful_transactions + self.failed_transactions
         return (self.successful_transactions / total * 100) if total > 0 else 0
 
-
 class MerchantAnalytics(models.Model):
     """
     Detailed analytics for individual merchants
@@ -151,7 +148,6 @@ class MerchantAnalytics(models.Model):
 
     def __str__(self):
         return f"{self.merchant.business_name} - {self.date}"
-
 
 class TransactionAnalytics(models.Model):
     """
@@ -200,7 +196,6 @@ class TransactionAnalytics(models.Model):
 
     def __str__(self):
         return f"{self.transaction_type} #{self.transaction_id}"
-
 
 class PerformanceAlert(models.Model):
     """

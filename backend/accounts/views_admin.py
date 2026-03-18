@@ -21,7 +21,6 @@ from .services import AuthService
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
-
 class AdminSettingsMixin:
     """Mixin to handle admin settings operations"""
 
@@ -47,7 +46,7 @@ class AdminSettingsMixin:
                 json.dump(data, f, indent=2, default=str)
             return True
         except Exception as e:
-            print(f"Error saving settings to file: {e}")
+            
             return False
 
     def log_admin_activity(self, user, action, details=None):
@@ -62,7 +61,7 @@ class AdminSettingsMixin:
                 timestamp=timezone.now()
             )
         except Exception as e:
-            print(f"Error logging admin activity: {e}")
+            pass
 
     def get_client_ip(self):
         """Get client IP address"""
@@ -72,7 +71,6 @@ class AdminSettingsMixin:
         else:
             ip = self.request.META.get('REMOTE_ADDR')
         return ip
-
 
 class AdminGeneralSettingsView(AdminSettingsMixin, APIView):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
@@ -137,7 +135,6 @@ class AdminGeneralSettingsView(AdminSettingsMixin, APIView):
 
         return Response(settings_data)
 
-
 class AdminSecuritySettingsView(AdminSettingsMixin, APIView):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
@@ -189,7 +186,6 @@ class AdminSecuritySettingsView(AdminSettingsMixin, APIView):
             }
 
         return Response(settings_data)
-
 
 class AdminAPISettingsView(AdminSettingsMixin, APIView):
     permission_classes = [IsAuthenticated, IsBusinessAdmin]
@@ -243,7 +239,6 @@ class AdminAPISettingsView(AdminSettingsMixin, APIView):
 
         return Response(settings_data)
 
-
 class AdminNotificationSettingsView(AdminSettingsMixin, APIView):
     permission_classes = [IsAuthenticated, IsBusinessAdmin]
 
@@ -296,7 +291,6 @@ class AdminNotificationSettingsView(AdminSettingsMixin, APIView):
 
         return Response(settings_data)
 
-
 class AdminMaintenanceSettingsView(AdminSettingsMixin, APIView):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
@@ -345,7 +339,6 @@ class AdminMaintenanceSettingsView(AdminSettingsMixin, APIView):
 
         return Response(settings_data)
 
-
 class AdminUserCreateView(APIView):
     """
     Admin-only endpoint for creating user accounts (admin, merchant, customer)
@@ -393,7 +386,6 @@ class AdminUserCreateView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class AdminUserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -489,7 +481,6 @@ class AdminUserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-
 class AdminActivityView(APIView):
     """
     Admin activity logging and retrieval endpoint
@@ -510,7 +501,6 @@ class AdminActivityView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class SecurityAuditView(APIView):
     """
@@ -535,7 +525,6 @@ class SecurityAuditView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-
 class SessionListView(APIView):
     """
     User session listing endpoint
@@ -552,7 +541,6 @@ class SessionListView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class AuditReportView(APIView):
     """
@@ -575,7 +563,6 @@ class AuditReportView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class SessionAnalyticsView(APIView):
     """

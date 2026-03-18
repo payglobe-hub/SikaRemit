@@ -18,7 +18,6 @@ from payments.models.ledger import LedgerService
 
 logger = logging.getLogger(__name__)
 
-
 class SettlementBatch:
     """
     Lightweight value object representing a settlement batch.
@@ -30,7 +29,6 @@ class SettlementBatch:
         self.amount = amount
         self.currency = currency
         self.transaction_ids = transaction_ids
-
 
 class SettlementService:
     """

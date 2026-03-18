@@ -7,7 +7,6 @@ import uuid
 
 User = get_user_model()
 
-
 class ReferralCode(models.Model):
     """
     Unique referral codes that users can share with others
@@ -60,7 +59,6 @@ class ReferralCode(models.Model):
         """Increment successful referrals counter"""
         self.successful_referrals += 1
         self.save()
-
 
 class Referral(models.Model):
     """
@@ -171,7 +169,6 @@ class Referral(models.Model):
         self.rewarded_at = timezone.now()
         self.save()
 
-
 class Reward(models.Model):
     """
     Rewards that users can earn through referrals and other activities
@@ -260,7 +257,6 @@ class Reward(models.Model):
 
         return self
 
-
 class RewardTransaction(models.Model):
     """
     Records of reward redemptions and usages
@@ -298,7 +294,6 @@ class RewardTransaction(models.Model):
 
     def __str__(self):
         return f"Reward Transaction: {self.reward} - {self.transaction_type}"
-
 
 class ReferralCampaign(models.Model):
     """

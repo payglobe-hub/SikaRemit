@@ -12,7 +12,6 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-
 class SendGridBackend(BaseEmailBackend):
     """
     SendGrid email backend for Django

@@ -13,7 +13,6 @@ from shared.constants import (
 
 User = get_user_model()
 
-
 @receiver(post_save, sender=User)
 def create_or_update_admin_profile(sender, instance, created, **kwargs):
     """
@@ -104,7 +103,6 @@ def create_or_update_admin_profile(sender, instance, created, **kwargs):
             except AdminRole.DoesNotExist:
                 pass  # Will be handled by admin setup
 
-
 @receiver(pre_save, sender=AdminProfile)
 def validate_admin_hierarchy(sender, instance, **kwargs):
     """
@@ -122,7 +120,6 @@ def validate_admin_hierarchy(sender, instance, **kwargs):
         except AdminProfile.DoesNotExist:
             raise ValidationError("Manager must have an admin profile")
 
-
 @receiver(post_save, sender=AdminProfile)
 def log_admin_profile_changes(sender, instance, created, **kwargs):
     """
@@ -139,7 +136,6 @@ def log_admin_profile_changes(sender, instance, created, **kwargs):
             ip_address='127.0.0.1',
             user_agent='System Update'
         )
-
 
 @receiver(post_delete, sender=AdminProfile)
 def log_admin_profile_deletion(sender, instance, **kwargs):
@@ -159,7 +155,6 @@ def log_admin_profile_deletion(sender, instance, **kwargs):
         ip_address='127.0.0.1',
         user_agent='System Deletion'
     )
-
 
 class AdminPermissionService:
     """
@@ -254,7 +249,6 @@ class AdminPermissionService:
             description=description,
             **kwargs
         )
-
 
 class AdminSessionService:
     """

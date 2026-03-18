@@ -12,7 +12,6 @@ import uuid
 
 User = get_user_model()
 
-
 class Order(models.Model):
     """Customer orders"""
     STATUS_CHOICES = [
@@ -80,7 +79,6 @@ class Order(models.Model):
     def items_count(self):
         return self.items.aggregate(total=models.Sum('quantity'))['total'] or 0
 
-
 class OrderItem(models.Model):
     """Individual items in an order"""
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
@@ -94,7 +92,6 @@ class OrderItem(models.Model):
     @property
     def subtotal(self):
         return self.price * self.quantity
-
 
 class Payment(models.Model):
     """Payment records for orders"""
@@ -133,7 +130,6 @@ class Payment(models.Model):
     def __str__(self):
         return f"Payment {self.id} for Order {self.order.order_number}"
 
-
 class ShippingAddress(models.Model):
     """Customer shipping addresses"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
@@ -160,7 +156,6 @@ class ShippingAddress(models.Model):
         if self.is_default:
             ShippingAddress.objects.filter(user=self.user, is_default=True).update(is_default=False)
         super().save(*args, **kwargs)
-
 
 class CustomerProfile(models.Model):
     """Extended customer profile"""

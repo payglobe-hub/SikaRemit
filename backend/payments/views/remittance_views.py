@@ -10,7 +10,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class RemittanceView(APIView):
     """
     Handle international remittance requests
@@ -116,7 +115,6 @@ class RemittanceView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class OutboundRemittanceView(APIView):
     """
@@ -243,7 +241,6 @@ class OutboundRemittanceView(APIView):
             return '1-5 business days'
         else:
             return '1-3 business days'
-
 
 class GlobalRemittanceView(APIView):
     """

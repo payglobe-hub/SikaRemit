@@ -12,12 +12,12 @@ export function usePayoutWebhooks(
     const handler = async (event: MessageEvent<WebhookEvent>) => {
       try {
         if (!event.data.event_type || !event.data.payout_id) {
-          console.warn('Invalid webhook format')
+          
           return
         }
         
         if (!event.data.signature) {
-          console.error('Webhook rejected: missing signature')
+          
           return
         }
         
@@ -59,7 +59,7 @@ export function usePayoutWebhooks(
         
         callback(verified)
       } catch (err) {
-        console.error('Webhook processing error:', err)
+        
         callback(null)
       }
     }

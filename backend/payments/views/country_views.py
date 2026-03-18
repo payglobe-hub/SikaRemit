@@ -6,7 +6,6 @@ from django.db.utils import OperationalError
 from ..models import Country
 from ..serializers.country_serializers import CountrySerializer
 
-
 class CountryViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for Country management - Read-only for public access
@@ -14,7 +13,6 @@ class CountryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_active=True).select_related('currency')
     serializer_class = CountrySerializer
     permission_classes = [AllowAny]  # Countries list should be public
-
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -36,7 +34,6 @@ def countries_list(request):
             {'error': 'Failed to fetch countries'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

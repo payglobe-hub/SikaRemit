@@ -14,7 +14,6 @@ from asgiref.sync import async_to_sync
 
 logger = logging.getLogger(__name__)
 
-
 class ExchangeRateUpdateService:
     """
     Service for updating exchange rates from external APIs
@@ -303,10 +302,8 @@ class ExchangeRateUpdateService:
             )
         )
 
-
 # Global service instance
 rate_update_service = ExchangeRateUpdateService()
-
 
 class Command(BaseCommand):
     """

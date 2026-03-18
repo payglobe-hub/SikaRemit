@@ -109,13 +109,7 @@ export function validateProductionConfig(): { valid: boolean; errors: string[] }
  */
 export function logConfigStatus(): void {
   if (isDevelopment) {
-    
-    
-    
-    
-    
-    
-    
+
   }
 }
 

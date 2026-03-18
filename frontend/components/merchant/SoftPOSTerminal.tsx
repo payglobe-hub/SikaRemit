@@ -108,7 +108,7 @@ export default function SoftPOSTerminal({ merchantId, deviceType = 'smartphone_p
         await loadNetworkStatus()
         
       } catch (error) {
-        console.error('Failed to initialize Soft POS:', error)
+        
       }
     }
     
@@ -128,7 +128,7 @@ export default function SoftPOSTerminal({ merchantId, deviceType = 'smartphone_p
       const currencyList = Array.isArray(data) ? data : (data.results || [])
       setCurrencies(currencyList.filter((c: any) => c.is_active))
     } catch (error) {
-      console.error('Failed to load currencies:', error)
+      
     }
   }
   
@@ -137,7 +137,7 @@ export default function SoftPOSTerminal({ merchantId, deviceType = 'smartphone_p
       const response = await api.get('/api/v1/payments/soft-pos/device-status/')
       setDeviceStatus(response.data)
     } catch (error) {
-      console.error('Failed to load device status:', error)
+      
       setDeviceStatus({
         online: true,
         batteryLevel: 100,
@@ -165,7 +165,7 @@ export default function SoftPOSTerminal({ merchantId, deviceType = 'smartphone_p
       }
       setSupportedMethods(apiMethods.map((m: any) => ({ ...m, icon: iconMap[m.id] || <Phone className="w-4 h-4" /> })))
     } catch (error) {
-      console.error('Failed to load supported methods:', error)
+      
       // Fallback to default methods
       setSupportedMethods([
         { id: 'credit_card', name: 'Credit/Debit Card', icon: <CreditCard className="w-4 h-4" />, description: 'Manual card entry', enabled: true, requiresCustomerInput: true },
@@ -180,7 +180,7 @@ export default function SoftPOSTerminal({ merchantId, deviceType = 'smartphone_p
       const response = await api.get('/api/v1/payments/soft-pos/network-status/')
       setNetworkStatus(response.data?.networks || [])
     } catch (error) {
-      console.error('Failed to load network status:', error)
+      
       setNetworkStatus([
         { id: 'mtn', name: 'MTN Mobile Money', color: 'orange', status: 'online' },
         { id: 'telecel', name: 'Telecel Cash', color: 'red', status: 'online' },
@@ -223,7 +223,7 @@ export default function SoftPOSTerminal({ merchantId, deviceType = 'smartphone_p
         setResult({ success: false, error: data.error || 'Payment failed' })
       }
     } catch (error) {
-      console.error('Payment processing error:', error)
+      
       setResult({ success: false, error: 'Payment processing failed' })
     } finally {
       setProcessing(false)
@@ -298,7 +298,7 @@ export default function SoftPOSTerminal({ merchantId, deviceType = 'smartphone_p
           })
         }
       } catch (error) {
-        console.error('Payment status check error:', error)
+        
       }
     }, 5000) // Check every 5 seconds
   }

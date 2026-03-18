@@ -38,7 +38,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 class PerformanceOptimizer:
     """Main performance optimization manager for SikaRemit"""
 
@@ -222,7 +221,6 @@ class PerformanceOptimizer:
 
         return recommendations
 
-
 class DatabaseQueryOptimizer:
     """Database query optimization utilities"""
 
@@ -266,7 +264,6 @@ class DatabaseQueryOptimizer:
             pass
 
         logger.info("Query caching implemented for expensive operations")
-
 
 class RedisCacheManager:
     """Redis cache management utilities"""
@@ -332,7 +329,6 @@ class RedisCacheManager:
         except ImportError:
             logger.warning("redis-py not available for pattern invalidation")
 
-
 class APIPerformanceMiddleware(MiddlewareMixin):
     """API performance monitoring middleware"""
 
@@ -356,7 +352,6 @@ class APIPerformanceMiddleware(MiddlewareMixin):
         response['X-API-Version'] = getattr(settings, 'API_VERSION', 'v1')
 
         return response
-
 
 class CDNConfiguration:
     """CDN configuration utilities"""
@@ -389,47 +384,34 @@ class CDNConfiguration:
         # This would integrate with image optimization services
         logger.info("Image optimization pipeline configured")
 
-
 def run_performance_optimization():
     """Main function to run performance optimization"""
     optimizer = PerformanceOptimizer()
 
-    print("⚡ SikaRemit Performance Optimization Suite")
-    print("=" * 50)
-
     try:
         results = optimizer.run_performance_audit()
 
-        print("\n✅ Performance audit completed successfully!")
-        print(f"📄 Report saved to: {optimizer.reports_path}")
-
-        print("\n📊 Performance Status:")
-        print(f"   • Database: {'✅' if results.get('database_performance') else '❌'}")
-        print(f"   • Caching: {'✅' if results.get('cache_configuration', {}).get('redis_available') else '⚠️'}")
-        print(f"   • API Performance: {'✅' if results.get('api_performance') else '❌'}")
-        print(f"   • CDN Readiness: {'✅' if results.get('cdn_readiness') else '❌'}")
+         else '❌'}")
+        .get('redis_available') else '⚠️'}")
+         else '❌'}")
+         else '❌'}")
 
         if results.get('recommendations'):
-            print("\n💡 Performance Recommendations:")
+            
             for i, rec in enumerate(results['recommendations'][:5], 1):
-                print(f"   {i}. {rec}")
 
         # Apply optimizations
-        print("\n🔧 Applying Performance Optimizations...")
 
         DatabaseQueryOptimizer.optimize_transaction_queries()
         RedisCacheManager.setup_redis_cache()
         CDNConfiguration.optimize_static_files()
 
-        print("✅ Performance optimizations applied successfully!")
-
     except Exception as e:
         logger.error(f"Performance optimization failed: {str(e)}")
-        print(f"❌ Performance optimization failed: {str(e)}")
+        }")
         return 1
 
     return 0
-
 
 if __name__ == '__main__':
     sys.exit(run_performance_optimization())

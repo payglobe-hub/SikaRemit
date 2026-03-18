@@ -10,7 +10,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class EmailService:
     """
     Professional email service for transactional communications

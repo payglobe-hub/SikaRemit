@@ -2,7 +2,6 @@ from rest_framework import serializers
 from ..models import POSDevice, POSTransaction
 from ..pos_integration import POSDeviceType, POSTransactionType
 
-
 class POSDeviceSerializer(serializers.ModelSerializer):
     """Serializer for POS Device model"""
 
@@ -13,7 +12,6 @@ class POSDeviceSerializer(serializers.ModelSerializer):
             'location', 'status', 'last_seen', 'created_at', 'updated_at'
         ]
         read_only_fields = ['device_id', 'created_at', 'updated_at', 'last_seen']
-
 
 class POSDeviceRegistrationSerializer(serializers.Serializer):
     """Serializer for POS device registration"""
@@ -36,7 +34,6 @@ class POSDeviceRegistrationSerializer(serializers.Serializer):
             raise serializers.ValidationError(f"Invalid device type. Must be one of: {', '.join(valid_types)}")
         return value
 
-
 class POSTransactionSerializer(serializers.ModelSerializer):
     """Serializer for POS Transaction model"""
 
@@ -51,7 +48,6 @@ class POSTransactionSerializer(serializers.ModelSerializer):
             'processor_response', 'created_at'
         ]
         read_only_fields = ['transaction_id', 'created_at']
-
 
 class POSTransactionCreateSerializer(serializers.Serializer):
     """Serializer for creating POS transactions"""

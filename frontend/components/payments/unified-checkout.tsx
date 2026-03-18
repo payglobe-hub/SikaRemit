@@ -103,7 +103,7 @@ export function UnifiedCheckout({
       })
       return feeData.total_fee || 0
     } catch (error) {
-      console.error('Fee calculation failed:', error)
+      
       // Fallback to minimal fee if calculation fails
       return Math.max(transactionContext.amount * 0.005, 0.50)
     }
@@ -120,7 +120,7 @@ export function UnifiedCheckout({
         const calculatedFees = await calculateFees()
         setFees(calculatedFees)
       } catch (error) {
-        console.error('Failed to calculate fees:', error)
+        
         setFees(0)
       } finally {
         setFeesLoading(false)

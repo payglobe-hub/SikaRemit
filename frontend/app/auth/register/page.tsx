@@ -42,7 +42,7 @@ export default function RegisterPage() {
       
       window.location.href = authUrl
     } catch (error) {
-      console.error('Google sign in failed:', error)
+      
       toast({
         title: 'Google Sign-in Failed',
         description: 'Failed to initiate Google sign-in. Please try again.',
@@ -83,7 +83,7 @@ export default function RegisterPage() {
       window.location.href = '/auth/login'
 
     } catch (error: any) {
-      console.error('Registration failed:', error)
+      
       toast({
         title: 'Registration Failed',
         description: error.response?.data?.error || 'Failed to create account. Please try again.',

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from ..models.analytics import PerformanceAlert
 
-
 class PerformanceAlertSerializer(serializers.ModelSerializer):
     acknowledged_by_name = serializers.SerializerMethodField()
 

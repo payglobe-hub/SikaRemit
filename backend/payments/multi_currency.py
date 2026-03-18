@@ -13,7 +13,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class Currency:
     """Currency data class"""
     
@@ -139,7 +138,6 @@ class Currency:
         amount = amount.quantize(Decimal(10) ** -decimal_places, rounding=ROUND_HALF_UP)
         
         return f"{symbol}{amount:,.{decimal_places}f}"
-
 
 class ExchangeRateProvider:
     """
@@ -296,7 +294,6 @@ class ExchangeRateProvider:
         
         logger.info("Exchange rates updated successfully")
 
-
 class CurrencyConverter:
     """Currency conversion utility"""
     
@@ -364,19 +361,16 @@ class CurrencyConverter:
             'formatted_converted': Currency.format_amount(converted, to_currency),
         }
 
-
 # Utility functions
 def get_supported_currencies() -> List[Dict]:
     """Get list of all supported currencies"""
     return Currency.get_all_currencies()
-
 
 def convert_currency(amount: Decimal, from_currency: str, to_currency: str) -> Decimal:
     """Quick currency conversion"""
     converter = CurrencyConverter()
     converted, _, _ = converter.convert(amount, from_currency, to_currency)
     return converted
-
 
 def format_money(amount: Decimal, currency: str) -> str:
     """Format amount as money with currency symbol"""

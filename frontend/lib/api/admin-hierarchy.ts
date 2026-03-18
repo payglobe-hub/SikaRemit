@@ -166,8 +166,23 @@ export async function cleanupExpiredSessions(): Promise<{ message: string; clean
 
 // Permission Overview API
 export async function getPermissionOverview(): Promise<PermissionOverview> {
-  const response = await api.get('/api/v1/users/admin/permissions-overview/');
-  return response.data;
+  try {
+    
+    const response = await api.get('/api/v1/users/admin/permissions-overview/');
+    
+    return response.data;
+  } catch (error: any) {
+
+    // Return fallback permission data with correct type
+    const fallbackData: PermissionOverview = {
+      user_permissions: [],
+      all_permissions: [],
+      user_role: 'unknown',
+      user_level: 0
+    };
+
+    return fallbackData;
+  }
 }
 
 // Accessible Admins API

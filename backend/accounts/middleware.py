@@ -51,7 +51,6 @@ class AdminActivityMiddleware:
         
         return response
 
-
 class BlacklistJWTAuthentication(JWTAuthentication):
     """
     Custom JWT authentication that checks token blacklist
@@ -71,7 +70,6 @@ class BlacklistJWTAuthentication(JWTAuthentication):
             raise InvalidToken('Token has been blacklisted')
         
         return validated_token
-
 
 class TokenBlacklistMiddleware:
     """

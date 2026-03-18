@@ -383,7 +383,6 @@ class PaymentAdmin(admin.ModelAdmin):
 
     actions = [mark_completed, mark_failed, export_csv, export_bill_payments_csv, export_remittances_csv]
 
-
 class PaymentsAdminSite(admin.AdminSite):
     def get_app_list(self, request):
         app_list = super().get_app_list(request)
@@ -517,13 +516,11 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_filter = ('status', 'created_at')
     search_fields = ('user__email', 'plan')
 
-
 class RemittanceAdmin(PaymentAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).filter(payment_type='remittance')
 
     list_display = ('id', 'customer_link', 'merchant_link', 'amount_with_currency', 'recipient_name', 'recipient_country', 'status_badge')
-
 
 # Fee Management Admin Classes
 from payments.models.fees import FeeConfiguration, FeeCalculationLog, MerchantFeeOverride

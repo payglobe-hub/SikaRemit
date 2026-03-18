@@ -11,6 +11,10 @@ const PUBLIC_AUTH_PATHS = [
   '/api/v1/accounts/password/reset/confirm/',
   '/api/v1/accounts/verify-email/',
   '/api/v1/accounts/resend-verification/',
+  '/api/v1/payments/currencies/',
+  '/api/v1/payments/exchange-rates/',
+  '/api/v1/users/admin/permissions-overview/',
+  '/api/v1/users/admin/accessible-admins/',
 ];
 
 const isPublicAuthRequest = (url?: string) => {
@@ -21,7 +25,7 @@ const isPublicAuthRequest = (url?: string) => {
 // Create axios instance with base URL
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -53,15 +57,15 @@ api.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
         // Debug token presence
-        console.debug('API Request:', config.method?.toUpperCase(), config.url, 'Token present:', !!token);
+        console.log(config.url, 'Token present:', !!token);
       } else {
-        console.warn('API Request:', config.method?.toUpperCase(), config.url, 'No token found');
+        console.log(config.url, 'No token found');
       }
     }
     return config;
   },
   (error) => {
-    console.error('Request interceptor error:', error);
+    
     return Promise.reject(error);
   }
 );
@@ -77,11 +81,11 @@ api.interceptors.response.use(
       !originalRequest._retry &&
       !isPublicAuthRequest(originalRequest.url)
     ) {
-      console.warn('401 Unauthorized for:', originalRequest.method?.toUpperCase(), originalRequest.url);
+      console.log(originalRequest.url);
       
       // If refresh is already in progress, queue the request
       if (isRefreshing) {
-        console.debug('Token refresh in progress, queuing request');
+        
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then((token) => {
@@ -99,13 +103,12 @@ api.interceptors.response.use(
         if (typeof window !== 'undefined') {
           const refreshToken = authTokens.getRefreshToken();
           if (!refreshToken) {
-            console.error('No refresh token available');
+            
             authTokens.clearTokens();
             window.location.href = '/auth';
             return Promise.reject(error);
           }
 
-          console.debug('Attempting token refresh...');
           const response = await axios.post(
             `${API_BASE_URL}/api/v1/accounts/refresh/`,
             { refresh: refreshToken }
@@ -113,7 +116,6 @@ api.interceptors.response.use(
 
           const { access } = response.data;
           authTokens.setAccessToken(access);
-          console.debug('Token refresh successful');
 
           originalRequest.headers.Authorization = `Bearer ${access}`;
           
@@ -123,7 +125,7 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
       } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
+        
         if (typeof window !== 'undefined') {
           authTokens.clearTokens();
           processQueue(refreshError, null);

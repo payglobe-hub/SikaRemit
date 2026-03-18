@@ -11,7 +11,6 @@ from payments.services.advanced_compliance_service import PEPSanctionsService, C
 from users.models import Customer, Merchant
 from payments.models import Transaction
 
-
 class AdvancedComplianceViewSet(viewsets.ViewSet):
     """
     Advanced compliance screening and monitoring API
@@ -226,7 +225,6 @@ class AdvancedComplianceViewSet(viewsets.ViewSet):
                 {'error': f'Screening stats failed: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
 
 class ComplianceMonitoringViewSet(viewsets.ViewSet):
     """

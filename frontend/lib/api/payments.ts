@@ -329,8 +329,7 @@ export async function deletePaymentMethod(methodId: string): Promise<void> {
   try {
     await api.delete(`/api/v1/payments/methods/${methodId}/`)
   } catch (error: any) {
-    console.error('Delete payment method failed:', error?.message, 'status:', error?.response?.status)
-    
+
     // If it's a 404, the payment method doesn't exist - treat as success
     if (error.response?.status === 404) {
       return
@@ -578,7 +577,7 @@ export async function sendDomesticTransfer(data: {
     const response = await api.post('/api/v1/payments/domestic-transfers/', requestData)
     return response.data
   } catch (error: any) {
-    console.error('sendDomesticTransfer error response:', error.response?.data)
+    
     throw error
   }
 }

@@ -16,7 +16,6 @@ from .serializers.referrals import (
     ReferralStatsSerializer, ReferralCampaignSerializer
 )
 
-
 class ReferralCodeViewSet(generics.RetrieveAPIView):
     """
     ViewSet for managing user's referral code
@@ -49,7 +48,6 @@ class ReferralCodeViewSet(generics.RetrieveAPIView):
             'new_code': referral_code.code,
             'data': serializer.data
         })
-
 
 class ReferralViewSet(generics.ListAPIView):
     """
@@ -119,7 +117,6 @@ class ReferralViewSet(generics.ListAPIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-
 class RewardViewSet(ModelViewSet):
     """
     ViewSet for managing rewards
@@ -186,7 +183,6 @@ class RewardViewSet(ModelViewSet):
                 {'error': f'Failed to redeem reward: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -263,7 +259,6 @@ def referral_stats(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_referral_qualification(request):
@@ -320,7 +315,6 @@ def update_referral_qualification(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def active_campaigns(request):
@@ -339,7 +333,6 @@ def active_campaigns(request):
 
     serializer = ReferralCampaignSerializer(campaigns, many=True)
     return Response(serializer.data)
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

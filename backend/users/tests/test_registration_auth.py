@@ -18,7 +18,6 @@ from shared.constants import (
 
 User = get_user_model()
 
-
 class UserCreationTests(TestCase):
     """Test user creation for all types."""
 
@@ -92,7 +91,6 @@ class UserCreationTests(TestCase):
                 username='dupeuser', email='b@test.com', password='testpass123'
             )
 
-
 class AuthenticationTests(TestCase):
     """Test authentication flows."""
 
@@ -132,7 +130,6 @@ class AuthenticationTests(TestCase):
         self.assertTrue(self.user.check_password('new_password'))
         self.assertFalse(self.user.check_password('correct_password'))
 
-
 class CustomerProfileTests(TestCase):
     """Test customer profile auto-creation via signal and fields."""
 
@@ -157,7 +154,6 @@ class CustomerProfileTests(TestCase):
         self.assertTrue(customer.transaction_alerts)
         self.assertTrue(customer.security_alerts)
         self.assertFalse(customer.marketing_emails)
-
 
 class MerchantProfileTests(TestCase):
     """Test merchant profile auto-creation via signal and fields."""

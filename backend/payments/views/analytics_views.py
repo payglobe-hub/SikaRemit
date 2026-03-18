@@ -18,7 +18,6 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-
 class AnalyticsViewSet(viewsets.ViewSet):
     """
     Advanced analytics API endpoints
@@ -204,7 +203,6 @@ class AnalyticsViewSet(viewsets.ViewSet):
                 {'error': f'Failed to fetch dashboard overview: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
 
 class MerchantAnalyticsViewSet(viewsets.ViewSet):
     """

@@ -16,7 +16,6 @@ from shared.constants import USER_TYPE_MERCHANT, USER_TYPE_CUSTOMER
 
 User = get_user_model()
 
-
 class BusinessAccountTests(TestCase):
     """Test B2B business account creation and properties."""
 
@@ -72,7 +71,6 @@ class BusinessAccountTests(TestCase):
         )
         self.assertEqual(account.credit_limit, Decimal('50000.00'))
 
-
 class BusinessRoleTests(TestCase):
     """Test business roles and permissions."""
 
@@ -127,7 +125,6 @@ class BusinessRoleTests(TestCase):
                 role_type=role_type
             )
             self.assertEqual(role.role_type, role_type)
-
 
 class BusinessUserTests(TestCase):
     """Test business user membership."""
@@ -192,7 +189,6 @@ class BusinessUserTests(TestCase):
                 user=self.employee, role=self.role
             )
 
-
 class BulkPaymentTests(TestCase):
     """Test bulk payment batches."""
 
@@ -246,7 +242,6 @@ class BulkPaymentTests(TestCase):
         bulk.save()
         bulk.refresh_from_db()
         self.assertEqual(bulk.status, 'cancelled')
-
 
 class BulkPaymentItemTests(TestCase):
     """Test individual items in bulk payments."""

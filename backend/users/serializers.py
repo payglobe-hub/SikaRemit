@@ -42,7 +42,6 @@ class CustomerSerializer(serializers.ModelSerializer):
         model = Customer
         fields = '__all__'
 
-
 class MerchantCustomerSerializer(serializers.ModelSerializer):
     merchant = MerchantSerializer(read_only=True)
     customer = CustomerSerializer(read_only=True)
@@ -67,7 +66,6 @@ class MerchantCustomerSerializer(serializers.ModelSerializer):
         if latest:
             return MerchantKYCSubmissionSerializer(latest).data
         return None
-
 
 class MerchantKYCSubmissionSerializer(serializers.ModelSerializer):
     merchant_customer = MerchantCustomerSerializer(read_only=True)

@@ -9,7 +9,6 @@ from merchants.models import Product
 from .models_cart import ShoppingCart, CartItem, Wishlist, WishlistItem
 from .models import Order, OrderItem, Payment, ShippingAddress
 
-
 class CartItemSerializer(serializers.ModelSerializer):
     """Serializer for cart items"""
     product_name = serializers.CharField(source='product.name', read_only=True)
@@ -30,7 +29,6 @@ class CartItemSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'added_at', 'updated_at']
 
-
 class CartSerializer(serializers.ModelSerializer):
     """Basic cart serializer"""
     total_items = serializers.IntegerField(read_only=True)
@@ -46,7 +44,6 @@ class CartSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-
 class CartDetailSerializer(CartSerializer):
     """Detailed cart serializer with items"""
     items = CartItemSerializer(many=True, read_only=True)
@@ -58,7 +55,6 @@ class CartDetailSerializer(CartSerializer):
     
     class Meta(CartSerializer.Meta):
         fields = CartSerializer.Meta.fields + ['items', 'unavailable_items']
-
 
 class WishlistItemSerializer(serializers.ModelSerializer):
     """Serializer for wishlist items"""
@@ -81,7 +77,6 @@ class WishlistItemSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'added_at']
 
-
 class WishlistSerializer(serializers.ModelSerializer):
     """Wishlist serializer"""
     items = WishlistItemSerializer(many=True, read_only=True)
@@ -93,7 +88,6 @@ class WishlistSerializer(serializers.ModelSerializer):
             'id', 'items', 'item_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
-
 
 class AddToCartSerializer(serializers.Serializer):
     """Serializer for adding items to cart"""
@@ -113,7 +107,6 @@ class AddToCartSerializer(serializers.Serializer):
         except Product.DoesNotExist:
             raise serializers.ValidationError("Product not available")
 
-
 class UpdateCartItemSerializer(serializers.Serializer):
     """Serializer for updating cart item quantity"""
     item_id = serializers.UUIDField()
@@ -125,11 +118,9 @@ class UpdateCartItemSerializer(serializers.Serializer):
             raise serializers.ValidationError("Quantity cannot be negative")
         return value
 
-
 class RemoveFromCartSerializer(serializers.Serializer):
     """Serializer for removing items from cart"""
     item_id = serializers.UUIDField()
-
 
 class BulkAddToCartSerializer(serializers.Serializer):
     """Serializer for bulk adding items to cart"""
@@ -149,7 +140,6 @@ class BulkAddToCartSerializer(serializers.Serializer):
         
         return value
 
-
 class AddToWishlistSerializer(serializers.Serializer):
     """Serializer for adding items to wishlist"""
     product_id = serializers.UUIDField()
@@ -166,11 +156,9 @@ class AddToWishlistSerializer(serializers.Serializer):
         except Product.DoesNotExist:
             raise serializers.ValidationError("Product not found")
 
-
 class RemoveFromWishlistSerializer(serializers.Serializer):
     """Serializer for removing items from wishlist"""
     product_id = serializers.UUIDField()
-
 
 class CartSummarySerializer(serializers.Serializer):
     """Serializer for cart summary response"""
@@ -181,12 +169,10 @@ class CartSummarySerializer(serializers.Serializer):
     is_empty = serializers.BooleanField()
     items_count = serializers.IntegerField()
 
-
 class RecommendedProductsSerializer(serializers.Serializer):
     """Serializer for recommended products response"""
     recommended_products = serializers.ListField()
     recommendation_type = serializers.CharField()
-
 
 # Order and Payment Serializers
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -204,7 +190,6 @@ class OrderItemSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id']
 
-
 class OrderSerializer(serializers.ModelSerializer):
     """Basic order serializer"""
     items = OrderItemSerializer(many=True, read_only=True)
@@ -218,7 +203,6 @@ class OrderSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'order_number', 'created_at', 'updated_at']
-
 
 class OrderDetailSerializer(OrderSerializer):
     """Detailed order serializer"""
@@ -234,7 +218,6 @@ class OrderDetailSerializer(OrderSerializer):
         except Payment.DoesNotExist:
             return None
 
-
 class PaymentSerializer(serializers.ModelSerializer):
     """Serializer for payment records"""
     
@@ -245,7 +228,6 @@ class PaymentSerializer(serializers.ModelSerializer):
             'status', 'gateway_transaction_id', 'created_at', 'processed_at'
         ]
         read_only_fields = ['id', 'created_at', 'processed_at']
-
 
 class ShippingAddressSerializer(serializers.ModelSerializer):
     """Serializer for shipping addresses"""

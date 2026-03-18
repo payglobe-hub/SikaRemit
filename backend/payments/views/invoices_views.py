@@ -21,7 +21,6 @@ from .serializers.invoices import (
     InvoiceTemplateSerializer
 )
 
-
 def generate_invoice_pdf(invoice):
     """Generate PDF for an invoice"""
     buffer = BytesIO()
@@ -133,7 +132,6 @@ def generate_invoice_pdf(invoice):
     buffer.seek(0)
     return buffer
 
-
 # Business Clients
 class BusinessClientViewSet(ModelViewSet):
     """
@@ -169,7 +167,6 @@ class BusinessClientViewSet(ModelViewSet):
         serializer = self.get_serializer(clients, many=True)
         return Response({'results': serializer.data})
 
-
 # Invoice Templates
 class InvoiceTemplateViewSet(ModelViewSet):
     """
@@ -190,7 +187,6 @@ class InvoiceTemplateViewSet(ModelViewSet):
             ).update(is_default=False)
 
         serializer.save(user=self.request.user)
-
 
 # Invoices
 class InvoiceViewSet(ModelViewSet):
@@ -472,7 +468,6 @@ SikaRemit
 
         return Response(analytics)
 
-
 # Invoice Items
 class InvoiceItemViewSet(ModelViewSet):
     """
@@ -501,7 +496,6 @@ class InvoiceItemViewSet(ModelViewSet):
 
         # Recalculate invoice totals
         invoice.save()
-
 
 # Invoice Payments
 class InvoicePaymentViewSet(generics.ListCreateAPIView):
@@ -534,7 +528,6 @@ class InvoicePaymentViewSet(generics.ListCreateAPIView):
         invoice.amount_paid += payment.amount
         invoice.save()
 
-
 # Utility APIs
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -564,7 +557,6 @@ def overdue_invoices(request):
         'total_overdue': invoices.count(),
         'total_amount_overdue': invoices.aggregate(total=models.Sum('amount_due'))['total'] or 0
     })
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -646,7 +638,6 @@ def send_reminder(request, invoice_id):
         'reminder_id': reminder.id
     })
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def bulk_send_invoices(request):
@@ -690,7 +681,6 @@ def bulk_send_invoices(request):
         'sent_count': sent_count,
         'errors': errors
     })
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

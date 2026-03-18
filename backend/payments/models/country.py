@@ -2,7 +2,6 @@ from django.db import models
 from django.core.validators import RegexValidator
 from .currency import Currency
 
-
 class Country(models.Model):
     """
     Country model for geographic location data

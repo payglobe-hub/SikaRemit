@@ -8,7 +8,6 @@ from decimal import Decimal
 from ..models.fees import FeeConfiguration, FeeCalculationLog, MerchantFeeOverride
 from ..services.fee_calculator import DynamicFeeCalculator
 
-
 class FeeConfigurationSerializer(serializers.ModelSerializer):
     """Serializer for FeeConfiguration model"""
     fee_type_display = serializers.CharField(source='get_fee_type_display', read_only=True)
@@ -41,7 +40,6 @@ class FeeConfigurationSerializer(serializers.ModelSerializer):
         if obj.created_by:
             return f"{obj.created_by.first_name} {obj.created_by.last_name}".strip() or obj.created_by.email
         return None
-
 
 class FeeConfigurationViewSet(viewsets.ModelViewSet):
     """
@@ -178,7 +176,6 @@ class FeeConfigurationViewSet(viewsets.ModelViewSet):
             'fee_configurations': summary
         })
 
-
 class MerchantFeeOverrideViewSet(viewsets.ModelViewSet):
     """
     API for merchants to request fee overrides
@@ -263,7 +260,6 @@ class MerchantFeeOverrideViewSet(viewsets.ModelViewSet):
         override.save()
 
         return Response({'message': 'Fee override rejected'})
-
 
 class FeeCalculationLogViewSet(viewsets.ReadOnlyModelViewSet):
     """

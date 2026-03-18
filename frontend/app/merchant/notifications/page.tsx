@@ -147,7 +147,7 @@ export default function MerchantNotificationsPage() {
     try {
       await markAsReadMutation.mutateAsync(notificationId)
     } catch (error) {
-      console.error('Failed to mark notification as read:', error)
+      
     }
   }
 
@@ -155,7 +155,7 @@ export default function MerchantNotificationsPage() {
     try {
       await markAllAsReadMutation.mutateAsync()
     } catch (error) {
-      console.error('Failed to mark all notifications as read:', error)
+      
     }
   }
 

@@ -13,7 +13,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class PerformanceBenchmark:
     """
     Performance benchmarking utility
@@ -53,7 +52,6 @@ class PerformanceBenchmark:
             'max': max(self.measurements),
             'stdev': statistics.stdev(self.measurements) if len(self.measurements) > 1 else 0
         }
-
 
 def benchmark(name: Optional[str] = None, iterations: int = 1):
     """
@@ -104,7 +102,6 @@ def benchmark(name: Optional[str] = None, iterations: int = 1):
         
         return wrapper
     return decorator
-
 
 class DatabaseQueryBenchmark:
     """
@@ -160,7 +157,6 @@ class DatabaseQueryBenchmark:
                     })
         
         return slow_queries
-
 
 class APIEndpointBenchmark:
     """
@@ -225,7 +221,6 @@ class APIEndpointBenchmark:
             'status_codes': status_codes,
             'success_rate': sum(1 for code in status_codes if 200 <= code < 300) / len(status_codes)
         }
-
 
 class PaymentProcessingBenchmark:
     """
@@ -321,7 +316,6 @@ class PaymentProcessingBenchmark:
             'max_time': max(measurements)
         }
 
-
 class CacheBenchmark:
     """
     Benchmark cache operations
@@ -378,7 +372,6 @@ class CacheBenchmark:
         
         return results
 
-
 class BenchmarkReport:
     """
     Generate benchmark reports
@@ -415,30 +408,22 @@ class BenchmarkReport:
         """
         Print formatted benchmark report
         """
-        print("\n" + "="*60)
-        print("SikaRemit PERFORMANCE BENCHMARK REPORT")
-        print("="*60 + "\n")
-        
+
         for name, results in report['benchmarks'].items():
-            print(f"\n{name.upper().replace('_', ' ')}")
-            print("-" * 40)
-            
+            .replace('_', ' ')}")
+
             if isinstance(results, dict):
                 for key, value in results.items():
                     if isinstance(value, dict):
-                        print(f"  {key}:")
+                        
                         for k, v in value.items():
                             if isinstance(v, float):
-                                print(f"    {k}: {v:.6f}s")
+                                
                             else:
-                                print(f"    {k}: {v}")
+                                
                     elif isinstance(value, float):
-                        print(f"  {key}: {value:.6f}s")
+                        
                     else:
-                        print(f"  {key}: {value}")
-        
-        print("\n" + "="*60 + "\n")
-
 
 # Management command to run benchmarks
 def run_all_benchmarks():

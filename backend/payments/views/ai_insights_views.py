@@ -8,7 +8,6 @@ from rest_framework.views import APIView
 
 from .ai_financial_advisor_service import AIFinancialAdvisorService
 
-
 class FinancialInsightsView(APIView):
     """
     API endpoint for AI-powered financial insights and recommendations
@@ -58,7 +57,6 @@ class FinancialInsightsView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def spending_patterns(request):
@@ -107,7 +105,6 @@ def spending_patterns(request):
             {'error': f'Failed to get spending patterns: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -159,7 +156,6 @@ def financial_recommendations(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def financial_predictions(request):
@@ -183,7 +179,6 @@ def financial_predictions(request):
             {'error': f'Failed to get predictions: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -230,7 +225,6 @@ def financial_health_score(request):
             return 0
 
         return ((income - expenses) / income) * 100
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

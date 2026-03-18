@@ -530,25 +530,22 @@ class AdminUserViewSet(viewsets.ModelViewSet):
         return queryset
     
     def create(self, request, *args, **kwargs):
-        print(f"DEBUG CREATE: Received data: {request.data}")
-        
+
         # Handle password separately in serializer
         serializer = self.get_serializer(data=request.data)
-        print(f"DEBUG CREATE: Serializer initialized")
-        
+
         try:
             serializer.is_valid(raise_exception=True)
-            print(f"DEBUG CREATE: Validation passed")
+            
         except Exception as e:
-            print(f"DEBUG CREATE: Validation failed: {e}")
-            print(f"DEBUG CREATE: Serializer errors: {serializer.errors}")
+
             raise
         
         try:
             user = serializer.save()
-            print(f"DEBUG CREATE: User created successfully: {user.email}")
+            
         except Exception as e:
-            print(f"DEBUG CREATE: User save failed: {e}")
+            
             raise
         
         # Log admin action
@@ -591,7 +588,8 @@ class AdminUserViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             # Log the error but don't fail the update
-            print(f"Warning: Failed to log audit action: {e}")
+            import traceback
+            traceback.print_exc()
         
         return Response(serializer.data)
     
@@ -612,7 +610,8 @@ class AdminUserViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             # Log the error but don't fail the deletion
-            print(f"Warning: Failed to log audit action: {e}")
+            import traceback
+            traceback.print_exc()
         
         try:
             self.perform_destroy(instance)
@@ -621,8 +620,8 @@ class AdminUserViewSet(viewsets.ModelViewSet):
             # Detailed error logging
             import traceback
             error_msg = str(e)
-            print(f"DELETE ERROR for user {instance.email} (ID: {instance.id}): {error_msg}")
-            print("Full traceback:")
+            print(f"Error deleting recipient: {error_msg}")
+            
             traceback.print_exc()
             
             # Check for specific database errors

@@ -16,7 +16,6 @@ from shared.constants import USER_TYPE_SUPER_ADMIN, USER_TYPE_MERCHANT
 
 logger = logging.getLogger(__name__)
 
-
 class AdvancedRateLimiter:
     """
     Advanced rate limiter with sliding window, burst allowance, and tiered limits
@@ -161,7 +160,6 @@ class AdvancedRateLimiter:
 
         return 'free'
 
-
 class AdvancedThrottle(BaseThrottle):
     """
     Advanced Django REST Framework throttle with tiered limits
@@ -215,7 +213,6 @@ class AdvancedThrottle(BaseThrottle):
         """
         return getattr(self, 'wait', 60)
 
-
 class BurstThrottle(AdvancedThrottle):
     """
     Throttle that focuses on burst prevention
@@ -225,7 +222,6 @@ class BurstThrottle(AdvancedThrottle):
         # Use same logic as parent but with burst-focused limits
         return super().allow_request(request, view)
 
-
 class SustainedThrottle(AdvancedThrottle):
     """
     Throttle that focuses on sustained rate limiting
@@ -234,7 +230,6 @@ class SustainedThrottle(AdvancedThrottle):
     def allow_request(self, request, view):
         # Use same logic as parent but with sustained-focused limits
         return super().allow_request(request, view)
-
 
 class EndpointThrottle(AdvancedThrottle):
     """
@@ -260,7 +255,6 @@ class EndpointThrottle(AdvancedThrottle):
 
         return super().allow_request(request, view)
 
-
 def rate_limit_exceeded_handler(request, exc):
     """
     Custom handler for rate limit exceeded responses
@@ -271,7 +265,6 @@ def rate_limit_exceeded_handler(request, exc):
         'retry_after': getattr(exc, 'wait', 60),
         'tier': getattr(request, '_throttle_info', {}).get('tier', 'unknown')
     }, status=status.HTTP_429_TOO_MANY_REQUESTS)
-
 
 class RateLimitAnalytics:
     """
@@ -366,22 +359,18 @@ class RateLimitAnalytics:
             'time_range_hours': hours,
         }
 
-
 # Custom throttle classes for different use cases
 class PaymentThrottle(AdvancedThrottle):
     """Specialized throttle for payment endpoints"""
     pass
 
-
 class AdminThrottle(AdvancedThrottle):
     """Specialized throttle for admin endpoints"""
     pass
 
-
 class PublicThrottle(AdvancedThrottle):
     """Throttle for public endpoints (no authentication required)"""
     pass
-
 
 # Configuration for different endpoint types
 ENDPOINT_THROTTLE_CONFIG = {

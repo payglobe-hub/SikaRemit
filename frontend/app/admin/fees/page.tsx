@@ -37,7 +37,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast'
 import { getFeeAnalytics, FeeAnalytics } from '@/lib/api/fees'
 
-
 interface FeeFormData {
   name: string
   fee_type: string
@@ -82,7 +81,7 @@ export default function AdminFeesPage() {
         const currencyList = Array.isArray(data) ? data : (data.results || [])
         setCurrencies(currencyList.filter((c: any) => c.is_active))
       } catch (error) {
-        console.error('Failed to load currencies:', error)
+        
       }
     }
     
@@ -93,7 +92,7 @@ export default function AdminFeesPage() {
         const countryList = Array.isArray(data) ? data : (data.results || [])
         setCountries(countryList.filter((c: any) => c.is_active))
       } catch (error) {
-        console.error('Failed to load countries:', error)
+        
       }
     }
     

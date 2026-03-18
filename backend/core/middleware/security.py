@@ -15,7 +15,6 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-
 class SecurityHeadersMiddleware(MiddlewareMixin):
     """
     Django middleware that adds comprehensive security headers to all responses.
@@ -118,9 +117,7 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         if request.path.startswith('/api/'):
             response['X-API-Version'] = getattr(settings, 'API_VERSION', 'v1')
 
-        logger.debug(f"Applied security headers to {request.path}")
         return response
-
 
 class RateLimitMiddleware(MiddlewareMixin):
     """
@@ -186,7 +183,6 @@ class RateLimitMiddleware(MiddlewareMixin):
 
         return response
 
-
 class SecurityAuditMiddleware(MiddlewareMixin):
     """
     Security audit middleware for logging security-related events.
@@ -224,7 +220,8 @@ class SecurityAuditMiddleware(MiddlewareMixin):
         # Log access to sensitive endpoints
         sensitive_endpoints = ['/admin/', '/api/admin/', '/api/payments/']
         if any(endpoint in request.path for endpoint in sensitive_endpoints):
-            logger.info(f"Access to sensitive endpoint {request.path} by user: {getattr(request.user, 'username', 'anonymous')}")
+            username = getattr(request.user, 'username', 'anonymous') if hasattr(request, 'user') else 'anonymous'
+            logger.info(f"Access to sensitive endpoint {request.path} by user: {username}")
 
         return response
 
@@ -236,7 +233,6 @@ class SecurityAuditMiddleware(MiddlewareMixin):
         else:
             ip = request.META.get('REMOTE_ADDR')
         return ip or 'unknown'
-
 
 class SSLRedirectMiddleware(MiddlewareMixin):
     """

@@ -18,7 +18,6 @@ from accounts.models import User
 from core.api_utils import api_success
 from .models_reports import AdminReport
 
-
 class AdminReportSerializer(serializers.ModelSerializer):
     """Serializer for AdminReport model"""
     class Meta:
@@ -30,7 +29,6 @@ class AdminReportSerializer(serializers.ModelSerializer):
             'include_charts', 'include_summary', 'filters'
         ]
         read_only_fields = ['id', 'created_at', 'completed_at']
-
 
 class AdminReportViewSet(viewsets.ModelViewSet):
     """Admin viewset for managing generated reports"""

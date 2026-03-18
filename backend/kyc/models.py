@@ -16,7 +16,6 @@ from shared.constants import KYC_DOCUMENT_TYPES, KYC_DOCUMENT_STATUS_CHOICES, ST
 
 User = get_user_model()
 
-
 class KYCDocumentLegacy(models.Model):
     """
     DEPRECATED: Use users.KYCDocument instead.

@@ -11,7 +11,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class TrustLevel:
     """Trust level constants"""
     UNVERIFIED = 'unverified'
@@ -19,7 +18,6 @@ class TrustLevel:
     VERIFIED = 'verified'
     PREMIUM = 'premium'
     ENTERPRISE = 'enterprise'
-
 
 class MerchantVerification:
     """
@@ -301,7 +299,6 @@ class MerchantVerification:
                 'error': str(e)
             }
 
-
 class TrustBadgeGenerator:
     """Generate embeddable trust badges for merchant websites"""
     
@@ -371,7 +368,6 @@ class TrustBadgeGenerator:
                 'icon': f"https://cdn.SikaRemit.com/badges/{status.get('trust_level')}_icon.svg"
             }
         }
-
 
 class SecuritySealManager:
     """Manage security seals and certifications"""
@@ -448,7 +444,6 @@ class SecuritySealManager:
         seal_html += '</div>'
         return seal_html
 
-
 # Utility functions
 def get_merchant_trust_profile(merchant_id: int) -> Dict:
     """Get complete trust profile for merchant"""
@@ -463,7 +458,6 @@ def get_merchant_trust_profile(merchant_id: int) -> Dict:
         'trust_badge_html': TrustBadgeGenerator.generate_badge_html(merchant_id),
         'badge_json': TrustBadgeGenerator.generate_badge_json(merchant_id)
     }
-
 
 def verify_merchant_badge(merchant_id: int, badge_token: str) -> Dict:
     """Verify authenticity of a merchant's trust badge"""

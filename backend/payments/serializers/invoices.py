@@ -9,7 +9,6 @@ from .invoices import (
 
 User = get_user_model()
 
-
 class BusinessClientSerializer(serializers.ModelSerializer):
     """Serializer for business clients"""
     class Meta:
@@ -23,7 +22,6 @@ class BusinessClientSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-
 class BusinessClientCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating business clients"""
     class Meta:
@@ -34,7 +32,6 @@ class BusinessClientCreateSerializer(serializers.ModelSerializer):
             'postal_code', 'country', 'tax_id', 'registration_number',
             'default_payment_terms', 'default_currency', 'notes'
         ]
-
 
 class InvoiceTemplateSerializer(serializers.ModelSerializer):
     """Serializer for invoice templates"""
@@ -56,7 +53,6 @@ class InvoiceTemplateSerializer(serializers.ModelSerializer):
             return obj.logo.url
         return None
 
-
 class InvoiceItemSerializer(serializers.ModelSerializer):
     """Serializer for invoice items"""
     class Meta:
@@ -66,7 +62,6 @@ class InvoiceItemSerializer(serializers.ModelSerializer):
             'total_price', 'sku', 'tax_rate', 'created_at'
         ]
         read_only_fields = ['id', 'total_price', 'created_at']
-
 
 class InvoicePaymentSerializer(serializers.ModelSerializer):
     """Serializer for invoice payments"""
@@ -85,7 +80,6 @@ class InvoicePaymentSerializer(serializers.ModelSerializer):
         if obj.recorded_by:
             return obj.recorded_by.get_full_name() or obj.recorded_by.username
         return None
-
 
 class InvoiceSerializer(serializers.ModelSerializer):
     """Detailed serializer for invoices"""
@@ -118,7 +112,6 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'payment_percentage', 'created_at', 'updated_at'
         ]
 
-
 class InvoiceListSerializer(serializers.ModelSerializer):
     """Simplified serializer for invoice lists"""
     client_name = serializers.CharField(source='client.company_name', read_only=True)
@@ -132,7 +125,6 @@ class InvoiceListSerializer(serializers.ModelSerializer):
             'total_amount', 'amount_paid', 'amount_due', 'status',
             'is_overdue', 'payment_percentage', 'created_at'
         ]
-
 
 class InvoiceCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating invoices"""
@@ -192,7 +184,6 @@ class InvoiceCreateSerializer(serializers.ModelSerializer):
 
         return value
 
-
 class InvoiceReminderSerializer(serializers.ModelSerializer):
     """Serializer for invoice reminders"""
     class Meta:
@@ -204,13 +195,11 @@ class InvoiceReminderSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'sent_at', 'is_sent', 'is_successful', 'created_at']
 
-
 class InvoiceAnalyticsSerializer(serializers.Serializer):
     """Serializer for invoice analytics"""
     period = serializers.DictField()
     summary = serializers.DictField()
     status_breakdown = serializers.ListField()
-
 
 class OverdueInvoicesSerializer(serializers.Serializer):
     """Serializer for overdue invoices"""

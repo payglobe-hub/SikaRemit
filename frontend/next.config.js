@@ -27,6 +27,14 @@ const nextConfig = {
   
   // Webpack configuration to polyfill localStorage for SSR
   webpack: (config, { isServer, webpack }) => {
+    // Fix for React Server Components module loading issue
+    config.resolve.extensionAlias = {
+      '.js': ['.js', '.tsx', '.ts'],
+      '.jsx': ['.jsx', '.tsx'],
+      '.ts': ['.ts', '.tsx'],
+      '.tsx': ['.tsx', '.ts', '.js'],
+    }
+    
     if (isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -52,7 +60,10 @@ const nextConfig = {
   
   experimental: {
     optimizeCss: true,
+    reactCompiler: false,
   },
+  
+  serverExternalPackages: ['@tanstack/react-query'],
   
   // Rewrites only in development (not compatible with static export)
   ...(!isExport && {

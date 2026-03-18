@@ -20,7 +20,6 @@ class BusinessRoleSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-
 class BusinessUserSerializer(serializers.ModelSerializer):
     """Serializer for business users"""
     user_details = serializers.SerializerMethodField()
@@ -43,7 +42,6 @@ class BusinessUserSerializer(serializers.ModelSerializer):
             'phone_number': getattr(obj.user, 'phone_number', None),
         }
 
-
 class ApprovalWorkflowSerializer(serializers.ModelSerializer):
     """Serializer for approval workflows"""
     required_roles_details = BusinessRoleSerializer(source='required_roles', many=True, read_only=True)
@@ -56,7 +54,6 @@ class ApprovalWorkflowSerializer(serializers.ModelSerializer):
             'required_approvers', 'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
-
 
 class BusinessAccountSerializer(serializers.ModelSerializer):
     """Serializer for business accounts"""
@@ -94,7 +91,6 @@ class BusinessAccountSerializer(serializers.ModelSerializer):
         validated_data['primary_contact'] = self.context['request'].user
         return super().create(validated_data)
 
-
 class BulkPaymentItemSerializer(serializers.ModelSerializer):
     """Serializer for bulk payment items"""
     class Meta:
@@ -109,7 +105,6 @@ class BulkPaymentItemSerializer(serializers.ModelSerializer):
             'id', 'status', 'transaction_id', 'processed_at', 'failure_reason',
             'reference', 'created_at', 'updated_at'
         ]
-
 
 class BulkPaymentSerializer(serializers.ModelSerializer):
     """Serializer for bulk payments"""
@@ -150,7 +145,6 @@ class BulkPaymentSerializer(serializers.ModelSerializer):
             'email': user.email,
         } for user in obj.approved_by.all()]
 
-
 class BusinessAnalyticsSerializer(serializers.ModelSerializer):
     """Serializer for business analytics"""
     class Meta:
@@ -161,7 +155,6 @@ class BusinessAnalyticsSerializer(serializers.ModelSerializer):
             'total_users', 'failed_payments', 'high_value_transactions',
             'last_updated'
         ]
-
 
 class AccountingIntegrationSerializer(serializers.ModelSerializer):
     """Serializer for accounting integrations"""

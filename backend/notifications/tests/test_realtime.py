@@ -17,7 +17,6 @@ from payments.models.transaction import Transaction
 
 User = get_user_model()
 
-
 class TestRealtimeWebSocketConsumers(TestCase):
     """Test WebSocket consumers for real-time functionality"""
 
@@ -269,7 +268,6 @@ class TestRealtimeWebSocketConsumers(TestCase):
 
         await communicator.disconnect()
 
-
 class TestRealtimeService(TestCase):
     """Test the RealtimeService utility functions"""
 
@@ -395,7 +393,6 @@ class TestRealtimeService(TestCase):
                     'notification': notification
                 }
             )
-
 
 class TestRealtimeSignals(TestCase):
     """Test that real-time signals are triggered correctly"""

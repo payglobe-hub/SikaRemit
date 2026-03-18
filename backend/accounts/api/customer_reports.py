@@ -259,7 +259,6 @@ class CustomerStatementAPIView(APIView):
         
         return history
 
-
 class CustomerStatementPreviewAPIView(APIView):
     """Generate customer statement preview"""
     permission_classes = [permissions.IsAuthenticated]
@@ -296,7 +295,6 @@ class CustomerStatementPreviewAPIView(APIView):
         }
 
         return Response(preview)
-
 
 class CustomerStatsAPIView(APIView):
     """Get customer statistics and analytics"""
@@ -341,7 +339,6 @@ class CustomerStatsAPIView(APIView):
 
         return Response(stats)
 
-
 class CustomerTransactionsAPIView(APIView):
     """Get customer transactions with filtering"""
     permission_classes = [permissions.IsAuthenticated]
@@ -379,7 +376,6 @@ class CustomerTransactionsAPIView(APIView):
             'previous': None
         })
 
-
 class CustomerSpendingByCategoryAPIView(APIView):
     """Get customer spending breakdown by category"""
     permission_classes = [permissions.IsAuthenticated]
@@ -404,7 +400,6 @@ class CustomerSpendingByCategoryAPIView(APIView):
         spending_data = statement_view._calculate_spending_by_category(queryset)
 
         return Response(spending_data)
-
 
 class CustomerBalanceHistoryAPIView(APIView):
     """Get customer balance history"""
@@ -485,7 +480,6 @@ class CustomerBalanceHistoryAPIView(APIView):
                 })
         
         return list(monthly_data.values())
-
 
 class CustomerBalanceAPIView(APIView):
     """Get customer account balance"""

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from ..models.fees import FeeConfiguration, FeeCalculationLog, MerchantFeeOverride
 
-
 class FeeConfigurationSerializer(serializers.ModelSerializer):
     # Explicitly declare merchant as optional
     merchant = serializers.IntegerField(required=False, allow_null=True, default=None)
@@ -35,7 +34,6 @@ class FeeConfigurationSerializer(serializers.ModelSerializer):
             
         return super().create(validated_data)
 
-
 class MerchantFeeOverrideSerializer(serializers.ModelSerializer):
     merchant_name = serializers.SerializerMethodField()
     fee_configuration_name = serializers.SerializerMethodField()
@@ -60,7 +58,6 @@ class MerchantFeeOverrideSerializer(serializers.ModelSerializer):
 
     def get_fee_configuration_name(self, obj):
         return obj.fee_configuration.name if obj.fee_configuration else None
-
 
 class FeeCalculationLogSerializer(serializers.ModelSerializer):
     fee_configuration_name = serializers.SerializerMethodField()

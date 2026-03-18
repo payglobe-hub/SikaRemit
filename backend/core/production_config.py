@@ -7,7 +7,6 @@ import secrets
 from typing import Dict, List, Optional
 from django.core.exceptions import ImproperlyConfigured
 
-
 class ProductionConfig:
     """
     Production configuration validator and manager
@@ -226,7 +225,6 @@ class ProductionConfig:
             },
         }
 
-
 class SecurityConfig:
     """Security-related configuration for production"""
     
@@ -270,7 +268,6 @@ class SecurityConfig:
             # Referrer policy
             'SECURE_REFERRER_POLICY': 'strict-origin-when-cross-origin',
         }
-
 
 class BackupConfig:
     """Database backup configuration"""
@@ -333,7 +330,6 @@ fi
 
 echo "Backup completed successfully!"
 '''
-
 
 def validate_production_environment():
     """

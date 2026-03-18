@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand
 from payments.models import Currency, ExchangeRate
 from decimal import Decimal
 
-
 class Command(BaseCommand):
     help = 'Initialize default exchange rates for the 24 BoG currencies (GHS as base)'
 

@@ -12,7 +12,6 @@ from .services import AuthService
 
 logger = logging.getLogger(__name__)
 
-
 class PasswordResetView(APIView):
     """
     Password reset request endpoint
@@ -35,7 +34,6 @@ class PasswordResetView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class PasswordResetConfirmView(APIView):
     """
@@ -61,7 +59,6 @@ class PasswordResetConfirmView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class PasswordPolicyView(APIView):
     """
@@ -96,7 +93,6 @@ class PasswordPolicyView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class PasswordChangeView(APIView):
     """
@@ -134,7 +130,6 @@ class PasswordChangeView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-
 class EmailVerificationView(APIView):
     """
     Email verification request endpoint
@@ -158,7 +153,6 @@ class EmailVerificationView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-
 class EmailVerificationConfirmView(APIView):
     """
     Email verification confirmation endpoint
@@ -181,7 +175,6 @@ class EmailVerificationConfirmView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class BackupVerificationView(APIView):
     """

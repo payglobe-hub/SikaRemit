@@ -23,7 +23,6 @@ from merchants.models import Product
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
-
 class EnhancedWishlistService:
     """Service for enhanced wishlist functionality"""
     

@@ -10,7 +10,6 @@ from decimal import Decimal
 
 User = get_user_model()
 
-
 class PaymentServiceTests(TestCase):
     """Tests for PaymentService"""
     
@@ -107,7 +106,6 @@ class PaymentServiceTests(TestCase):
         self.assertTrue(result['success'])
         self.assertTrue(result['verified'])
 
-
 class CardPaymentTests(TestCase):
     """Tests for card payment processing"""
     
@@ -146,7 +144,6 @@ class CardPaymentTests(TestCase):
         
         # Should fail gracefully
         self.assertFalse(result['success'])
-
 
 class MobilePaymentTests(TestCase):
     """Tests for mobile money payment processing"""
@@ -188,7 +185,6 @@ class MobilePaymentTests(TestCase):
         
         self.assertTrue(result['success'])
         self.assertEqual(result['transaction_id'], 'SIKA_123')
-
 
 class PayoutTests(TestCase):
     """Tests for merchant payouts"""
@@ -271,7 +267,6 @@ class PayoutTests(TestCase):
         
         self.assertFalse(result['success'])
         self.assertIn('error', result)
-
 
 class KYCEligibilityTests(TestCase):
     """Tests for KYC eligibility checks"""

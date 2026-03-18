@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from payments.models import TelecomProvider, TelecomPackage, BusinessRule
 
-
 class TelecomProviderSerializer(serializers.ModelSerializer):
     """Serializer for TelecomProvider model"""
     country_name = serializers.CharField(source='country.name', read_only=True)
@@ -21,7 +20,6 @@ class TelecomProviderSerializer(serializers.ModelSerializer):
     def get_packages_count(self, obj):
         """Get count of active packages for this provider"""
         return obj.packages.filter(is_active=True).count()
-
 
 class TelecomPackageSerializer(serializers.ModelSerializer):
     """Serializer for TelecomPackage model"""
@@ -46,7 +44,6 @@ class TelecomPackageSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'formatted_price', 'validity_text', 'created_at', 'updated_at']
 
-
 class BusinessRuleSerializer(serializers.ModelSerializer):
     """Serializer for BusinessRule model"""
     country_name = serializers.CharField(source='country.name', read_only=True)
@@ -63,7 +60,6 @@ class BusinessRuleSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
-
 
 class TelecomPackageListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for package listing"""

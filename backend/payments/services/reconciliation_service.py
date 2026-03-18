@@ -16,7 +16,6 @@ from payments.models.ledger import LedgerJournal, LedgerEntry
 
 logger = logging.getLogger(__name__)
 
-
 class ReconciliationService:
     """
     Reconcile internal transaction records against ledger journals

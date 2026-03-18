@@ -546,8 +546,6 @@ class WebhookView(APIView):
         """To be implemented by specific webhook handlers"""
         raise NotImplementedError
 
-
-
 # Missing Payment API Endpoints Implementation
 
 @api_view(['POST'])
@@ -583,7 +581,6 @@ def verify_payment_view(request):
     except Exception as e:
         logger.error(f"Payment verification failed: {str(e)}")
         return Response({'error': str(e)}, status=500)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -642,7 +639,6 @@ def request_refund_view(request):
         logger.error(f"Refund request failed: {str(e)}")
         return Response({'error': str(e)}, status=500)
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def request_money_view(request):
@@ -693,7 +689,6 @@ def request_money_view(request):
         logger.error(f"Money request failed: {str(e)}")
         return Response({'error': str(e)}, status=500)
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def data_plans_view(request):
@@ -722,7 +717,6 @@ def data_plans_view(request):
         logger.error(f"Data plans fetch failed: {str(e)}")
         return Response({'error': str(e)}, status=500)
 
-
 class DomesticTransferViewSet(viewsets.ModelViewSet):
     serializer_class = DomesticTransferSerializer
     permission_classes = [IsAuthenticated]
@@ -748,7 +742,6 @@ class DomesticTransferViewSet(viewsets.ModelViewSet):
             import traceback
             error_trace = traceback.format_exc()
             logger.error(f"DomesticTransfer create error: {str(e)}\n{error_trace}")
-            print(f"DomesticTransfer create error: {str(e)}\n{error_trace}")
             return Response({'error': str(e), 'detail': error_trace}, status=500)
 
     def perform_create(self, serializer):

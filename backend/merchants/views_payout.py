@@ -21,7 +21,6 @@ from ecommerce.models import Order, OrderItem
 from merchants.models import Store
 from .serializers_merchant_dashboard import MerchantOrderSerializer
 
-
 class MerchantPayoutViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Merchant payout history and management
@@ -193,7 +192,6 @@ class MerchantPayoutViewSet(viewsets.ReadOnlyModelViewSet):
                 'total_items_sold': item_count
             }
         })
-
 
 class MerchantSettlementSettingsViewSet(viewsets.ModelViewSet):
     """

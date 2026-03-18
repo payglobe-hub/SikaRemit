@@ -4,7 +4,6 @@ from django.utils import timezone
 from .country import Country
 from .currency import Currency
 
-
 class TelecomProvider(models.Model):
     """
     Telecom provider (MTN, Telecel, AirtelTigo, Glo, etc.)
@@ -40,7 +39,6 @@ class TelecomProvider(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.country.code})"
-
 
 class TelecomPackage(models.Model):
     """
@@ -152,7 +150,6 @@ class TelecomPackage(models.Model):
     def country_code(self):
         """Get country code for this package"""
         return self.provider.country.code
-
 
 class BusinessRule(models.Model):
     """

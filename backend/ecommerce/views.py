@@ -21,7 +21,6 @@ from .models_cart import CartService
 from .services import OrderService, PaymentService
 from .services_wallet import WalletPaymentService
 
-
 class CartViewSet(viewsets.ModelViewSet):
     """Shopping cart management"""
     permission_classes = [IsAuthenticated]
@@ -104,7 +103,6 @@ class CartViewSet(viewsets.ModelViewSet):
         CartService.clear_cart(cart)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
 class OrderViewSet(viewsets.ModelViewSet):
     """Order management for customers"""
     permission_classes = [IsAuthenticated]
@@ -155,7 +153,6 @@ class OrderViewSet(viewsets.ModelViewSet):
         
         return Response({'message': 'Order cancelled successfully'})
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_order(request):
@@ -174,7 +171,6 @@ def create_order(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def payment_methods(request):
@@ -186,7 +182,6 @@ def payment_methods(request):
         {'code': 'bank_transfer', 'name': 'Bank Transfer', 'enabled': False},
     ]
     return Response({'methods': methods})
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -226,7 +221,6 @@ def process_payment(request, order_id):
             {'error': str(e)}, 
             status=status.HTTP_400_BAD_REQUEST
         )
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -245,7 +239,6 @@ def calculate_shipping(request):
         'total': cart.subtotal + shipping_cost + (cart.subtotal * Decimal('0.05'))
     })
 
-
 class ShippingAddressViewSet(viewsets.ModelViewSet):
     """Manage customer shipping addresses"""
     permission_classes = [IsAuthenticated]
@@ -261,7 +254,6 @@ class ShippingAddressViewSet(viewsets.ModelViewSet):
         address.is_default = True
         address.save()
         return Response({'message': 'Default address updated'})
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -302,7 +294,6 @@ def process_payment(request, order_id):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def payment_methods(request):
@@ -314,7 +305,6 @@ def payment_methods(request):
         {'code': 'bank_transfer', 'name': 'Bank Transfer', 'enabled': False},
     ]
     return Response({'methods': methods})
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

@@ -30,7 +30,6 @@ from payments.models.payment_log import PaymentLog
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
-
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = AccountsUserSerializer
@@ -43,7 +42,6 @@ class UserViewSet(viewsets.ModelViewSet):
         if email:
             queryset = queryset.filter(email__icontains=email)
         return queryset
-
 
 class MerchantViewSet(viewsets.ModelViewSet):
     """
@@ -60,7 +58,6 @@ class MerchantViewSet(viewsets.ModelViewSet):
         if email:
             queryset = queryset.filter(email__icontains=email)
         return queryset
-
 
 class PasswordResetTokenViewSet(viewsets.ModelViewSet):
     """
@@ -82,7 +79,6 @@ class PasswordResetTokenViewSet(viewsets.ModelViewSet):
         # Custom logic when deleting tokens
         AuthService.invalidate_reset_token(instance.token)
         instance.delete()
-
 
 class AuthLogViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -107,7 +103,6 @@ class AuthLogViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(action=action)
             
         return queryset
-
 
 class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -150,7 +145,6 @@ class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
         transaction = serializer.save(user=self.request.user)
         AuthService.process_transaction(transaction)
 
-
 class PaymentsViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for managing financial payments
@@ -186,7 +180,6 @@ class PaymentsViewSet(viewsets.ReadOnlyModelViewSet):
             
         return queryset
 
-
 class MerchantProductViewSet(viewsets.ModelViewSet):
     """
     API endpoint for managing merchant products
@@ -219,7 +212,6 @@ class MerchantProductViewSet(viewsets.ModelViewSet):
         else:
             serializer.save()
 
-
 class ProductInventoryView(APIView):
     """
     Product inventory endpoint
@@ -240,7 +232,6 @@ class ProductInventoryView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class PaymentLogViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -267,7 +258,6 @@ class PaymentLogViewSet(viewsets.ReadOnlyModelViewSet):
             
         return queryset
 
-
 class SupportTicketViewSet(viewsets.ModelViewSet):
     serializer_class = SupportTicketSerializer
     permission_classes = [IsAuthenticated]
@@ -291,7 +281,6 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class PayoutViewSet(viewsets.ModelViewSet):
     serializer_class = PayoutSerializer

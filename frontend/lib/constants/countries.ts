@@ -35,7 +35,6 @@ async function loadCountries() {
   try {
     
     const response = await publicApiClient.get('/api/countries/')
-    
 
     const data = response.data?.results || response.data
     if (Array.isArray(data)) {
@@ -44,10 +43,10 @@ async function loadCountries() {
       countriesLoaded = true
       
     } else {
-      console.error('Countries data is not an array:', data)
+      
     }
   } catch (error: any) {
-    console.error('Failed to load countries from API:', error)
+    
     // No fallback - countries array will remain empty
     // Components should handle empty state gracefully
     countriesLoaded = true

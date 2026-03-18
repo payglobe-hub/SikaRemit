@@ -8,7 +8,6 @@ from django.db import transaction as db_transaction
 from users.models import Customer, KYCDocument
 from users.serializers import KYCDocumentSerializer, CustomerSerializer
 
-
 class KYCVerificationView(generics.GenericAPIView):
     """
     Handle lazy KYC verification flow.
@@ -112,7 +111,6 @@ class KYCVerificationView(generics.GenericAPIView):
             "status": customer.kyc_status
         })
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def check_transaction_eligibility(request):
@@ -146,7 +144,6 @@ def check_transaction_eligibility(request):
             "next_action": "start_kyc" if customer.kyc_status == 'not_started' else "continue_kyc"
         }, status=status.HTTP_403_FORBIDDEN)
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_kyc_documents(request):
@@ -154,7 +151,6 @@ def get_kyc_documents(request):
     documents = KYCDocument.objects.filter(user=request.user)
     serializer = KYCDocumentSerializer(documents, many=True)
     return Response(serializer.data)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

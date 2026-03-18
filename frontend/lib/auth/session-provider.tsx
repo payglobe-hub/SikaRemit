@@ -1,7 +1,7 @@
 'use client'
 
-import React, { createContext, useContext, ReactNode } from 'react'
-import { useAuth } from './context'
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { authState } from '@/lib/utils/cookie-auth'
 
 export interface Session {
   user: {
@@ -16,12 +16,55 @@ export interface Session {
 const SessionContext = createContext<Session | undefined>(undefined)
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth()
+  const [session, setSession] = useState<Session>({
+    user: null,
+    status: 'loading'
+  })
 
-  const session: Session = {
-    user,
-    status: loading ? 'loading' : user ? 'authenticated' : 'unauthenticated'
-  }
+  useEffect(() => {
+    // Immediate check on mount
+    const checkAuth = () => {
+      try {
+        const { user, isAuthenticated } = authState.getAuthState()
+
+        setSession({
+          user,
+          status: isAuthenticated ? 'authenticated' : 'unauthenticated'
+        })
+      } catch (error) {
+        
+        setSession({
+          user: null,
+          status: 'unauthenticated'
+        })
+      }
+    }
+
+    // Check immediately
+    checkAuth()
+
+    // Set up multiple checks to ensure we catch the auth state
+    const timeout1 = setTimeout(() => {
+      console.log('Auth check 1')
+      checkAuth()
+    }, 100)
+
+    const timeout2 = setTimeout(() => {
+      console.log('Auth check 2')
+      checkAuth()
+    }, 500)
+
+    const timeout3 = setTimeout(() => {
+      console.log('Auth check 3')
+      checkAuth()
+    }, 1000)
+
+    return () => {
+      clearTimeout(timeout1)
+      clearTimeout(timeout2)
+      clearTimeout(timeout3)
+    }
+  }, [])
 
   return <SessionContext.Provider value={session}>{children}</SessionContext.Provider>
 }

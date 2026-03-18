@@ -21,7 +21,6 @@ from users.models import Customer, Merchant
 
 logger = logging.getLogger(__name__)
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_payment_methods(request):
@@ -51,7 +50,6 @@ def list_payment_methods(request):
             'success': False,
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 @api_view(['GET'])
 def get_all_payment_methods(request):
@@ -88,7 +86,6 @@ def get_all_payment_methods(request):
             'success': False,
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -208,7 +205,6 @@ def process_global_payment(request):
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def verify_global_payment(request, payment_id):
@@ -252,7 +248,6 @@ def verify_global_payment(request, payment_id):
             'success': False,
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -332,7 +327,6 @@ def refund_global_payment(request, payment_id):
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def payment_method_stats(request):
@@ -357,7 +351,6 @@ def payment_method_stats(request):
             'success': False,
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -406,7 +399,6 @@ def qr_payment_validate(request):
             'valid': False,
             'error': 'QR validation failed'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

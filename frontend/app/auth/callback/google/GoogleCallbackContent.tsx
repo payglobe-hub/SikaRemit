@@ -34,8 +34,6 @@ export function GoogleCallbackContent() {
           throw new Error('No authorization code received')
         }
 
-        
-        
         // Exchange the code for tokens using the API function
         const tokens = await googleOAuthCallback(code)
         
@@ -80,7 +78,6 @@ export function GoogleCallbackContent() {
           return
         }
       } catch (error: any) {
-        console.error('Google OAuth callback error:', error)
 
         // Check if it's a configuration error
         if (error.message && error.message.includes('not configured')) {

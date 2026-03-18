@@ -337,7 +337,6 @@ except NotRegistered:
 
 # admin.site.register(Payment, BillPaymentAdmin)
 
-
 @admin.register(USSDMenu)
 class USSDMenuAdmin(admin.ModelAdmin):
     """Admin interface for USSD menu configuration"""

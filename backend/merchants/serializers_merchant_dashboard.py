@@ -7,7 +7,6 @@ from merchants.models import Store, Product, ProductImage, ProductVariant, Categ
 from ecommerce.models import Order, OrderItem
 from django.utils import timezone
 
-
 class MerchantStoreSerializer(serializers.ModelSerializer):
     """Serializer for merchant store management"""
     merchant_name = serializers.CharField(source='merchant.business_name', read_only=True)
@@ -22,7 +21,6 @@ class MerchantStoreSerializer(serializers.ModelSerializer):
             'total_orders', 'average_rating', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'merchant_name', 'product_count']
-
 
 class MerchantProductCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating new products"""
@@ -53,7 +51,6 @@ class MerchantProductCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         store = validated_data.pop('store_id')
         return Product.objects.create(store=store, **validated_data)
-
 
 class MerchantProductSerializer(serializers.ModelSerializer):
     """Serializer for product details and updates"""
@@ -104,7 +101,6 @@ class MerchantProductSerializer(serializers.ModelSerializer):
         """Get total number of variants for this product"""
         return obj.variants.count()
 
-
 class MerchantProductImageSerializer(serializers.ModelSerializer):
     """Serializer for product image management"""
     product_name = serializers.CharField(source='product.name', read_only=True)
@@ -116,7 +112,6 @@ class MerchantProductImageSerializer(serializers.ModelSerializer):
             'sort_order', 'is_primary', 'created_at'
         ]
         read_only_fields = ['id', 'created_at', 'product_name']
-
 
 class MerchantOrderItemSerializer(serializers.ModelSerializer):
     """Serializer for order items in merchant context"""
@@ -138,7 +133,6 @@ class MerchantOrderItemSerializer(serializers.ModelSerializer):
         if obj.product.primary_image:
             return obj.product.primary_image.url
         return None
-
 
 class MerchantOrderSerializer(serializers.ModelSerializer):
     """Serializer for orders in merchant context"""
@@ -179,7 +173,6 @@ class MerchantOrderSerializer(serializers.ModelSerializer):
 
         merchant_items = obj.items.filter(product__store__merchant__user=request.user)
         return sum(item.subtotal for item in merchant_items)
-
 
 class MerchantDashboardStatsSerializer(serializers.Serializer):
     """Serializer for merchant dashboard statistics"""

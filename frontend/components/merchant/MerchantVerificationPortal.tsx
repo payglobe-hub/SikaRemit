@@ -76,7 +76,7 @@ export function MerchantVerificationPortal({ merchantId }: MerchantVerificationP
         setTrustScore(data.verification_status.trust_score)
       }
     } catch (error) {
-      console.error('Error fetching verification status:', error)
+      
     }
   }
 
@@ -89,7 +89,7 @@ export function MerchantVerificationPortal({ merchantId }: MerchantVerificationP
         setDocuments(data.documents)
       }
     } catch (error) {
-      console.error('Error fetching documents:', error)
+      
     }
   }
 
@@ -118,7 +118,7 @@ export function MerchantVerificationPortal({ merchantId }: MerchantVerificationP
         setSelectedDocType('')
       }
     } catch (error) {
-      console.error('Error uploading document:', error)
+      
     } finally {
       setUploading(false)
     }

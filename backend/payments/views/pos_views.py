@@ -34,7 +34,6 @@ from ..serializers import (
 
 logger = logging.getLogger(__name__)
 
-
 class POSDeviceViewSet(viewsets.ModelViewSet):
     """
     POS Device Management ViewSet
@@ -109,7 +108,6 @@ class POSDeviceViewSet(viewsets.ModelViewSet):
         }
 
         return Response(stats)
-
 
 class POSTransactionViewSet(viewsets.ModelViewSet):
     """
@@ -188,7 +186,6 @@ class POSTransactionViewSet(viewsets.ModelViewSet):
 
         return Response(summary)
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def register_pos_device(request):
@@ -222,7 +219,6 @@ def register_pos_device(request):
         return Response(result, status=status.HTTP_201_CREATED)
     else:
         return Response(result, status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -335,7 +331,6 @@ def process_pos_transaction(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def generate_pos_receipt(request):
@@ -388,7 +383,6 @@ def generate_pos_receipt(request):
         'transaction_id': transaction_id,
         'receipt_type': receipt_type
     })
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

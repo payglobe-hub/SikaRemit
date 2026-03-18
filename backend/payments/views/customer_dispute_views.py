@@ -21,7 +21,6 @@ from ..services.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
 
-
 class CustomerDisputeViewSet(viewsets.ModelViewSet):
     """
     Customer viewset for managing their own disputes

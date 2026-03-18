@@ -80,7 +80,7 @@ export function CurrencyConverter({
         setCurrencies(data.currencies)
       }
     } catch (error) {
-      console.error('Error fetching currencies:', error)
+      
     } finally {
       setLoadingCurrencies(false)
     }
@@ -104,11 +104,10 @@ export function CurrencyConverter({
         setResult(data.conversion)
         onConvert?.(data.conversion)
       } else {
-        console.error(data.error || 'Conversion failed')
+        
       }
     } catch (error) {
-      console.error('Error converting currency')
-      console.error(error)
+
     } finally {
       setLoading(false)
     }

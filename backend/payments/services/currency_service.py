@@ -14,7 +14,6 @@ import statistics
 
 logger = logging.getLogger(__name__)
 
-
 class CurrencyService:
     """
     Service for managing currencies, exchange rates, and conversions
@@ -229,7 +228,6 @@ class CurrencyService:
             parts.append(currency.code)
 
         return ' '.join(parts).strip()
-
 
 class WalletService:
     """
@@ -483,7 +481,6 @@ class WalletService:
             logger.error(f"Failed P2P transfer: {str(e)}")
             return False
 
-
     @staticmethod
     def _send_transfer_notification(user, other_party, currency: Currency, amount: Decimal, transfer_type: str):
         """
@@ -686,7 +683,6 @@ class WalletService:
         except Exception as e:
             logger.error(f"Failed to send airtime notification: {str(e)}")
             # Don't fail the transaction if notification fails
-
 
 class AdvancedCurrencyService:
     """
@@ -1053,7 +1049,6 @@ class AdvancedCurrencyService:
         except Exception as e:
             logger.error(f"Currency volatility calculation failed: {str(e)}")
             return {'volatility': 0, 'available': False}
-
 
 class CurrencyPreferenceService:
     """

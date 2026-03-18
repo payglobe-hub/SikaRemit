@@ -44,7 +44,7 @@ export class CurrencyService {
       this.exchangeRates = ratesData.rates
       this.lastUpdate = new Date()
     } catch (error) {
-      console.error('Failed to load exchange rates:', error)
+      
     }
   }
 

@@ -14,7 +14,6 @@ from shared.constants import USER_TYPE_CUSTOMER, USER_TYPE_MERCHANT
 
 User = get_user_model()
 
-
 class WalletReportingTests(TestCase):
     """Test wallet balance accuracy for reporting/statements."""
 
@@ -88,7 +87,6 @@ class WalletReportingTests(TestCase):
         wallet.refresh_from_db()
         self.assertEqual(wallet.available_balance, Decimal('1234.567890'))
 
-
 class CurrencyReportTests(TestCase):
     """Test currency model for accurate financial reporting."""
 
@@ -107,7 +105,6 @@ class CurrencyReportTests(TestCase):
     def test_currency_decimal_places(self):
         ghs = Currency.objects.create(code='GHS', name='Ghana Cedi', symbol='GH₵', decimal_places=2)
         self.assertEqual(ghs.decimal_places, 2)
-
 
 class MultiUserBalanceReportTests(TestCase):
     """Test balance reporting across multiple users."""

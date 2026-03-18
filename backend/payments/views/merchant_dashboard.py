@@ -17,7 +17,6 @@ from users.models import Merchant
 
 logger = logging.getLogger(__name__)
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def merchant_dashboard_stats(request):
@@ -193,7 +192,6 @@ def merchant_dashboard_stats(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def merchant_recent_transactions(request):
@@ -266,7 +264,6 @@ def merchant_recent_transactions(request):
             {'error': 'Internal server error', 'detail': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

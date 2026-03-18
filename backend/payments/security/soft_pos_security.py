@@ -20,7 +20,6 @@ from ..models import POSDevice, POSTransaction, SmartphonePOSDevice, NFCPayment,
 
 logger = logging.getLogger(__name__)
 
-
 class SecurityEventType(Enum):
     """Security event types for monitoring"""
     AUTHENTICATION_SUCCESS = 'authentication_success'
@@ -41,7 +40,6 @@ class SecurityEventType(Enum):
     DEVICE_OFFLINE = 'device_offline'
     UNAUTHORIZED_ACCESS = 'unauthorized_access'
 
-
 class ComplianceLevel(Enum):
     """PCI DSS compliance levels"""
     LEVEL_1 = 'level_1'  # >6M transactions/year
@@ -49,14 +47,12 @@ class ComplianceLevel(Enum):
     LEVEL_3 = 'level_3'  # 20K-1M transactions/year
     LEVEL_4 = 'level_4'  # <20K transactions/year
 
-
 class RiskLevel(Enum):
     """Risk assessment levels"""
     LOW = 'low'
     MEDIUM = 'medium'
     HIGH = 'high'
     CRITICAL = 'critical'
-
 
 @dataclass
 class SecurityEvent:
@@ -70,7 +66,6 @@ class SecurityEvent:
     ip_address: Optional[str] = None
     resolved: bool = False
 
-
 @dataclass
 class ComplianceReport:
     """PCI DSS compliance report data"""
@@ -82,7 +77,6 @@ class ComplianceReport:
     security_score: float
     recommendations: List[str]
     audit_trail: List[Dict[str, Any]]
-
 
 class SoftPOSSecurityManager:
     """Comprehensive security management for Soft POS"""
@@ -819,12 +813,10 @@ class SoftPOSSecurityManager:
         
         return recommendations
 
-
 # Utility functions
 def get_security_manager() -> SoftPOSSecurityManager:
     """Get security manager instance"""
     return SoftPOSSecurityManager()
-
 
 def log_security_event(
     event_type: SecurityEventType,
@@ -839,12 +831,10 @@ def log_security_event(
         event_type, device_id, details, user_action, ip_address
     )
 
-
 def analyze_transaction_security(transaction: POSTransaction) -> Tuple[RiskLevel, List[str]]:
     """Analyze transaction security"""
     manager = get_security_manager()
     return manager.analyze_transaction_risk(transaction)
-
 
 def generate_merchant_compliance_report(merchant_id: int) -> ComplianceReport:
     """Generate compliance report for merchant"""

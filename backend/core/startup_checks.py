@@ -9,7 +9,6 @@ from django.core.checks import Error, Warning, register
 
 logger = logging.getLogger(__name__)
 
-
 @register()
 def check_production_configuration(app_configs, **kwargs):
     """
@@ -101,7 +100,6 @@ def check_production_configuration(app_configs, **kwargs):
     
     return errors
 
-
 def check_payment_gateways():
     """
     Check payment gateway configurations
@@ -182,7 +180,6 @@ def check_payment_gateways():
     
     return warnings
 
-
 def log_startup_configuration():
     """
     Log configuration status on startup (non-sensitive info only)
@@ -237,7 +234,6 @@ def log_startup_configuration():
     logger.info(f"  Stripe: {'✓ Configured' if stripe_configured else '✗ Not configured'}")
     
     logger.info("=" * 60)
-
 
 # Call on module import (when Django starts)
 if getattr(settings, 'IS_PRODUCTION', False):

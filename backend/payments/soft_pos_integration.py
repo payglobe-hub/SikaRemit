@@ -18,7 +18,6 @@ from cryptography.fernet import Fernet
 
 logger = logging.getLogger(__name__)
 
-
 class SoftPOSType:
     """Modern Soft POS device types"""
     SMARTPHONE_POS = 'smartphone_pos'
@@ -26,7 +25,6 @@ class SoftPOSType:
     VIRTUAL_TERMINAL = 'virtual_terminal'
     MOBILE_READER = 'mobile_reader'
     TABLET_POS = 'tablet_pos'
-
 
 class PaymentMethod:
     """Payment methods for Soft POS"""
@@ -39,7 +37,6 @@ class PaymentMethod:
     TELECEL_CASH = 'telecel_cash'
     AIRTELTIGO_MONEY = 'airteltigo_money'
     QR_PAYMENT = 'qr_payment'
-
 
 class NFCProcessor:
     """NFC payment processing for Soft POS"""
@@ -333,7 +330,6 @@ class NFCProcessor:
         )
         
         return nfc_payment
-
 
 class MobileMoneyProcessor:
     """Mobile money payment processing for Ghana networks"""
@@ -690,7 +686,6 @@ class MobileMoneyProcessor:
                 'reason': f'Status check error: {str(e)}',
             }
 
-
 class SmartphonePOSManager:
     """Smartphone POS device management and security"""
     
@@ -951,7 +946,6 @@ class SmartphonePOSManager:
                 'error_code': 'UPDATE_ERROR'
             }
 
-
 class SoftPOSIntegration:
     """Unified Soft POS integration system"""
     
@@ -1061,18 +1055,15 @@ class SoftPOSIntegration:
                 'error_code': 'STATUS_CHECK_ERROR'
             }
 
-
 # Utility functions
 def create_soft_pos_integration(merchant_id: int) -> SoftPOSIntegration:
     """Create Soft POS integration instance"""
     return SoftPOSIntegration(merchant_id)
 
-
 def register_smartphone_pos(merchant_id: int, device_info: Dict, security_creds: Dict) -> Dict:
     """Register smartphone POS device"""
     manager = SmartphonePOSManager()
     return manager.register_smartphone_device(merchant_id, device_info, security_creds)
-
 
 def authenticate_smartphone_pos(device_id_hash: str, auth_data: Dict) -> Dict:
     """Authenticate smartphone POS device"""

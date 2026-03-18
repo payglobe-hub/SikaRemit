@@ -11,7 +11,6 @@ from payments.services.fraud_detection_ml_service import MLFraudDetectionService
 from payments.models import Transaction
 from django.db.models import Count, Sum
 
-
 class FraudDetectionViewSet(viewsets.ViewSet):
     """
     Fraud detection and analysis API endpoints
@@ -200,7 +199,6 @@ class FraudDetectionViewSet(viewsets.ViewSet):
                 {'error': f'Behavioral analysis failed: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
 
 class FraudMonitoringViewSet(viewsets.ViewSet):
     """

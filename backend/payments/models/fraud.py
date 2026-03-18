@@ -4,7 +4,6 @@ from django.db import models
 from django.conf import settings
 from users.models import Customer
 
-
 class FraudAlert(models.Model):
     """Fraud detection alerts"""
     PENDING = 'pending_review'
@@ -42,7 +41,6 @@ class FraudAlert(models.Model):
     def __str__(self):
         return f"Fraud Alert: {self.transaction_id} - {self.risk_level}"
 
-
 class FraudBlacklist(models.Model):
     """Blacklist for fraudulent entities"""
     ENTITY_TYPES = [
@@ -71,7 +69,6 @@ class FraudBlacklist(models.Model):
     def __str__(self):
         return f"{self.entity_type}: {self.entity_value}"
 
-
 class BlacklistedBIN(models.Model):
     """Blacklisted card BINs"""
     bin = models.CharField(max_length=8, unique=True, db_index=True)
@@ -81,7 +78,6 @@ class BlacklistedBIN(models.Model):
 
     def __str__(self):
         return f"BIN: {self.bin}"
-
 
 class FraudReport(models.Model):
     """User-reported fraud"""

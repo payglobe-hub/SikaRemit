@@ -73,7 +73,6 @@ class USSDSession(models.Model):
         end_time = self.ended_at or timezone.now()
         return int((end_time - self.started_at).total_seconds())
 
-
 class USSDTransaction(models.Model):
     """USSD transaction records"""
 
@@ -130,7 +129,6 @@ class USSDTransaction(models.Model):
         if reason:
             self.menu_data['failure_reason'] = reason
         self.save()
-
 
 class USSDService(models.Model):
     """USSD service configurations"""

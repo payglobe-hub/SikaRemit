@@ -16,7 +16,6 @@ import random
 
 User = get_user_model()
 
-
 class EnhancedWishlist(models.Model):
     """Enhanced wishlist with recommendations and social features"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='enhanced_wishlist')
@@ -37,7 +36,6 @@ class EnhancedWishlist(models.Model):
     @property
     def is_public(self):
         return self.user.profile.is_public if hasattr(self.user, 'profile') else False
-
 
 class EnhancedWishlistItem(models.Model):
     """Enhanced wishlist item with tracking and recommendations"""
@@ -85,7 +83,6 @@ class EnhancedWishlistItem(models.Model):
         self.purchase_date = timezone.now()
         self.save()
 
-
 class ProductRecommendation(models.Model):
     """AI-powered product recommendations"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recommendations')
@@ -119,7 +116,6 @@ class ProductRecommendation(models.Model):
     
     def is_expired(self):
         return timezone.now() > self.expires_at
-
 
 class WishlistAnalytics(models.Model):
     """Wishlist analytics and insights"""
@@ -167,7 +163,6 @@ class WishlistAnalytics(models.Model):
         
         analytics.save()
         return analytics
-
 
 class EnhancedWishlistService:
     """Service for enhanced wishlist functionality"""
@@ -555,7 +550,6 @@ class EnhancedWishlistService:
             moved_to_cart_at__isnull=True
         ).select('product', 'added_at').order_by('added_at')
 
-
 class WishlistSocialService:
     """Social features for wishlist sharing and discovery"""
     
@@ -589,7 +583,6 @@ class WishlistSocialService:
             follower_count__gte=10,
             item_count__gt=5
         ).order_by('-follower_count')[:limit]
-
 
 class WishlistExportService:
     """Service for exporting wishlist data"""

@@ -25,7 +25,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 class DeploymentAutomationManager:
     """Main deployment automation manager for SikaRemit"""
 
@@ -164,7 +163,6 @@ class DeploymentAutomationManager:
             }
         }
 
-
 class DeploymentManager:
     """Deployment execution manager"""
 
@@ -282,45 +280,23 @@ class DeploymentManager:
         """Rollback to previous version"""
         logger.info("Rolling back deployment")
 
-
 def run_deployment_automation():
     """Main function to run deployment automation setup"""
     manager = DeploymentAutomationManager()
 
-    print("🚀 SikaRemit Deployment Automation Suite")
-    print("=" * 50)
-
     try:
         config = manager.setup_deployment_pipeline()
 
-        print("\n✅ Deployment automation configured successfully!")
-        print(f"📄 Configuration saved to: {manager.deployments_path}")
+        }")
 
-        print("\n🔧 Deployment Features:")
-        print(f"   • Strategy: {config['blue_green_deployment']['strategy']}")
-        print(f"   • Rollback: {'✅' if config['rollback_procedures']['automated_rollback'] else '❌'}")
-        print(f"   • Environments: {len(config['environment_management']['environments'])}")
-        print(f"   • Zero Downtime: {'✅' if config['pipeline_optimization']['zero_downtime'] else '❌'}")
-
-        print("\n🎯 Deployment Pipeline:")
-        print("   1. Pre-deployment health checks")
-        print("   2. Automated backup creation")
-        print("   3. Blue-green deployment")
-        print("   4. Post-deployment testing")
-        print("   5. Traffic switching")
-        print("   6. Health monitoring")
-
-        print("\n📋 Rollback Procedures:")
         for i, step in enumerate(config['rollback_procedures']['rollback_steps'], 1):
-            print(f"   {i}. {step}")
 
     except Exception as e:
         logger.error(f"Deployment automation setup failed: {str(e)}")
-        print(f"❌ Deployment automation setup failed: {str(e)}")
+        }")
         return 1
 
     return 0
-
 
 if __name__ == '__main__':
     sys.exit(run_deployment_automation())

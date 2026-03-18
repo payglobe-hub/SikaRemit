@@ -12,7 +12,6 @@ from .models import Order, Payment
 from .services_wallet import WalletPaymentService
 from .serializers_cart import PaymentSerializer
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def wallet_balance(request):
@@ -28,7 +27,6 @@ def wallet_balance(request):
             'success': False,
             'error': 'Failed to get wallet balance'
         }, status=500)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -52,7 +50,6 @@ def validate_wallet_payment(request):
             'success': False,
             'error': 'Validation failed'
         }, status=500)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -96,7 +93,6 @@ def process_wallet_payment(request):
             'success': False,
             'error': 'Payment processing failed'
         }, status=500)
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

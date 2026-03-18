@@ -19,7 +19,6 @@ from django.db import models, transaction as db_transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
-
 class LedgerAccount(models.Model):
     """
     Chart of accounts — every entity that can hold or owe money.
@@ -78,7 +77,6 @@ class LedgerAccount(models.Model):
             return debits - credits
         return credits - debits
 
-
 class LedgerJournal(models.Model):
     """
     A journal groups one or more entries that must balance (total debit == total credit).
@@ -130,7 +128,6 @@ class LedgerJournal(models.Model):
         agg = self.entries.aggregate(total=models.Sum('debit'))
         return agg['total'] or Decimal('0')
 
-
 class LedgerEntry(models.Model):
     """
     Single line in a journal — always one of debit or credit is non-zero.
@@ -169,7 +166,6 @@ class LedgerEntry(models.Model):
             raise ValidationError("An entry cannot have both debit and credit.")
         if not self.debit and not self.credit:
             raise ValidationError("An entry must have either a debit or credit amount.")
-
 
 # ---------------------------------------------------------------------------
 # Service layer — the only way to create ledger entries

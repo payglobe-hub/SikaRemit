@@ -9,7 +9,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class SikaRemitAPIVersioning(URLPathVersioning):
     """
     Custom API versioning class for SikaRemit
@@ -50,7 +49,6 @@ class SikaRemitAPIVersioning(URLPathVersioning):
             request.META['X-API-Deprecation-Warning'] = deprecation_info['message']
         
         return version
-
 
 class APIVersionRouter:
     """
@@ -98,7 +96,6 @@ class APIVersionRouter:
         # For example, v1 might exclude certain fields
         return base_queryset
 
-
 # Mixin for versioned viewsets
 class VersionedViewSetMixin:
     """
@@ -138,7 +135,6 @@ class VersionedViewSetMixin:
             response['X-API-Deprecation-Warning'] = request.META['X-API-Deprecation-Warning']
         
         return response
-
 
 # Version-specific response transformers
 class APIVersionTransformer:
@@ -216,7 +212,6 @@ class APIVersionTransformer:
             }
         
         return data
-
 
 # Version migration helpers
 class APIVersionMigrationHelper:

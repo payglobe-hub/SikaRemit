@@ -23,7 +23,6 @@ from accounts.models import User
 
 logger = logging.getLogger(__name__)
 
-
 class USSDHandler:
     """Main USSD request handler"""
 
@@ -857,7 +856,6 @@ class USSDHandler:
     def _show_airtime_menu(self):
         return self._continue_session("CON Enter airtime amount (GHS):")
 
-
 @csrf_exempt
 @require_POST
 @api_view(['POST'])
@@ -932,7 +930,6 @@ def ussd_callback(request):
     except Exception as e:
         logger.error(f"USSD callback error: {str(e)}", exc_info=True)
         return HttpResponse("END System error. Please try again.", content_type='text/plain')
-
 
 @api_view(['POST'])
 def ussd_webhook(request):

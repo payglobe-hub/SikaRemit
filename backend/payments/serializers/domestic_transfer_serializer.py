@@ -3,7 +3,6 @@ from payments.models import DomesticTransfer, PaymentMethod
 from accounts.models import Recipient
 from .payment_method import PaymentMethodSerializer
 
-
 class DomesticTransferSerializer(serializers.ModelSerializer):
     sender_name = serializers.CharField(source='sender.user.get_full_name', read_only=True)
     recipient_name = serializers.CharField(source='recipient.name', read_only=True)

@@ -97,7 +97,7 @@ export async function loadCountriesForPhone(): Promise<void> {
       countriesLoaded = true
     }
   } catch (error) {
-    console.error('Failed to load countries for phone utilities:', error)
+    
     // Use fallback countries
     COUNTRIES.length = 0
     COUNTRIES.push(...FALLBACK_COUNTRIES)

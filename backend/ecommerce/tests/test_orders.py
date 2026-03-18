@@ -14,7 +14,6 @@ from shared.constants import USER_TYPE_CUSTOMER, USER_TYPE_MERCHANT
 
 User = get_user_model()
 
-
 class OrderCreationTests(TestCase):
     """Test order creation and fields."""
 
@@ -104,7 +103,6 @@ class OrderCreationTests(TestCase):
         )
         self.assertEqual(str(order), 'Order SKR-STR-001')
 
-
 class OrderItemTests(TestCase):
     """Test order items and calculations."""
 
@@ -174,7 +172,6 @@ class OrderItemTests(TestCase):
         self.assertEqual(self.order.items.count(), 2)
         self.assertEqual(self.order.items_count, 3)
 
-
 class PaymentRecordTests(TestCase):
     """Test payment records for orders."""
 
@@ -233,7 +230,6 @@ class PaymentRecordTests(TestCase):
                 status='pending'
             )
             self.assertEqual(payment.payment_method, method)
-
 
 class ShippingAddressTests(TestCase):
     """Test shipping address management."""

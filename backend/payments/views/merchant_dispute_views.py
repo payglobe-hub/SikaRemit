@@ -20,7 +20,6 @@ from ..services.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
 
-
 class MerchantDisputeViewSet(viewsets.ModelViewSet):
     """
     Merchant viewset for managing disputes related to their transactions

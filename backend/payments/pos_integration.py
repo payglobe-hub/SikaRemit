@@ -13,7 +13,6 @@ import json
 
 logger = logging.getLogger(__name__)
 
-
 class POSDeviceType:
     """Supported POS device types"""
     VIRTUAL_TERMINAL = 'virtual_terminal'
@@ -22,7 +21,6 @@ class POSDeviceType:
     INTEGRATED = 'integrated'
     KIOSK = 'kiosk'
 
-
 class POSTransactionType:
     """POS transaction types"""
     SALE = 'sale'
@@ -30,7 +28,6 @@ class POSTransactionType:
     VOID = 'void'
     PRE_AUTH = 'pre_auth'
     CAPTURE = 'capture'
-
 
 class VirtualTerminal:
     """
@@ -230,7 +227,6 @@ class VirtualTerminal:
             response_data=result
         )
 
-
 class MobileReaderSDK:
     """
     SDK for mobile card readers (e.g., Square Reader, Stripe Reader)
@@ -425,7 +421,6 @@ class MobileReaderSDK:
             response_data=result
         )
 
-
 class CountertopTerminal:
     """
     Integration with countertop POS terminals
@@ -506,7 +501,6 @@ class CountertopTerminal:
             'receipt_type': receipt_type,
             'printed': True
         }
-
 
 class POSIntegrationAPI:
     """
@@ -619,7 +613,6 @@ class POSIntegrationAPI:
             for txn in transactions
         ]
 
-
 class POSReceiptGenerator:
     """Generate receipts for POS transactions"""
     
@@ -675,17 +668,14 @@ class POSReceiptGenerator:
         
         return "\n".join(receipt)
 
-
 # Utility functions
 def create_virtual_terminal(merchant_id: int) -> VirtualTerminal:
     """Create virtual terminal instance"""
     return VirtualTerminal(merchant_id)
 
-
 def create_mobile_reader(merchant_id: int, device_id: str) -> MobileReaderSDK:
     """Create mobile reader SDK instance"""
     return MobileReaderSDK(merchant_id, device_id)
-
 
 def create_countertop_terminal(terminal_id: str, merchant_id: int) -> CountertopTerminal:
     """Create countertop terminal instance"""

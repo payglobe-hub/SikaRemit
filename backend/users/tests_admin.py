@@ -18,7 +18,6 @@ from shared.constants import ADMIN_HIERARCHY_LEVELS, ADMIN_PERMISSIONS
 
 User = get_user_model()
 
-
 class AdminHierarchyTest(TestCase):
     """Test admin hierarchy and permissions"""
     
@@ -191,7 +190,6 @@ class AdminHierarchyTest(TestCase):
         request.user = user
         return request
 
-
 class AdminAPITest(TestCase):
     """Test admin API endpoints"""
     
@@ -254,7 +252,6 @@ class AdminAPITest(TestCase):
         # This should fail - business admin trying to access super admin functions
         # Note: This will depend on actual API implementation
 
-
 class AdminReportingTest(TestCase):
     """Test admin reporting functionality"""
     
@@ -287,7 +284,6 @@ class AdminReportingTest(TestCase):
         """Test admin audit trail functionality"""
         # Test that admin actions are properly logged
         # Note: This will depend on actual audit trail implementation
-
 
 if __name__ == '__main__':
     import unittest

@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils import timezone
 
-
 class Webhook(models.Model):
     """Webhook configuration for external integrations"""
     url = models.URLField(max_length=500)
@@ -22,7 +21,6 @@ class Webhook(models.Model):
     
     def __str__(self):
         return f"Webhook {self.id}: {self.url}"
-
 
 class WebhookEvent(models.Model):
     """Log of webhook delivery attempts"""

@@ -11,7 +11,6 @@ from shared.constants import (
 
 User = get_user_model()
 
-
 class AdminRole(models.Model):
     """
     Defines admin roles with specific permissions and hierarchy levels
@@ -61,7 +60,6 @@ class AdminRole(models.Model):
                     'category': ADMIN_PERMISSIONS[perm_key]['category']
                 })
         return details
-
 
 class AdminProfile(models.Model):
     """
@@ -160,7 +158,6 @@ class AdminProfile(models.Model):
         self.suspension_reason = ''
         self.save()
 
-
 class AdminActivityLog(models.Model):
     """
     Comprehensive audit logging for all admin actions
@@ -219,7 +216,6 @@ class AdminActivityLog(models.Model):
         self.requires_review = False
         self.save()
 
-
 class AdminSession(models.Model):
     """
     Track admin sessions for security and auditing
@@ -264,7 +260,6 @@ class AdminSession(models.Model):
         """Extend session expiration"""
         self.expires_at = timezone.now() + timezone.timedelta(minutes=minutes)
         self.save()
-
 
 class AdminPermissionOverride(models.Model):
     """

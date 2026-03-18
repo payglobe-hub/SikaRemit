@@ -10,7 +10,6 @@ from merchants.models import Product
 from .models_cart import ShoppingCart, CartItem
 from .models import Order, OrderItem, Payment
 
-
 class CartService:
     """Shopping cart business logic"""
     
@@ -71,7 +70,6 @@ class CartService:
     def clear_cart(cart):
         """Clear all items from cart"""
         cart.items.all().delete()
-
 
 class OrderService:
     """Order processing business logic"""
@@ -150,7 +148,6 @@ class OrderService:
             base_cost = Decimal('0.00')  # Free shipping for orders over 500
         
         return base_cost
-
 
 class PaymentService:
     """Payment processing business logic"""
@@ -379,7 +376,6 @@ class PaymentService:
             payment.gateway_response = {'error': str(e)}
             payment.save()
             raise ValueError("Mobile money payment failed")
-
 
 # Import needed for timezone and get_object_or_404
 from django.utils import timezone

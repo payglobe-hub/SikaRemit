@@ -33,7 +33,6 @@ def test_merchant_customers_stats(request):
         'test_message': 'This is a test endpoint'
     })
 
-
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet for managing users with admin-only access."""
     queryset = User.objects.all()
@@ -166,7 +165,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 {'error': 'Failed to verify user'}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
 
 class MerchantViewSet(viewsets.ModelViewSet):
     """ViewSet for managing merchant profiles."""
@@ -318,7 +316,6 @@ class MerchantViewSet(viewsets.ModelViewSet):
                 {'error': 'Failed to reject merchant'}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
 
 class CustomerViewSet(viewsets.ModelViewSet):
     """ViewSet for managing customer profiles."""
@@ -528,7 +525,6 @@ class CustomerViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-
 class KYCDocumentViewSet(viewsets.ModelViewSet):
     queryset = KYCDocument.objects.all()
     serializer_class = KYCDocumentSerializer
@@ -584,7 +580,6 @@ class KYCDocumentViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return APIResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
 class KYCViewSet(viewsets.ViewSet):
     """ViewSet for KYC verification workflows"""
     permission_classes = [IsOwnerOrAdmin]
@@ -636,7 +631,6 @@ class KYCViewSet(viewsets.ViewSet):
             return APIResponse(KYCDocumentSerializer(document).data)
         except Exception as e:
             return APIResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 
 class MerchantCustomerViewSet(viewsets.ModelViewSet):
     """ViewSet for managing merchant-customer relationships"""
@@ -807,7 +801,6 @@ class MerchantCustomerViewSet(viewsets.ModelViewSet):
             'recent_onboardings': 0
         })
 
-
 class MerchantKYCSubmissionViewSet(viewsets.ModelViewSet):
     """ViewSet for managing KYC submissions that need admin review"""
     serializer_class = MerchantKYCSubmissionSerializer
@@ -930,12 +923,10 @@ class MerchantKYCSubmissionViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return APIResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
 class AdminKYCInboxPagination(PageNumberPagination):
     page_size = 20
     page_size_query_param = 'page_size'
     max_page_size = 100
-
 
 class AdminKYCInboxView(APIView):
     permission_classes = [IsAdminUser]
@@ -1045,7 +1036,6 @@ class AdminKYCInboxView(APIView):
             'results': [_serialize_item(i) for i in (page or [])]
         })
 
-
 class AdminKYCInboxStatsView(APIView):
     permission_classes = [IsAdminUser]
 
@@ -1086,7 +1076,6 @@ class AdminKYCInboxStatsView(APIView):
                 }
             }
         })
-
 
 def verify_email(request, token):
     """Verify user email using verification token"""

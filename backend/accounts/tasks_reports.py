@@ -13,7 +13,6 @@ from channels.layers import get_channel_layer
 
 logger = logging.getLogger(__name__)
 
-
 # Report Generation Tasks
 
 @shared_task(bind=True, max_retries=3)
@@ -121,7 +120,6 @@ def generate_customer_statement(self, statement_id):
             pass
         
         raise self.retry(exc=e, countdown=60 * (2 ** self.request.retries))
-
 
 @shared_task(bind=True, max_retries=3)
 def generate_merchant_report(self, report_id):
@@ -231,7 +229,6 @@ def generate_merchant_report(self, report_id):
             pass
         
         raise self.retry(exc=e, countdown=60 * (2 ** self.request.retries))
-
 
 @shared_task(bind=True, max_retries=3)
 def generate_admin_report(self, report_id):
@@ -346,7 +343,6 @@ def generate_admin_report(self, report_id):
         
         raise self.retry(exc=e, countdown=60 * (2 ** self.request.retries))
 
-
 @shared_task
 def run_scheduled_reports():
     """Run all scheduled reports that are due"""
@@ -400,7 +396,6 @@ def run_scheduled_reports():
         except Exception as e:
             logger.error(f"Error running scheduled report {scheduled_report.id}: {str(e)}")
 
-
 @shared_task
 def cleanup_expired_cache():
     """Clean up expired report cache entries"""
@@ -415,7 +410,6 @@ def cleanup_expired_cache():
     
     logger.info(f"Cleaned up {count} expired cache entries")
 
-
 # Helper functions for report generation
 
 def _generate_statement_data(statement):
@@ -428,7 +422,6 @@ def _generate_statement_data(statement):
         statement.start_date.strftime('%Y-%m-%d'),
         statement.end_date.strftime('%Y-%m-%d')
     )
-
 
 def _generate_pdf_statement(statement, data):
     """Generate PDF statement"""
@@ -451,7 +444,6 @@ def _generate_pdf_statement(statement, data):
     file_size = buffer.getbuffer().size
     
     return file_url, file_size
-
 
 def _generate_excel_statement(statement, data):
     """Generate Excel statement"""
@@ -477,7 +469,6 @@ def _generate_excel_statement(statement, data):
     
     return file_url, file_size
 
-
 def _generate_merchant_report_data(report):
     """Generate merchant report data"""
     from .api.merchant_reports import MerchantReportViewSet
@@ -489,7 +480,6 @@ def _generate_merchant_report_data(report):
         report.start_date.strftime('%Y-%m-%d'),
         report.end_date.strftime('%Y-%m-%d')
     )
-
 
 def _generate_pdf_merchant_report(report, data):
     """Generate PDF merchant report"""
@@ -510,7 +500,6 @@ def _generate_pdf_merchant_report(report, data):
     
     return file_url, file_size
 
-
 def _generate_excel_merchant_report(report, data):
     """Generate Excel merchant report"""
     output = io.BytesIO()
@@ -529,7 +518,6 @@ def _generate_excel_merchant_report(report, data):
     
     return file_url, file_size
 
-
 def _generate_csv_merchant_report(report, data):
     """Generate CSV merchant report"""
     import csv
@@ -545,7 +533,6 @@ def _generate_csv_merchant_report(report, data):
     
     return file_url, file_size
 
-
 def _generate_admin_report_data(report):
     """Generate admin report data"""
     # Mock implementation - would depend on report type
@@ -553,7 +540,6 @@ def _generate_admin_report_data(report):
         'total_records': 1000,
         'generated_at': timezone.now().isoformat()
     }
-
 
 def _generate_pdf_admin_report(report, data):
     """Generate PDF admin report"""
@@ -573,7 +559,6 @@ def _generate_pdf_admin_report(report, data):
     
     return file_url, file_size
 
-
 def _generate_excel_admin_report(report, data):
     """Generate Excel admin report"""
     output = io.BytesIO()
@@ -592,7 +577,6 @@ def _generate_excel_admin_report(report, data):
     
     return file_url, file_size
 
-
 def _generate_csv_admin_report(report, data):
     """Generate CSV admin report"""
     import csv
@@ -607,7 +591,6 @@ def _generate_csv_admin_report(report, data):
     file_size = len(output.getvalue().encode())
     
     return file_url, file_size
-
 
 def _generate_json_admin_report(report, data):
     """Generate JSON admin report"""
@@ -624,7 +607,6 @@ def _generate_json_admin_report(report, data):
     
     return file_url, file_size
 
-
 def _generate_xml_admin_report(report, data):
     """Generate XML admin report"""
     from xml.etree.ElementTree import Element, SubElement, tostring
@@ -639,7 +621,6 @@ def _generate_xml_admin_report(report, data):
     file_size = len(xml_data.encode())
     
     return file_url, file_size
-
 
 def _calculate_next_run(frequency):
     """Calculate next run time based on frequency"""
@@ -662,7 +643,6 @@ def _calculate_next_run(frequency):
     else:
         return now + timezone.timedelta(days=1)
 
-
 # WebSocket notification functions (synchronous versions)
 
 def _send_report_update(report_id, data):
@@ -679,7 +659,6 @@ def _send_report_update(report_id, data):
     except Exception as e:
         logger.error(f"Error sending report update: {str(e)}")
 
-
 def _send_report_completed(report_id, data):
     """Send report completion notification"""
     try:
@@ -693,7 +672,6 @@ def _send_report_completed(report_id, data):
         )
     except Exception as e:
         logger.error(f"Error sending report completion: {str(e)}")
-
 
 def _send_report_failed(report_id, data):
     """Send report failure notification"""

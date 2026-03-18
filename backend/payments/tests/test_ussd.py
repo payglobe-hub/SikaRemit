@@ -14,7 +14,6 @@ from shared.constants import USER_TYPE_CUSTOMER
 
 User = get_user_model()
 
-
 class USSDSessionTests(TestCase):
     """Test USSD session lifecycle."""
 
@@ -132,7 +131,6 @@ class USSDSessionTests(TestCase):
             expires_at=timezone.now() + timedelta(minutes=5)
         )
         self.assertEqual(session.language, 'en')
-
 
 class USSDMenuTests(TestCase):
     """Test USSD menu definitions."""

@@ -9,7 +9,6 @@ from accounts.api.serializers import UserSerializer
 
 User = get_user_model()
 
-
 class CreateCustomerAPIView(APIView):
     """
     API endpoint for creating customer users (type 3)

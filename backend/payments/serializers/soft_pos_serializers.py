@@ -10,7 +10,6 @@ from ..models import (
 )
 from ..soft_pos_integration import PaymentMethod, SoftPOSType
 
-
 class SmartphonePOSSerializer(serializers.ModelSerializer):
     """Serializer for Smartphone POS Device configuration"""
     
@@ -43,7 +42,6 @@ class SmartphonePOSSerializer(serializers.ModelSerializer):
         """Check if device is online"""
         return obj.is_online()
 
-
 class NFCPaymentSerializer(serializers.ModelSerializer):
     """Serializer for NFC Payment records"""
     
@@ -67,7 +65,6 @@ class NFCPaymentSerializer(serializers.ModelSerializer):
             'aic', 'un', 'created_at'
         ]
 
-
 class MobileMoneyPaymentSerializer(serializers.ModelSerializer):
     """Serializer for Mobile Money Payment records"""
     
@@ -88,7 +85,6 @@ class MobileMoneyPaymentSerializer(serializers.ModelSerializer):
             'id', 'transaction_id', 'mobile_money_transaction_id',
             'prompt_sent_at', 'confirmed_at', 'expires_at', 'created_at', 'updated_at'
         ]
-
 
 class SoftPOSTransactionSerializer(serializers.ModelSerializer):
     """Enhanced serializer for POS Transactions with Soft POS support"""
@@ -117,7 +113,6 @@ class SoftPOSTransactionSerializer(serializers.ModelSerializer):
             'response_code', 'gateway_transaction_id', 'created_at',
             'updated_at', 'completed_at'
         ]
-
 
 class SoftPOSDeviceSerializer(serializers.ModelSerializer):
     """Enhanced serializer for POS Devices with Soft POS features"""
@@ -152,7 +147,6 @@ class SoftPOSDeviceSerializer(serializers.ModelSerializer):
     def get_is_online(self, obj):
         """Check if device is online"""
         return obj.is_online()
-
 
 class SoftPOSDeviceRegistrationSerializer(serializers.Serializer):
     """Serializer for Soft POS device registration"""
@@ -191,7 +185,6 @@ class SoftPOSDeviceRegistrationSerializer(serializers.Serializer):
     hardware_specs = serializers.JSONField(default=dict)
     location = serializers.CharField(max_length=255, required=False, allow_blank=True)
 
-
 class SmartphonePOSRegistrationSerializer(serializers.Serializer):
     """Serializer for Smartphone POS specific registration"""
     
@@ -218,7 +211,6 @@ class SmartphonePOSRegistrationSerializer(serializers.Serializer):
     device_id_hash = serializers.CharField(max_length=200)  # Hashed device identifier
     security_credentials = serializers.JSONField(default=dict)
 
-
 class SoftPOSAuthenticationSerializer(serializers.Serializer):
     """Serializer for Soft POS device authentication"""
     
@@ -233,7 +225,6 @@ class SoftPOSAuthenticationSerializer(serializers.Serializer):
     # Request metadata
     ip_address = serializers.IPAddressField(required=False, allow_blank=True)
     user_agent = serializers.CharField(max_length=500, required=False, allow_blank=True)
-
 
 class SoftPOSPaymentSerializer(serializers.Serializer):
     """Serializer for Soft POS payment processing"""
@@ -259,7 +250,6 @@ class SoftPOSPaymentSerializer(serializers.Serializer):
     reference = serializers.CharField(max_length=50, required=False, allow_blank=True)
     metadata = serializers.JSONField(default=dict)
 
-
 class NFCPaymentDataSerializer(serializers.Serializer):
     """Serializer for NFC payment data"""
     
@@ -278,7 +268,6 @@ class NFCPaymentDataSerializer(serializers.Serializer):
     # Additional NFC data
     nfc_data = serializers.JSONField(default=dict)
 
-
 class MobileMoneyPaymentDataSerializer(serializers.Serializer):
     """Serializer for Mobile Money payment data"""
     
@@ -289,7 +278,6 @@ class MobileMoneyPaymentDataSerializer(serializers.Serializer):
     # Optional customer verification
     customer_email = serializers.EmailField(required=False, allow_blank=True)
     customer_note = serializers.CharField(max_length=200, required=False, allow_blank=True)
-
 
 class SoftPOSDeviceStatusSerializer(serializers.Serializer):
     """Serializer for device status updates"""
@@ -316,7 +304,6 @@ class SoftPOSDeviceStatusSerializer(serializers.Serializer):
     app_version = serializers.CharField(max_length=20, required=False)
     crash_reports = serializers.JSONField(default=list, required=False)
 
-
 class SoftPOSSecurityEventSerializer(serializers.Serializer):
     """Serializer for security event logging"""
     
@@ -342,7 +329,6 @@ class SoftPOSSecurityEventSerializer(serializers.Serializer):
     user_action = serializers.CharField(max_length=100, required=False, allow_blank=True)
     ip_address = serializers.IPAddressField(required=False, allow_blank=True)
 
-
 class SoftPOSDashboardSerializer(serializers.Serializer):
     """Serializer for Soft POS dashboard data"""
     
@@ -355,7 +341,6 @@ class SoftPOSDashboardSerializer(serializers.Serializer):
     device_type = serializers.CharField(max_length=20, required=False, allow_blank=True)
     payment_method = serializers.CharField(max_length=20, required=False, allow_blank=True)
     status = serializers.CharField(max_length=20, required=False, allow_blank=True)
-
 
 class SoftPOSAnalyticsSerializer(serializers.Serializer):
     """Serializer for Soft POS analytics requests"""

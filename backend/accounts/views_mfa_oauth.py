@@ -29,7 +29,6 @@ ROLE_MAPPING = {
     USER_TYPE_CUSTOMER: 'customer',
 }
 
-
 class MFASetupView(APIView):
     """
     MFA setup endpoint
@@ -57,7 +56,6 @@ class MFASetupView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 class MFAVerifyView(APIView):
     """
@@ -122,7 +120,6 @@ class MFAVerifyView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-
 class MFALoginView(APIView):
     """
     MFA verification endpoint for logins
@@ -145,7 +142,6 @@ class MFALoginView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-
 
 class MFABackupCodesView(APIView):
     """
@@ -181,7 +177,6 @@ class MFABackupCodesView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
 @csrf_exempt
 def google_oauth_view(request):
@@ -220,7 +215,6 @@ def google_oauth_view(request):
         logger.error(f"Google OAuth initiation failed: {str(e)}")
         from django.http import JsonResponse
         return JsonResponse({'error': 'Failed to initiate Google OAuth'}, status=500)
-
 
 class GoogleAuthView(APIView):
     """
@@ -269,7 +263,6 @@ class GoogleAuthView(APIView):
                 {'error': 'Failed to initiate Google OAuth'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
 
 class GoogleOAuthCallbackView(APIView):
     """

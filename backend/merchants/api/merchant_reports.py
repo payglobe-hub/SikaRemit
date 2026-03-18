@@ -81,7 +81,6 @@ class ReportTemplateViewSet(viewsets.ViewSet):
         
         return Response(template)
 
-
 class MerchantReportViewSet(viewsets.ViewSet):
     """Manage merchant reports"""
     permission_classes = [permissions.IsAuthenticated]
@@ -379,7 +378,6 @@ class MerchantReportViewSet(viewsets.ViewSet):
 
         return round(float(growth_rate), 2)
 
-
 class RegenerateReportView(APIView):
     """Regenerate an existing report"""
     permission_classes = [permissions.IsAuthenticated]
@@ -393,7 +391,6 @@ class RegenerateReportView(APIView):
         # Find and regenerate report
         # In production would update database record
         return Response({'message': 'Report regeneration started'})
-
 
 class CancelReportView(APIView):
     """Cancel report generation"""
@@ -409,7 +406,6 @@ class CancelReportView(APIView):
         # In production would update database record
         return Response({'message': 'Report cancelled'})
 
-
 class DeleteReportView(APIView):
     """Delete a report"""
     permission_classes = [permissions.IsAuthenticated]
@@ -424,7 +420,6 @@ class DeleteReportView(APIView):
         # In production would delete database record
         return Response({'message': 'Report deleted'})
 
-
 class DownloadReportView(APIView):
     """Download a report"""
     permission_classes = [permissions.IsAuthenticated]
@@ -438,7 +433,6 @@ class DownloadReportView(APIView):
         # Generate and return report file
         # In production would serve actual file
         return Response({'message': 'Report download started'})
-
 
 class ScheduledReportViewSet(viewsets.ViewSet):
     """Manage scheduled reports"""
@@ -524,7 +518,6 @@ class ScheduledReportViewSet(viewsets.ViewSet):
 
         return next_run.isoformat()
 
-
 class PauseScheduledReportView(APIView):
     """Pause scheduled report"""
     permission_classes = [permissions.IsAuthenticated]
@@ -538,7 +531,6 @@ class PauseScheduledReportView(APIView):
         # Pause scheduled report
         # In production would update database record
         return Response({'message': 'Scheduled report paused'})
-
 
 class ResumeScheduledReportView(APIView):
     """Resume scheduled report"""
@@ -554,7 +546,6 @@ class ResumeScheduledReportView(APIView):
         # In production would update database record
         return Response({'message': 'Scheduled report resumed'})
 
-
 class RunScheduledReportNowView(APIView):
     """Run scheduled report immediately"""
     permission_classes = [permissions.IsAuthenticated]
@@ -568,7 +559,6 @@ class RunScheduledReportNowView(APIView):
         # Run scheduled report immediately
         # In production would trigger background job
         return Response({'message': 'Scheduled report execution started'})
-
 
 class DeleteScheduledReportView(APIView):
     """Delete scheduled report"""

@@ -33,7 +33,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     async def notification_message(self, event):
         await self.send(text_data=json.dumps(event['notification']))
 
-
 class BalanceConsumer(AsyncWebsocketConsumer):
     """Real-time balance updates for customers"""
 
@@ -66,7 +65,6 @@ class BalanceConsumer(AsyncWebsocketConsumer):
             'type': 'balance_update',
             'data': event['balance_data']
         }))
-
 
 class TransactionConsumer(AsyncWebsocketConsumer):
     """Real-time transaction updates for customers"""
@@ -101,7 +99,6 @@ class TransactionConsumer(AsyncWebsocketConsumer):
             'data': event['transaction_data']
         }))
 
-
 class PaymentStatusConsumer(AsyncWebsocketConsumer):
     """Real-time payment status updates"""
 
@@ -134,7 +131,6 @@ class PaymentStatusConsumer(AsyncWebsocketConsumer):
             'type': 'payment_status_update',
             'data': event['payment_data']
         }))
-
 
 class DashboardConsumer(AsyncWebsocketConsumer):
     """Real-time dashboard updates for customers - aggregates balance, transactions, and payment status"""

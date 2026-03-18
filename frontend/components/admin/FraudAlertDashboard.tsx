@@ -89,7 +89,7 @@ export function FraudAlertDashboard() {
       }
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to load fraud alerts', variant: 'destructive' })
-      console.error(error)
+      
     } finally {
       setLoading(false)
     }
@@ -104,7 +104,7 @@ export function FraudAlertDashboard() {
         setStats(data.stats)
       }
     } catch (error) {
-      console.error('Failed to load stats:', error)
+      
     }
   }
 
@@ -128,7 +128,7 @@ export function FraudAlertDashboard() {
       }
     } catch (error) {
       toast({ title: 'Error', description: 'Error reviewing alert', variant: 'destructive' })
-      console.error(error)
+      
     }
   }
 

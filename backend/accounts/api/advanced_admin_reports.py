@@ -13,7 +13,6 @@ from accounts.permissions import IsSuperAdmin, IsBusinessAdmin, IsAdminUser
 from compliance.models import RegulatorySubmission, SuspiciousActivityReport, BOGMonthlyReport
 import calendar
 
-
 class SystemMetricsAPIView(APIView):
     """Get system-wide metrics for admin dashboard"""
     permission_classes = [IsAdminUser]
@@ -100,7 +99,6 @@ class SystemMetricsAPIView(APIView):
         failed_count = transactions.filter(status='failed').count()
         total_count = transactions.count()
         return (failed_count / total_count * 100) if total_count > 0 else 0
-
 
 class ComplianceReportAPIView(APIView):
     """Generate compliance and risk reports"""
@@ -204,7 +202,6 @@ class ComplianceReportAPIView(APIView):
             distribution[item['risk_level']] = item['count']
         
         return distribution
-
 
 class MerchantPerformanceAPIView(APIView):
     """Get merchant performance analytics"""
@@ -316,7 +313,6 @@ class MerchantPerformanceAPIView(APIView):
             'avg_success_rate': 96.5,
             'avg_growth_rate': 12.3
         }
-
 
 class CustomerAnalyticsAPIView(APIView):
     """Get customer analytics and segmentation"""
@@ -437,7 +433,6 @@ class CustomerAnalyticsAPIView(APIView):
             {'segment': 'Occasional', 'count': len(occasional), 'revenue': sum(occasional), 'growth_rate': 0.0},
             {'segment': 'Inactive', 'count': inactive_count, 'revenue': 0, 'growth_rate': 0.0},
         ]
-
 
 class FinancialSummaryAPIView(APIView):
     """Get financial summary and analytics"""
@@ -584,7 +579,6 @@ class FinancialSummaryAPIView(APIView):
 
         return sources
 
-
 class ScheduleReportAPIView(APIView):
     """Schedule automated reports"""
     permission_classes = [IsAdminUser]
@@ -638,7 +632,6 @@ class ScheduleReportAPIView(APIView):
 
         return next_run.isoformat()
 
-
 class GetScheduledReportsAPIView(APIView):
     """Get all scheduled reports"""
     permission_classes = [IsAdminUser]
@@ -671,7 +664,6 @@ class GetScheduledReportsAPIView(APIView):
         ]
 
         return Response(scheduled_reports)
-
 
 class CancelScheduledReportAPIView(APIView):
     """Cancel scheduled report"""

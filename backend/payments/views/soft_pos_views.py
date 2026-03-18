@@ -32,7 +32,6 @@ from ..serializers import (
 
 logger = logging.getLogger(__name__)
 
-
 class SoftPOSViewSet(viewsets.ModelViewSet):
     """
     Modern Soft POS Management ViewSet
@@ -246,7 +245,6 @@ class SoftPOSViewSet(viewsets.ModelViewSet):
             'device_count': devices.count()
         })
 
-
 class MobileMoneyViewSet(viewsets.ViewSet):
     """
     Mobile Money Payment ViewSet
@@ -440,7 +438,6 @@ class MobileMoneyViewSet(viewsets.ViewSet):
         
         return Response(network_status)
 
-
 class NFCPaymentViewSet(viewsets.ViewSet):
     """
     NFC Payment ViewSet
@@ -524,7 +521,6 @@ class NFCPaymentViewSet(viewsets.ViewSet):
             'reader_count': len(readers),
             'readers': readers
         })
-
 
 class SoftPOSDashboardViewSet(viewsets.ViewSet):
     """
@@ -721,7 +717,6 @@ class SoftPOSDashboardViewSet(viewsets.ViewSet):
         growth_rate = ((recent_count - older_count) / older_count) * 100
         return round(growth_rate, 2)
 
-
 # API Views
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -757,7 +752,6 @@ def soft_pos_heartbeat(request):
             {'error': 'Device not found'},
             status=status.HTTP_404_NOT_FOUND
         )
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

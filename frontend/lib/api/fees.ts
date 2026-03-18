@@ -26,11 +26,10 @@ export const calculateTransactionFees = async (
     const response = await api.post('/api/v1/payments/fees/calculate_fee/', request)
     return response.data
   } catch (error: any) {
-    console.error('Fee calculation error:', error)
 
     // Only provide fallback for network/server errors, not for validation errors
     if (error?.code === 'NETWORK_ERROR' || error?.response?.status >= 500) {
-      console.warn('Fee calculation service unavailable, using emergency fallback')
+      
       // Emergency fallback: minimum fee calculation
       const fallbackFee = Math.max(request.amount * 0.005, 0.50)
       return {
@@ -55,7 +54,7 @@ export const getFeeStructure = async (
     })
     return response.data
   } catch (error: any) {
-    console.error('Fee structure fetch error:', error)
+    
     return null
   }
 }
@@ -77,7 +76,7 @@ export const getFeeAnalytics = async (): Promise<FeeAnalytics> => {
     const response = await api.get('/api/v1/admin/fee-configurations/analytics/')
     return response.data
   } catch (error: any) {
-    console.error('Fee analytics fetch error:', error)
+    
     throw error
   }
 }

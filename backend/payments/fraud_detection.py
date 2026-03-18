@@ -15,14 +15,12 @@ import json
 
 logger = logging.getLogger(__name__)
 
-
 class FraudRiskLevel:
     """Fraud risk level constants"""
     LOW = 'low'
     MEDIUM = 'medium'
     HIGH = 'high'
     CRITICAL = 'critical'
-
 
 class FraudRule:
     """Base class for fraud detection rules"""
@@ -40,7 +38,6 @@ class FraudRule:
             Tuple of (triggered, score, reason)
         """
         raise NotImplementedError
-
 
 class VelocityRule(FraudRule):
     """Detect unusual transaction velocity"""
@@ -71,7 +68,6 @@ class VelocityRule(FraudRule):
         
         return (False, 0.0, "")
 
-
 class AmountAnomalyRule(FraudRule):
     """Detect unusual transaction amounts"""
     
@@ -101,7 +97,6 @@ class AmountAnomalyRule(FraudRule):
             )
         
         return (False, 0.0, "")
-
 
 class GeolocationRule(FraudRule):
     """Detect suspicious location changes using IP geolocation"""
@@ -160,7 +155,6 @@ class GeolocationRule(FraudRule):
         
         return (False, 0.0, "")
 
-
 class DeviceFingerprintRule(FraudRule):
     """Detect suspicious device changes"""
     
@@ -192,7 +186,6 @@ class DeviceFingerprintRule(FraudRule):
             cache.set(cache_key, known_devices, 86400 * 30)  # 30 days
         
         return (False, 0.0, "")
-
 
 class BINCheckRule(FraudRule):
     """Check card BIN against fraud databases"""
@@ -232,7 +225,6 @@ class BINCheckRule(FraudRule):
         
         return bins
 
-
 class EmailDomainRule(FraudRule):
     """Check email domain reputation"""
     
@@ -266,7 +258,6 @@ class EmailDomainRule(FraudRule):
             'tempmail.com', 'guerrillamail.com', '10minutemail.com',
             'mailinator.com', 'throwaway.email', 'temp-mail.org'
         }
-
 
 class FraudDetectionEngine:
     """Main fraud detection engine"""
@@ -378,7 +369,6 @@ class FraudDetectionEngine:
         except Exception as e:
             logger.error(f"Error logging fraud alert: {str(e)}")
 
-
 class FraudPreventionService:
     """Service for fraud prevention and monitoring"""
     
@@ -479,9 +469,8 @@ class FraudPreventionService:
             is_active=True
         ).exists()
 
-
 # Utility functions
-def generate_device_fingerprint(request) -> str:
+def generate_device_finger -> str:
     """Generate device fingerprint from request"""
     components = [
         request.META.get('HTTP_USER_AGENT', ''),
@@ -491,7 +480,6 @@ def generate_device_fingerprint(request) -> str:
     
     fingerprint_string = '|'.join(components)
     return hashlib.sha256(fingerprint_string.encode()).hexdigest()
-
 
 def get_client_ip(request) -> str:
     """Get client IP address from request"""

@@ -18,7 +18,6 @@ from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
-
 class MobileMoneyGateway(PaymentGateway, CircuitBreakerMixin):
     """Base class for mobile money gateways with circuit breaking and webhook support"""
     PROVIDER_NAME = "generic"
@@ -195,7 +194,6 @@ class MobileMoneyGateway(PaymentGateway, CircuitBreakerMixin):
     def check_transaction_status(self, transaction_id: str) -> Dict:
         """Check status of a transaction with the provider"""
         raise NotImplementedError("Subclasses must implement check_transaction_status")
-
 
 class MTNMoMoGateway(MobileMoneyGateway):
     """
@@ -504,7 +502,6 @@ class MTNMoMoGateway(MobileMoneyGateway):
             logger.error(f"MTN auth error: {str(e)}")
             raise
 
-
 class TelecelCashGateway(MobileMoneyGateway):
     """
     Telecel Cash payment gateway implementation
@@ -713,7 +710,6 @@ class TelecelCashGateway(MobileMoneyGateway):
             return {'success': False, 'error': result.get('error')}
         except Exception as e:
             return {'success': False, 'error': str(e)}
-
 
 class AirtelTigoMoneyGateway(MobileMoneyGateway):
     """
@@ -1013,7 +1009,6 @@ class AirtelTigoMoneyGateway(MobileMoneyGateway):
         except Exception as e:
             logger.error(f"AirtelTigo auth error: {str(e)}")
             return self.auth_token or ''
-
 
 class GMoneyGateway(MobileMoneyGateway):
     """

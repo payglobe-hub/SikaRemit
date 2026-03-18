@@ -7,7 +7,6 @@ import json
 from django.utils import timezone
 from ..models.ussd import USSDMenu, USSDSession
 
-
 class USSDMenuManager:
     """Manages USSD menus and navigation"""
 
@@ -377,7 +376,6 @@ class USSDMenuManager:
             return True, user_input
 
         return True, user_input
-
 
 class USSDSessionManager:
     """Manages USSD sessions and state"""

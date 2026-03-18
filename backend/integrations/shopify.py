@@ -12,7 +12,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class ShopifyIntegration:
     """
     Shopify payment gateway integration
@@ -147,7 +146,6 @@ class ShopifyIntegration:
             }
             for method in methods
         ]
-
 
 def create_shopify_app_extension():
     """

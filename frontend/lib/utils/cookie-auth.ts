@@ -7,16 +7,22 @@
 export const cookieUtils = {
   getCookie(name: string): string | null {
     if (typeof window === 'undefined' || typeof document === 'undefined') {
+      
       return null
     }
 
     try {
       const value = `; ${document.cookie}`
       const parts = value.split(`; ${name}=`)
-      if (parts.length === 2) return parts.pop()?.split(';').shift() || null
+      if (parts.length === 2) {
+        const result = parts.pop()?.split(';').shift() || null
+        
+        return result
+      }
+      
       return null
     } catch (error) {
-      console.warn('Failed to read cookie:', error)
+      
       return null
     }
   },
@@ -28,14 +34,15 @@ export const cookieUtils = {
     path?: string
   } = {}): void {
     if (typeof window === 'undefined' || typeof document === 'undefined') {
+      
       return
     }
 
     try {
       const {
         maxAge = 86400,
-        secure = process.env.NODE_ENV === 'production',
-        sameSite = 'strict',
+        secure = process.env.NODE_ENV === 'production', // Enable secure in production
+        sameSite = 'lax', // Default to lax for better compatibility
         path = '/'
       } = options
 
@@ -46,8 +53,12 @@ export const cookieUtils = {
       }
 
       document.cookie = cookieString
+      
+      // Verify it was set
+      const verifyValue = this.getCookie(name)
+      
     } catch (error) {
-      console.warn('Failed to set cookie:', error)
+      
     }
   },
 
@@ -59,7 +70,7 @@ export const cookieUtils = {
     try {
       document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; samesite=strict`
     } catch (error) {
-      console.warn('Failed to delete cookie:', error)
+      
     }
   }
 }
@@ -76,16 +87,16 @@ export const authTokens = {
 
   setAccessToken(token: string): void {
     cookieUtils.setCookie('access_token', token, {
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: false, // Disable secure for development
+      sameSite: 'lax', // Use lax instead of strict for better compatibility
       maxAge: 900 // 15 minutes — matches backend JWT expiry
     })
   },
 
   setRefreshToken(token: string): void {
     cookieUtils.setCookie('refresh_token', token, {
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: false, // Disable secure for development
+      sameSite: 'lax', // Use lax instead of strict for better compatibility
       maxAge: 86400 * 7 // 7 days
     })
   },
@@ -100,11 +111,20 @@ export const authTokens = {
 export const userData = {
   getUserData(): any {
     const cookieData = cookieUtils.getCookie('user_data')
-    if (!cookieData) return null
+    if (!cookieData) {
+      
+      return null
+    }
 
     try {
-      return JSON.parse(cookieData)
-    } catch {
+      // URL-decode the cookie data before parsing JSON
+      const decodedData = decodeURIComponent(cookieData)
+
+      const parsed = JSON.parse(decodedData)
+      
+      return parsed
+    } catch (error) {
+      
       return null
     }
   },
@@ -114,8 +134,12 @@ export const userData = {
     if (!cookieData) return null
 
     try {
-      return JSON.parse(cookieData)
-    } catch {
+      // URL-decode the cookie data before parsing JSON
+      const decodedData = decodeURIComponent(cookieData)
+
+      return JSON.parse(decodedData)
+    } catch (error) {
+      
       return null
     }
   },
@@ -124,8 +148,8 @@ export const userData = {
     if (user) {
       const userDataString = JSON.stringify(user)
       cookieUtils.setCookie('user_data', userDataString, {
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production', // Enable secure in production
+        sameSite: 'lax', // Use lax instead of strict for better compatibility
         maxAge: 86400
       })
     }
@@ -135,8 +159,8 @@ export const userData = {
     if (userTypeInfo) {
       const userTypeInfoString = JSON.stringify(userTypeInfo)
       cookieUtils.setCookie('user_type_info', userTypeInfoString, {
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production', // Enable secure in production
+        sameSite: 'lax', // Use lax instead of strict for better compatibility
         maxAge: 86400
       })
     }
@@ -153,7 +177,12 @@ export const authState = {
   getAuthState(): { user: any; userTypeInfo: any; isAuthenticated: boolean } {
     const user = userData.getUserData()
     const userTypeInfo = userData.getUserTypeInfo()
-    const isAuthenticated = !!user && !!authTokens.getAccessToken()
+    const accessToken = authTokens.getAccessToken()
+    const refreshToken = authTokens.getRefreshToken()
+    
+    // Consider authenticated if we have user data AND either access token OR refresh token
+    // This handles cases where access token expires but refresh token is still valid
+    const isAuthenticated = !!user && (!!accessToken || !!refreshToken)
 
     return { user, userTypeInfo, isAuthenticated }
   },

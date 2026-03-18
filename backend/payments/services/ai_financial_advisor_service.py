@@ -12,7 +12,6 @@ from .analytics_service import AnalyticsService
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
-
 class AIFinancialAdvisorService:
     """
     AI-powered financial advisor service that provides personalized insights,

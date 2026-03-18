@@ -13,7 +13,6 @@ import uuid
 
 from ..models.webhook import Webhook, WebhookEvent
 
-
 class WebhookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Webhook
@@ -28,7 +27,6 @@ class WebhookSerializer(serializers.ModelSerializer):
             validated_data['secret'] = str(uuid.uuid4())
         return super().create(validated_data)
 
-
 class WebhookEventSerializer(serializers.ModelSerializer):
     webhook_id = serializers.IntegerField(source='webhook.id', read_only=True)
     
@@ -37,7 +35,6 @@ class WebhookEventSerializer(serializers.ModelSerializer):
         fields = ['id', 'webhook_id', 'event_type', 'status', 'payload', 
                   'response_status', 'error_message', 'retry_count', 
                   'created_at', 'delivered_at']
-
 
 class WebhookViewSet(viewsets.ModelViewSet):
     """Admin viewset for managing webhooks"""
@@ -151,7 +148,6 @@ class WebhookViewSet(viewsets.ModelViewSet):
         events = webhook.webhook_events.all()[:100]
         serializer = WebhookEventSerializer(events, many=True)
         return Response(serializer.data)
-
 
 class WebhookEventViewSet(viewsets.ReadOnlyModelViewSet):
     """Admin viewset for viewing webhook events"""

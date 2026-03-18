@@ -47,7 +47,7 @@ class ExchangeRateService {
       
       return this.ratesCache; // Return cached if API response is invalid
     } catch (error) {
-      console.error('Failed to fetch rates from backend:', error);
+      
       // Return cached rates if available
       if (Object.keys(this.ratesCache).length > 0) {
         return this.ratesCache;
@@ -95,7 +95,7 @@ class ExchangeRateService {
       this.cache.set(cacheKey, { rate, timestamp: new Date() });
       return rate;
     } catch (error) {
-      console.error('Exchange rate fetch failed:', error);
+      
       throw new Error('Unable to fetch exchange rates. Please try again later.');
     }
   }

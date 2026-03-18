@@ -50,7 +50,7 @@ export function POSTerminal({ merchantId, deviceType = 'virtual_terminal' }: POS
         const currencyList = Array.isArray(data) ? data : (data.results || [])
         setCurrencies(currencyList.filter((c: any) => c.is_active))
       } catch (error) {
-        console.error('Failed to load currencies:', error)
+        
       }
     }
     fetchCurrencies()
@@ -99,7 +99,7 @@ export function POSTerminal({ merchantId, deviceType = 'virtual_terminal' }: POS
         }, 3000)
       }
     } catch (error) {
-      console.error('Transaction error:', error)
+      
       setResult({ success: false, error: 'Transaction failed' })
     } finally {
       setProcessing(false)

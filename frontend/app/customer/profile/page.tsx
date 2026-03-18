@@ -47,11 +47,11 @@ export default function CustomerProfilePage() {
             phone: data.phone || ''
           })
         } else {
-          console.error('Unexpected API response structure:', data)
+          
           setError('Invalid profile data structure')
         }
       } catch (error) {
-        console.error('Failed to load profile:', error)
+        
         setError('Failed to load profile data')
       } finally {
         setLoading(false)
@@ -76,7 +76,7 @@ export default function CustomerProfilePage() {
           setProfileData(data)
           setEditing(false)
         } catch (error) {
-          console.error('Failed to update profile:', error)
+          
           setError('Failed to update profile')
         }
       }

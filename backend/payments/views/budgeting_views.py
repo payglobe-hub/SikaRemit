@@ -18,7 +18,6 @@ from .serializers.budgeting import (
     BudgetItemSerializer, BudgetAlertSerializer
 )
 
-
 # Budget Categories
 class BudgetCategoryViewSet(generics.ListAPIView):
     """
@@ -36,7 +35,6 @@ class BudgetCategoryViewSet(generics.ListAPIView):
             queryset = queryset.filter(category_type=category_type)
 
         return queryset.order_by('category_type', 'name')
-
 
 # Budgets
 class BudgetViewSet(ModelViewSet):
@@ -171,7 +169,6 @@ class BudgetViewSet(ModelViewSet):
 
         return Response(report)
 
-
 # Budget Items
 class BudgetItemViewSet(ModelViewSet):
     """
@@ -196,7 +193,6 @@ class BudgetItemViewSet(ModelViewSet):
         budget = get_object_or_404(Budget, id=budget_id, user=self.request.user)
         serializer.save(budget=budget)
 
-
 # Budget Alerts
 class BudgetAlertViewSet(generics.ListAPIView):
     """
@@ -218,7 +214,6 @@ class BudgetAlertViewSet(generics.ListAPIView):
         alert.mark_as_read()
         serializer = self.get_serializer(alert)
         return Response(serializer.data)
-
 
 # Utility APIs
 @api_view(['GET'])
@@ -290,7 +285,6 @@ def budget_analytics(request):
     }
 
     return Response(analytics)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

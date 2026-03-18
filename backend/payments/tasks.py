@@ -121,7 +121,6 @@ def process_webhook_notifications():
         logger.error(f"Webhook notification processing error: {str(e)}")
         raise e
 
-
 @shared_task
 def daily_reconciliation():
     """
@@ -141,7 +140,6 @@ def daily_reconciliation():
         logger.error(f"Daily reconciliation failed: {str(e)}")
         raise e
 
-
 @shared_task
 def run_merchant_settlements():
     """
@@ -156,7 +154,6 @@ def run_merchant_settlements():
     except Exception as e:
         logger.error(f"Merchant settlement run failed: {str(e)}")
         raise e
-
 
 @shared_task
 def update_exchange_rates():
@@ -175,7 +172,6 @@ def update_exchange_rates():
     except Exception as e:
         logger.error(f"Exchange rate update failed: {str(e)}")
         raise e
-
 
 @shared_task(bind=True, max_retries=5)
 def process_g_money_webhook(self, webhook_data):
@@ -200,7 +196,6 @@ def process_g_money_webhook(self, webhook_data):
             delay = 2 ** self.request.retries
             raise self.retry(countdown=delay, exc=e)
         raise e
-
 
 @shared_task(bind=True, max_retries=3)
 def check_g_money_transaction_status(self, transaction_id, force_check=False):
@@ -253,7 +248,6 @@ def check_g_money_transaction_status(self, transaction_id, force_check=False):
             raise self.retry(countdown=delay, exc=e)
         raise e
 
-
 @shared_task
 def process_pending_g_money_transactions():
     """
@@ -297,7 +291,6 @@ def process_pending_g_money_transactions():
         logger.error(f"Pending G-Money transaction processing failed: {str(e)}")
         raise e
 
-
 @shared_task
 def cleanup_expired_g_money_transactions():
     """
@@ -331,7 +324,6 @@ def cleanup_expired_g_money_transactions():
     except Exception as e:
         logger.error(f"G-Money transaction cleanup failed: {str(e)}")
         raise e
-
 
 @shared_task
 def g_money_daily_reconciliation():
@@ -381,7 +373,6 @@ def g_money_daily_reconciliation():
     except Exception as e:
         logger.error(f"G-Money daily reconciliation failed: {str(e)}")
         raise e
-
 
 @shared_task
 def g_money_payment_reconciliation():

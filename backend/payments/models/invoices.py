@@ -10,7 +10,6 @@ import uuid
 
 User = get_user_model()
 
-
 class BusinessClient(models.Model):
     """
     Business clients/customers for invoicing
@@ -67,7 +66,6 @@ class BusinessClient(models.Model):
         ]
         return "\n".join([part for part in address_parts if part])
 
-
 class InvoiceTemplate(models.Model):
     """
     Customizable invoice templates
@@ -117,7 +115,6 @@ class InvoiceTemplate(models.Model):
                 is_default=True
             ).exclude(pk=self.pk).update(is_default=False)
         super().save(*args, **kwargs)
-
 
 class Invoice(models.Model):
     """
@@ -314,7 +311,6 @@ class Invoice(models.Model):
 
         return payment
 
-
 class InvoiceItem(models.Model):
     """
     Individual line items on an invoice
@@ -346,7 +342,6 @@ class InvoiceItem(models.Model):
         # Calculate total price
         self.total_price = self.quantity * self.unit_price
         super().save(*args, **kwargs)
-
 
 class InvoicePayment(models.Model):
     """
@@ -392,7 +387,6 @@ class InvoicePayment(models.Model):
 
     def __str__(self):
         return f"Payment of {self.amount} for {self.invoice.invoice_number}"
-
 
 class InvoiceReminder(models.Model):
     """

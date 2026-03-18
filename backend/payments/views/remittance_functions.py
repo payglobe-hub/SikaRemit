@@ -10,7 +10,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def send_remittance_view(request):
@@ -144,7 +143,6 @@ def send_remittance_view(request):
                 'details': str(e)
             }
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -370,7 +368,6 @@ def initiate_payment_view(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def process_checkout_view(request):
@@ -458,7 +455,6 @@ def process_checkout_view(request):
             {'error': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -633,7 +629,6 @@ def send_outbound_remittance_view(request):
                 'details': str(e)
             }
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

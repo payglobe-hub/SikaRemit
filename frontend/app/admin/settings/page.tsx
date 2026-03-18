@@ -78,7 +78,7 @@ export default function AdminSettingsPage() {
       const currencyList = Array.isArray(data) ? data : (data.results || [])
       setCurrencies(currencyList.filter((c: any) => c.is_active))
     } catch (error) {
-      console.error('Failed to load currencies:', error)
+      
     }
   }
 

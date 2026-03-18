@@ -32,7 +32,6 @@ class RegulatorySubmissionViewSet(viewsets.ModelViewSet):
             
         return queryset.order_by('-submitted_at')
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def compliance_stats(request):
@@ -75,7 +74,6 @@ def compliance_stats(request):
             {'error': f'Failed to fetch compliance stats: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -127,7 +125,6 @@ def kyc_reviews(request):
             {'error': f'Failed to fetch KYC reviews: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

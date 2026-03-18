@@ -78,7 +78,7 @@ export function CurrencySelector({ onCurrencyChange, showPreferences = true, com
       const response = await getCurrencies()
       setCurrencies(response || [])
     } catch (error) {
-      console.error('Failed to load currencies:', error)
+      
       toast({
         title: 'Warning',
         description: 'Failed to load currencies. Please refresh the page.',
@@ -106,7 +106,7 @@ export function CurrencySelector({ onCurrencyChange, showPreferences = true, com
         }
       }
     } catch (error) {
-      console.error('Failed to load preferences:', error)
+      
     }
   }
 

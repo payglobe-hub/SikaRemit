@@ -71,7 +71,6 @@ class BusinessAccount(models.Model):
     def active_users(self):
         return self.business_users.filter(is_active=True).count()
 
-
 class BusinessRole(models.Model):
     """
     Roles for business account users
@@ -114,7 +113,6 @@ class BusinessRole(models.Model):
     def __str__(self):
         return f"{self.business_account.business_name} - {self.name}"
 
-
 class BusinessUser(models.Model):
     """
     Users within a business account
@@ -146,7 +144,6 @@ class BusinessUser(models.Model):
 
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.business_account.business_name}"
-
 
 class ApprovalWorkflow(models.Model):
     """
@@ -182,7 +179,6 @@ class ApprovalWorkflow(models.Model):
 
     def __str__(self):
         return f"{self.business_account.business_name} - {self.name}"
-
 
 class BulkPayment(models.Model):
     """
@@ -240,7 +236,6 @@ class BulkPayment(models.Model):
             self.reference_number = f"BULK_{uuid.uuid4().hex[:12].upper()}"
         super().save(*args, **kwargs)
 
-
 class BulkPaymentItem(models.Model):
     """
     Individual payment items within a bulk payment
@@ -290,7 +285,6 @@ class BulkPaymentItem(models.Model):
             self.reference = f"ITEM_{uuid.uuid4().hex[:12].upper()}"
         super().save(*args, **kwargs)
 
-
 class BusinessAnalytics(models.Model):
     """
     Advanced analytics for business accounts
@@ -320,10 +314,8 @@ class BusinessAnalytics(models.Model):
     def __str__(self):
         return f"Analytics for {self.business_account.business_name}"
 
-
     def __str__(self):
         return f"{self.business_account.business_name} - {self.get_integration_type_display()}"
-
 
 # Enhanced KYC and Compliance Models for Businesses
 class BusinessKYC(models.Model):
@@ -442,7 +434,6 @@ class BusinessKYC(models.Model):
         self.last_risk_assessment = timezone.now()
         self.save()
 
-
 class BusinessDocument(models.Model):
     """
     Business verification documents
@@ -516,7 +507,6 @@ class BusinessDocument(models.Model):
             return (self.expiry_date - today).days
         return None
 
-
 class ComplianceReport(models.Model):
     """
     Regulatory compliance reports for business accounts
@@ -589,7 +579,6 @@ class ComplianceReport(models.Model):
 
         # TODO: Trigger notification to compliance team
 
-
 class BusinessComplianceLog(models.Model):
     """
     Audit log for business compliance activities
@@ -630,9 +619,6 @@ class BusinessComplianceLog(models.Model):
 
     def __str__(self):
         return f"{self.business_account.business_name} - {self.get_action_type_display()} - {self.performed_at.date()}"
-
-
-
 
 class Store(models.Model):
     """
@@ -712,7 +698,6 @@ class Store(models.Model):
         """Update total products count"""
         self.total_products = self.products.count()
         self.save(update_fields=['total_products'])
-
 
 class Product(models.Model):
     """
@@ -828,7 +813,6 @@ class Product(models.Model):
         self.stock_quantity = max(0, self.stock_quantity + quantity_change)
         self.save(update_fields=['stock_quantity', 'updated_at'])
 
-
 class ProductImage(models.Model):
     """
     Individual product images
@@ -854,7 +838,6 @@ class ProductImage(models.Model):
             ProductImage.objects.filter(product=self.product, is_primary=True).update(is_primary=False)
         super().save(*args, **kwargs)
 
-
 class ProductVariant(models.Model):
     """
     Product variants (size, color, etc.)
@@ -873,7 +856,6 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.name}: {self.value}"
-
 
 class Category(models.Model):
     """
@@ -1374,7 +1356,6 @@ class MerchantCustomerLegacy(models.Model):
 
     def __str__(self):
         return f"{self.customer_email} - {self.merchant.business_name}"
-
 
 class _ScheduledReportMixin:
     """Mixin for calculate_next_run - moved from MerchantCustomer"""

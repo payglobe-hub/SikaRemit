@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Search, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
@@ -11,6 +11,7 @@ const CommandDialog = ({ children, ...props }: React.ComponentProps<typeof Dialo
   return (
     <Dialog {...props}>
       <DialogContent className="overflow-hidden p-0 max-w-2xl">
+        <DialogTitle className="sr-only">Search Command</DialogTitle>
         {children}
       </DialogContent>
     </Dialog>

@@ -12,7 +12,6 @@ from shared.constants import ADMIN_HIERARCHY_LEVELS, ADMIN_PERMISSIONS
 
 User = get_user_model()
 
-
 class AdminOperationsBasicTest(TestCase):
     """Basic admin operations tests without database setup"""
     
@@ -151,7 +150,6 @@ class AdminOperationsBasicTest(TestCase):
             
             # Description should not be empty
             self.assertTrue(len(perm_config['description'].strip()) > 0)
-
 
 if __name__ == '__main__':
     import unittest

@@ -31,7 +31,7 @@ const POSPage = () => {
       const response = await api.get('/api/v1/payments/pos/dashboard/')
       setDashboardData(response.data)
     } catch (error) {
-      console.error('Error fetching dashboard data:', error)
+      
     }
   }
 
@@ -40,7 +40,7 @@ const POSPage = () => {
       const response = await api.get('/api/v1/payments/pos/devices/')
       setDevices(response.data.results || response.data)
     } catch (error) {
-      console.error('Error fetching devices:', error)
+      
     }
   }
 

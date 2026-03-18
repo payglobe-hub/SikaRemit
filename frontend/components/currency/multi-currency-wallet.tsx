@@ -74,7 +74,7 @@ export function MultiCurrencyWallet({
       setCurrencies(currenciesResponse.data)
       setTotalBalance(totalResponse.data)
     } catch (error) {
-      console.error('Failed to load wallet data:', error)
+      
       toast({
         title: 'Load Failed',
         description: 'Failed to load wallet balances.',

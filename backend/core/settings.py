@@ -11,19 +11,9 @@ warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load .env file for local development (ignored on Cloud Run where env vars are set via Secret Manager)
+# Load .env file for local development
 from dotenv import load_dotenv
 load_dotenv(BASE_DIR / '.env')
-
-# GCP Secret Manager: Load secrets when running on Cloud Run
-# Cloud Run sets GOOGLE_CLOUD_PROJECT and K_SERVICE automatically
-_gcp_project = os.environ.get('GOOGLE_CLOUD_PROJECT')
-_on_cloud_run = os.environ.get('K_SERVICE') is not None
-
-if _gcp_project and _on_cloud_run:
-    # Secrets are injected as env vars by Cloud Run --set-secrets flag
-    # No need to call Secret Manager API directly — Cloud Run handles it
-    pass
 
 import dj_database_url
 
@@ -44,7 +34,7 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 # Environment detection
 IS_PRODUCTION = os.environ.get('ENVIRONMENT', 'development').lower() == 'production'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,192.168.43.210,testserver').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
@@ -307,7 +297,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3001",
     "http://localhost:3002",
     "http://127.0.0.1:3002",
-    "https://sikaremit.netlify.app",
+    "http://192.168.43.210:3000",
     "https://sikaremit.com",
 ]
 
@@ -575,11 +565,32 @@ COMPLIANCE_REPORTING_ENABLED = os.environ.get('COMPLIANCE_REPORTING_ENABLED', 'F
 
 # System checks configuration
 SYSTEM_CHECKS = [
-    'users.system_checks.check_user_type_hardcoded_values',
-    'users.system_checks.check_user_type_constants_import', 
+    'users.system_checks.check_user_type_hardcoded_values', 
+    'users.system_checks.check_user_type_constants_import',
     'users.system_checks.check_user_type_signal_consistency',
     'core.startup_checks.check_production_configuration',
 ]
+
+# Logging configuration to suppress gateway warnings
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'suppress_gateway_warnings': {
+            '()': 'core.logging.GatewayWarningFilter',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'filters': ['suppress_gateway_warnings'],
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
 
 # Initialize Sentry if DSN is configured and valid, and not running tests
 if SENTRY_DSN and SENTRY_DSN.startswith(('http://', 'https://')) and 'test' not in sys.argv:

@@ -4,7 +4,6 @@ from decimal import Decimal
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
-
 class FeeConfiguration(models.Model):
     """
     Dynamic fee configuration system for SikaRemit
@@ -276,7 +275,6 @@ class FeeConfiguration(models.Model):
             }
         )
 
-
 class FeeCalculationResult:
     """Result object for fee calculations"""
 
@@ -293,7 +291,6 @@ class FeeCalculationResult:
             'breakdown': self.breakdown,
             'error': self.error,
         }
-
 
 class FeeCalculationLog(models.Model):
     """
@@ -341,7 +338,6 @@ class FeeCalculationLog(models.Model):
 
     def __str__(self):
         return f"{self.transaction_type} #{self.transaction_id}: {self.calculated_fee}"
-
 
 class MerchantFeeOverride(models.Model):
     """

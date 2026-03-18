@@ -17,7 +17,6 @@ from shared.constants import USER_TYPE_CUSTOMER
 
 User = get_user_model()
 
-
 class SubscriptionPlanTests(TestCase):
     """Test subscription plan creation and pricing."""
 
@@ -104,7 +103,6 @@ class SubscriptionPlanTests(TestCase):
         self.assertIn('USD', display)
         self.assertIn('/month', display)
 
-
 class SubscriptionFeatureTests(TestCase):
     """Test subscription features and plan-feature relationships."""
 
@@ -168,7 +166,6 @@ class SubscriptionFeatureTests(TestCase):
         PlanFeature.objects.create(plan=plan, feature=feature, enabled=True)
         with self.assertRaises(Exception):
             PlanFeature.objects.create(plan=plan, feature=feature, enabled=False)
-
 
 class SubscriptionTests(TestCase):
     """Test user subscriptions and status transitions."""

@@ -20,7 +20,7 @@ export function useRealtimeUpdates(channel: string, onUpdate?: (update: Realtime
     const token = authTokens.getAccessToken()
     
     if (!token) {
-      console.warn('No access token found for WebSocket connection')
+      
       return
     }
 
@@ -41,12 +41,12 @@ export function useRealtimeUpdates(channel: string, onUpdate?: (update: Realtime
           onUpdate(update)
         }
       } catch (error) {
-        console.error('Failed to parse WebSocket message:', error)
+        
       }
     }
 
     ws.onerror = (error) => {
-      console.error('WebSocket error:', error)
+      
       setIsConnected(false)
     }
 
@@ -67,7 +67,7 @@ export function useRealtimeUpdates(channel: string, onUpdate?: (update: Realtime
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(data))
     } else {
-      console.warn('WebSocket is not connected')
+      
     }
   }
 

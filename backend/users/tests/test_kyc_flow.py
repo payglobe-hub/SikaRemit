@@ -22,7 +22,6 @@ from shared.constants import (
 
 User = get_user_model()
 
-
 class CustomerKYCStatusTests(TestCase):
     """Test customer KYC status transitions and properties."""
 
@@ -104,7 +103,6 @@ class CustomerKYCStatusTests(TestCase):
         self.assertEqual(self.customer.transaction_attempts_count, 2)
         self.assertEqual(self.customer.first_transaction_attempt, first_attempt_time)
 
-
 class KYCDocumentTests(TestCase):
     """Test KYC document creation and review."""
 
@@ -153,7 +151,6 @@ class KYCDocumentTests(TestCase):
         rejected = KYCService.reject_verification(doc, 'Document is blurry')
         self.assertEqual(rejected.status, 'REJECTED')
         self.assertEqual(rejected.rejection_reason, 'Document is blurry')
-
 
 class MerchantCustomerKYCTests(TestCase):
     """Test merchant-customer KYC onboarding and admin review."""

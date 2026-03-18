@@ -10,7 +10,6 @@ from .models_payout import (
     MerchantRevenueSummary
 )
 
-
 class MerchantRevenueSerializer(serializers.ModelSerializer):
     """Serializer for merchant revenue records"""
     order_number = serializers.CharField(source='order.order_number', read_only=True)
@@ -38,7 +37,6 @@ class MerchantRevenueSerializer(serializers.ModelSerializer):
         user = obj.order.user
         return f"{user.first_name} {user.last_name}".strip() or user.email
 
-
 class MerchantPayoutSerializer(serializers.ModelSerializer):
     """Serializer for merchant payout records"""
     revenue_count = serializers.IntegerField(read_only=True)
@@ -59,7 +57,6 @@ class MerchantPayoutSerializer(serializers.ModelSerializer):
             'completed_at', 'transaction_id', 'created_at'
         ]
 
-
 class MerchantSettlementSettingsSerializer(serializers.ModelSerializer):
     """Serializer for merchant settlement settings"""
 
@@ -74,7 +71,6 @@ class MerchantSettlementSettingsSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-
 class MerchantRevenueSummarySerializer(serializers.ModelSerializer):
     """Serializer for revenue summary records"""
     store_name = serializers.CharField(source='store.name', read_only=True)
@@ -88,7 +84,6 @@ class MerchantRevenueSummarySerializer(serializers.ModelSerializer):
             'order_count', 'item_count', 'is_settled', 'settled_amount', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
-
 
 class PayoutRequestSerializer(serializers.Serializer):
     """Serializer for payout request validation"""

@@ -8,7 +8,6 @@ from .models import MerchantInvitation, MerchantApplication
 from .serializers import MerchantInvitationSerializer, MerchantApplicationSerializer
 from users.models import Merchant
 
-
 class MerchantInvitationViewSet(viewsets.ModelViewSet):
     queryset = MerchantInvitation.objects.all().select_related('invited_by')
     serializer_class = MerchantInvitationSerializer
@@ -68,7 +67,6 @@ class MerchantInvitationViewSet(viewsets.ModelViewSet):
         invitation.save()
 
         return Response({'message': 'Invitation cancelled successfully'})
-
 
 class MerchantApplicationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MerchantApplication.objects.all().select_related('reviewed_by')
@@ -149,7 +147,6 @@ class MerchantApplicationViewSet(viewsets.ReadOnlyModelViewSet):
         application.save()
 
         return Response({'message': 'Application rejected'})
-
 
 class MerchantInvitationStatsView(viewsets.ViewSet):
     permission_classes = [IsAdminUser]

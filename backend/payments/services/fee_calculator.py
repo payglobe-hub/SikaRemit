@@ -7,7 +7,6 @@ from ..models import FeeConfiguration, FeeCalculationLog
 
 logger = logging.getLogger(__name__)
 
-
 class DynamicFeeCalculator:
     """
     Dynamic fee calculation engine for SikaRemit

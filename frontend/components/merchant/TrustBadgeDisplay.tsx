@@ -65,7 +65,7 @@ export function TrustBadgeDisplay({
         setStatus(data.verification_status)
       }
     } catch (error) {
-      console.error('Error fetching trust status:', error)
+      
     } finally {
       setLoading(false)
     }

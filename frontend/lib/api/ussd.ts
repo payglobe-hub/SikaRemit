@@ -8,7 +8,7 @@ const warnedEndpoints = new Set<string>()
 function warnOnce(endpoint: string, message: string) {
   if (!warnedEndpoints.has(endpoint)) {
     warnedEndpoints.add(endpoint)
-    console.warn(message)
+    
   }
 }
 

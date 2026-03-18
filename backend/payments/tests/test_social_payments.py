@@ -19,7 +19,6 @@ from shared.constants import USER_TYPE_CUSTOMER
 
 User = get_user_model()
 
-
 class PaymentRequestTests(TestCase):
     """Test payment request creation and status."""
 
@@ -94,7 +93,6 @@ class PaymentRequestTests(TestCase):
             amount=Decimal('50.00'), title='No due'
         )
         self.assertIsNone(pr.days_until_due)
-
 
 class SplitBillTests(TestCase):
     """Test split bill creation, participants, and payments."""
@@ -235,7 +233,6 @@ class SplitBillTests(TestCase):
                 amount_owed=Decimal('25.00')
             )
 
-
 class GroupSavingsTests(TestCase):
     """Test group savings goals and contributions."""
 
@@ -335,7 +332,6 @@ class GroupSavingsTests(TestCase):
             GroupSavingsParticipant.objects.create(
                 group_savings=gs, user=self.member
             )
-
 
 class SocialPaymentInviteTests(TestCase):
     """Test social payment invites to non-users."""

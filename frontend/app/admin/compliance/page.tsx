@@ -73,7 +73,6 @@ async function exportComplianceReport(format: 'csv' | 'excel' | 'pdf' = 'csv', s
       throw new Error('No data available for export')
     }
 
-    
     // Use API directly - auth headers will be added by axios interceptor
     const response = await api.get(`/api/v1/compliance/export/`, {
       params: { format },
@@ -82,8 +81,7 @@ async function exportComplianceReport(format: 'csv' | 'excel' | 'pdf' = 'csv', s
       },
       responseType: 'blob'
     })
-    
-    
+
     // Create download link
     const blob = new Blob([response.data], {
       type: format === 'pdf' ? 'application/pdf' : format === 'excel' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'text/csv'
@@ -97,8 +95,7 @@ async function exportComplianceReport(format: 'csv' | 'excel' | 'pdf' = 'csv', s
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
   } catch (error: any) {
-    console.error('Export failed:', error)
-    
+
     // If 404, use fallback immediately
     if (error.response?.status === 404) {
       
@@ -151,7 +148,7 @@ function exportFallbackReport(stats: ComplianceStats, reviews: KYCReview[]) {
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
   } catch (error) {
-    console.error('Fallback export failed:', error)
+    
   }
 }
 
@@ -174,7 +171,7 @@ export default function CompliancePage() {
 
   const handleExport = async () => {
     if (!stats || !reviews) {
-      console.warn('No data available for export')
+      
       alert('No data available for export. Please wait for the data to load.')
       return
     }
@@ -183,8 +180,7 @@ export default function CompliancePage() {
     try {
       await exportComplianceReport('csv', stats, reviews)
     } catch (error: any) {
-      console.error('Export failed:', error)
-      
+
       // Show more specific error message
       if (error.response?.status === 401) {
         alert('Authentication expired. Please refresh the page and try again.')

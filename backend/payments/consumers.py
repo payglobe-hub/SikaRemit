@@ -151,7 +151,6 @@ class ExchangeRateConsumer(AsyncWebsocketConsumer):
         from django.utils import timezone
         return timezone.now().isoformat()
 
-
 class CurrencyNotificationConsumer(AsyncWebsocketConsumer):
     """
     WebSocket consumer for currency-related notifications
@@ -276,7 +275,6 @@ class CurrencyNotificationConsumer(AsyncWebsocketConsumer):
             'type': 'error',
             'message': message
         }))
-
 
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):

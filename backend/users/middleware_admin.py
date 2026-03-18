@@ -8,7 +8,6 @@ from shared.constants import ADMIN_HIERARCHY_LEVELS, ADMIN_ACTIVITY_LOGIN, ADMIN
 
 User = get_user_model()
 
-
 class AdminAuditMiddleware(MiddlewareMixin):
     """
     Middleware to automatically log admin actions and manage sessions
@@ -167,7 +166,6 @@ class AdminAuditMiddleware(MiddlewareMixin):
         
         return ''
 
-
 class AdminSecurityMiddleware(MiddlewareMixin):
     """
     Security middleware for admin users
@@ -256,7 +254,6 @@ class AdminSecurityMiddleware(MiddlewareMixin):
         else:
             ip = request.META.get('REMOTE_ADDR')
         return ip
-
 
 class AdminActivityLoggingMixin:
     """

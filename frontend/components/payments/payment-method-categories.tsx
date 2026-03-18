@@ -117,7 +117,7 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
       const methods = await getPaymentMethods()
       setPaymentMethods(methods)
     } catch (error) {
-      console.error('Failed to load payment methods:', error)
+      
     } finally {
       setLoading(false)
     }
@@ -203,7 +203,7 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
         description: 'Payment method added successfully'
       })
     } catch (error: any) {
-      console.error('Add payment method failed:', error.message)
+      
       // Show detailed backend error if available
       const backendError = error.response?.data?.detail || 
                           error.response?.data?.message || 
@@ -245,8 +245,7 @@ const PaymentMethodCategories: React.FC<PaymentMethodCategoriesProps> = ({
         description: 'Payment method deleted successfully'
       })
     } catch (error: any) {
-      console.error('Delete payment method error:', error)
-      
+
       // Provide more specific error messages
       let errorMessage = 'Failed to delete payment method'
       let suggestions: string[] = []

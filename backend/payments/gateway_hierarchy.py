@@ -14,12 +14,10 @@ from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
-
 class GatewayType(Enum):
     """Types of payment gateways"""
     MAJOR = 'major'  # Comprehensive payment processors (Stripe, etc.)
     SPECIALIZED = 'specialized'  # Single-purpose gateways (MTN direct, etc.)
-
 
 class GatewayPriority(Enum):
     """Priority levels for gateway selection"""
@@ -28,7 +26,6 @@ class GatewayPriority(Enum):
     TERTIARY = 3  # Last resort
     SPECIALIZED = 4  # Specific use cases only
 
-
 class PaymentMethodCategory(Enum):
     """Payment method categories for user display"""
     SIKAREMIT_BALANCE = 'sikaRemit_balance'
@@ -36,7 +33,6 @@ class PaymentMethodCategory(Enum):
     BANK_TRANSFERS = 'bank_transfers'
     MOBILE_MONEY_GHANA = 'mobile_money_ghana'
     QR_CODE = 'qr_code'
-
 
 @dataclass
 class GatewayConfig:
@@ -49,7 +45,6 @@ class GatewayConfig:
     requires_config: List[str]  # Required environment variables
     is_active: bool = False
 
-
 @dataclass
 class PaymentMethodMapping:
     """Mapping of payment methods to available gateways"""
@@ -59,7 +54,6 @@ class PaymentMethodMapping:
     available_gateways: List[str]  # Gateway names that support this method
     icon: str
     description: str
-
 
 class GatewayHierarchyRegistry:
     """
@@ -297,7 +291,6 @@ class GatewayHierarchyRegistry:
             'description': config.description,
             'is_active': config.is_active
         }
-
 
 # Global registry instance
 gateway_registry = GatewayHierarchyRegistry()

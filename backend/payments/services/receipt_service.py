@@ -26,7 +26,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class ReceiptService:
     """
     Professional receipt generation service with PDF templates and QR codes

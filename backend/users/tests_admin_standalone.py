@@ -5,7 +5,6 @@ Standalone admin operations test without Django setup
 import unittest
 from unittest.mock import Mock, patch
 
-
 class TestAdminOperationsStandalone(unittest.TestCase):
     """Standalone admin operations tests without Django dependencies"""
     
@@ -292,7 +291,6 @@ class TestAdminOperationsStandalone(unittest.TestCase):
         
         self.assertGreater(super_admin_count, business_admin_count,
             "Super Admin should have more permissions than Business Admin")
-
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

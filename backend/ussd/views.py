@@ -19,7 +19,6 @@ from .serializers import (
 )
 from payments.models.ussd import USSDMenu
 
-
 class USSDSessionsView(APIView):
     """USSD sessions API view"""
     permission_classes = [IsAuthenticated]
@@ -62,7 +61,6 @@ class USSDSessionsView(APIView):
             'pages': (total + limit - 1) // limit
         })
 
-
 class USSDTransactionsView(APIView):
     """USSD transactions API view"""
     permission_classes = [IsAuthenticated]
@@ -104,7 +102,6 @@ class USSDTransactionsView(APIView):
             'limit': limit,
             'pages': (total + limit - 1) // limit
         })
-
 
 class USSDStatsView(APIView):
     """USSD statistics API view"""
@@ -177,7 +174,6 @@ class USSDStatsView(APIView):
         if serializer.is_valid():
             return Response(serializer.validated_data)
         return Response(serializer.errors, status=400)
-
 
 class USSDSimulateView(APIView):
     """USSD simulation API view - Uses database menus for production-ready simulation"""
@@ -322,7 +318,6 @@ class USSDSimulateView(APIView):
 
         return "\n".join(lines)
 
-
 class USSDSimulateResetView(APIView):
     """Reset USSD simulation session"""
     permission_classes = [IsAuthenticated]
@@ -345,7 +340,6 @@ class USSDSimulateResetView(APIView):
             'success': True,
             'message': 'Simulation session reset successfully'
         })
-
 
 # Legacy ViewSet for backward compatibility (keeping for now)
 class USSDAdminViewSet(viewsets.ViewSet):
@@ -375,7 +369,6 @@ class USSDAdminViewSet(viewsets.ViewSet):
         """Simulate USSD interaction"""
         view = USSDSimulateView()
         return view.post(request)
-
 
 class USSDMenuListView(APIView):
     """USSD Menu list and create API view"""
@@ -428,7 +421,6 @@ class USSDMenuListView(APIView):
             menu = serializer.save()
             return Response(USSDMenuSerializer(menu).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class USSDMenuDetailView(APIView):
     """USSD Menu detail, update, delete API view"""
@@ -483,7 +475,6 @@ class USSDMenuDetailView(APIView):
 
         menu.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 class USSDMenuTypesView(APIView):
     """Get available USSD menu types"""

@@ -21,7 +21,6 @@ from shared.constants import ADMIN_PERMISSIONS, ADMIN_ACTIVITY_USER_CREATED, ADM
 
 User = get_user_model()
 
-
 class AdminRoleViewSet(viewsets.ModelViewSet):
     """
     API for managing admin roles
@@ -76,7 +75,6 @@ class AdminRoleViewSet(viewsets.ModelViewSet):
         if x_forwarded_for:
             return x_forwarded_for.split(',')[0]
         return request.META.get('REMOTE_ADDR')
-
 
 class AdminProfileViewSet(viewsets.ModelViewSet):
     """
@@ -255,7 +253,6 @@ class AdminProfileViewSet(viewsets.ModelViewSet):
             return x_forwarded_for.split(',')[0]
         return request.META.get('REMOTE_ADDR')
 
-
 class AdminActivityLogViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API for viewing admin activity logs
@@ -346,7 +343,6 @@ class AdminActivityLogViewSet(viewsets.ReadOnlyModelViewSet):
             return x_forwarded_for.split(',')[0]
         return request.META.get('REMOTE_ADDR')
 
-
 class AdminSessionViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API for viewing admin sessions
@@ -403,7 +399,6 @@ class AdminSessionViewSet(viewsets.ReadOnlyModelViewSet):
         
         return Response({'message': f'Cleaned up {count} expired sessions'})
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def admin_permissions_overview(request):
@@ -426,7 +421,6 @@ def admin_permissions_overview(request):
         'user_role': request.user.admin_profile.role.display_name if hasattr(request.user, 'admin_profile') else 'Unknown',
         'user_level': request.user.admin_profile.role.level if hasattr(request.user, 'admin_profile') else 0
     })
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, CanManageAdmins])

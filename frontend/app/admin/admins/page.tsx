@@ -93,7 +93,7 @@ export default function AdminManagementPage() {
       setAdminRoles(Array.isArray(roles) ? roles : [])
       setPermissionOverview(permissions)
     } catch (error) {
-      console.error('Error loading admin data:', error)
+      
       toast({
         title: 'Error',
         description: 'Failed to load admin data',

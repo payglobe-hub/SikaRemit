@@ -19,7 +19,6 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-
 class AnalyticsService:
     """
     Comprehensive analytics service for SikaRemit business intelligence

@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-
 class Command(BaseCommand):
     help = 'Set up default referral campaigns and create referral codes for existing users'
 

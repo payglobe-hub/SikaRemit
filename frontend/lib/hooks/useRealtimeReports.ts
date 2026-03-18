@@ -65,7 +65,7 @@ export function useRealtimeReports<T = any>(options: RealtimeReportOptions) {
         const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000'}/ws/reports/`
         const token = authTokens.getAccessToken()
         if (!token) {
-          console.warn('No access token available for WebSocket connection')
+          
           return
         }
         
@@ -98,27 +98,25 @@ export function useRealtimeReports<T = any>(options: RealtimeReportOptions) {
                 
             }
           } catch (error) {
-            console.error('Error parsing WebSocket message:', error)
+            
           }
         }
         
         wsRef.current.onclose = () => {
           setConnectionStatus('disconnected')
-          
-          
+
           // Attempt to reconnect after 5 seconds
           setTimeout(connectWebSocket, 5000)
         }
         
         wsRef.current.onerror = (error) => {
           setConnectionStatus('error')
-          console.error('WebSocket error:', error)
+          
         }
         
       } catch (error) {
         setConnectionStatus('error')
-        console.error('Failed to connect WebSocket:', error)
-        
+
         // Fallback to polling only
         setTimeout(connectWebSocket, 10000)
       }
@@ -163,7 +161,7 @@ export function useReportProgress(reportId?: number) {
       try {
         const token = authTokens.getAccessToken()
         if (!token) {
-          console.warn('No access token available for progress check')
+          
           return
         }
         
@@ -188,7 +186,7 @@ export function useReportProgress(reportId?: number) {
           }
         }
       } catch (error) {
-        console.error('Error checking report progress:', error)
+        
       }
     }
 

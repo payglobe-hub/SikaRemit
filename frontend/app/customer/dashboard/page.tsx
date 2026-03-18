@@ -65,7 +65,6 @@ export default function CustomerDashboard() {
     queryFn: getCustomerStats
   })
 
-
   useEffect(() => {
     // Token storage disabled - using cookie-based auth system instead
     // No localStorage access needed
@@ -102,7 +101,6 @@ export default function CustomerDashboard() {
     redirect(redirectPath);
     return null;
   }
-
 
   const quickActions = [
     {

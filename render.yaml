@@ -1,0 +1,155 @@
+# ============================================================================
+# SikaRemit — Render Deployment Configuration
+# Defines all services for complete deployment on Render
+# ============================================================================
+
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: sikaremit-db
+    env: docker
+    plan: free
+    region: oregon
+    databaseName: sikaremit
+    user: sikaremit
+    ipAllowList: []
+    version: '15'
+
+  # Redis Cache
+  - type: redis
+    name: sikaremit-redis
+    plan: free
+    region: oregon
+    ipAllowList: []
+
+  # Django Backend API
+  - type: web
+    name: sikaremit-api
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/v1/health/
+    healthCheckGracePeriod: 60
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sikaremit-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: sikaremit-redis
+          property: connectionString
+      - key: ALLOWED_HOSTS
+        value: "sikaremit-api.onrender.com,localhost,127.0.0.1"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://sikaremit.onrender.com,https://sikaremit-api.onrender.com"
+      - key: ENVIRONMENT
+        value: "production"
+    disks:
+      - name: media
+        mountPath: /app/media
+        sizeGB: 10
+
+  # Celery Worker Service
+  - type: worker
+    name: sikaremit-celery-worker
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/v1/health/
+    healthCheckGracePeriod: 60
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        fromService:
+          name: sikaremit-api
+          property: secretKey
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sikaremit-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: sikaremit-redis
+          property: connectionString
+      - key: ENVIRONMENT
+        value: "production"
+    command: celery -A core worker --loglevel=info
+
+  # Celery Beat Scheduler
+  - type: cron
+    name: sikaremit-celery-beat
+    plan: free
+    region: oregon
+    schedule: "0 2 * * *"  # Daily at 2 AM UTC
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        fromService:
+          name: sikaremit-api
+          property: secretKey
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sikaremit-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: sikaremit-redis
+          property: connectionString
+      - key: ENVIRONMENT
+        value: "production"
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && celery -A core beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+
+  # Next.js Frontend
+  - type: web
+    name: sikaremit-frontend
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    healthCheckPath: /
+    healthCheckGracePeriod: 60
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: "https://sikaremit-api.onrender.com"
+      - key: NODE_ENV
+        value: "production"
+    domains:
+      - name: sikaremit.onrender.com
+
+# Global configuration
+databases:
+  - name: sikaremit-db
+    databaseName: sikaremit
+    user: sikaremit
+
+# Environment groups for different deployment stages
+environments:
+  production:
+    services:
+      - sikaremit-db
+      - sikaremit-redis
+      - sikaremit-api
+      - sikaremit-celery-worker
+      - sikaremit-celery-beat
+      - sikaremit-frontend
+
+  staging:
+    services:
+      - sikaremit-db
+      - sikaremit-redis
+      - sikaremit-api
+      - sikaremit-celery-worker
+      - sikaremit-frontend

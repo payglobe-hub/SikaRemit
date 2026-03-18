@@ -24,7 +24,6 @@ from shared.constants import (
 
 User = get_user_model()
 
-
 class AdminPermissionHierarchyTests(TestCase):
     """Test the full admin hierarchy and permission system."""
 

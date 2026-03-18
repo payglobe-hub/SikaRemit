@@ -17,7 +17,6 @@ from shared.constants import USER_TYPE_MERCHANT
 
 User = get_user_model()
 
-
 class BusinessClientTests(TestCase):
     """Test business client management."""
 
@@ -61,7 +60,6 @@ class BusinessClientTests(TestCase):
                 city='Accra', country='Ghana'
             )
 
-
 class InvoiceTemplateTests(TestCase):
     """Test invoice template management."""
 
@@ -94,7 +92,6 @@ class InvoiceTemplateTests(TestCase):
         t1.refresh_from_db()
         self.assertFalse(t1.is_default)
         self.assertTrue(t2.is_default)
-
 
 class InvoiceTests(TestCase):
     """Test invoice creation, totals, and status."""

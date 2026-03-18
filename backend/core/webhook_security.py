@@ -11,7 +11,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class WebhookSignatureVerifier:
     """
     Verifies webhook signatures to ensure authenticity and prevent tampering
@@ -206,7 +205,6 @@ class WebhookSignatureVerifier:
             logger.error(f"SikaRemit signature verification failed: {str(e)}")
             return False
 
-
 class WebhookRateLimiter:
     """
     Rate limiting for webhook endpoints to prevent abuse
@@ -246,7 +244,6 @@ class WebhookRateLimiter:
         # Add current request
         self.requests[identifier].append(current_time)
         return True
-
 
 # Decorator for webhook views
 def verify_webhook_signature(provider: str):

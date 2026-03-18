@@ -12,7 +12,6 @@ from typing import Dict, List, Any
 
 logger = logging.getLogger(__name__)
 
-
 class USSDAnalyticsService:
     """
     Service for collecting and analyzing USSD usage data

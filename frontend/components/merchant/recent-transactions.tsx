@@ -28,7 +28,7 @@ export default function RecentTransactions() {
         const response = await api.get('/api/v1/payments/merchant/dashboard/transactions')
         return response.data.results || []
       } catch (error) {
-        console.error('Failed to fetch merchant transactions:', error)
+        
         return []
       }
     },

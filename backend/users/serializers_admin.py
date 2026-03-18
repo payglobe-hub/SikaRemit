@@ -5,7 +5,6 @@ from shared.constants import ADMIN_PERMISSIONS
 
 User = get_user_model()
 
-
 class AdminRoleSerializer(serializers.ModelSerializer):
     """Serializer for AdminRole model"""
     permission_details = serializers.SerializerMethodField()
@@ -36,7 +35,6 @@ class AdminRoleSerializer(serializers.ModelSerializer):
             })
         
         return value
-
 
 class AdminProfileSerializer(serializers.ModelSerializer):
     """Serializer for AdminProfile model"""
@@ -109,7 +107,6 @@ class AdminProfileSerializer(serializers.ModelSerializer):
         
         return value
 
-
 class AdminProfileCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating new admin profiles"""
     email = serializers.EmailField(write_only=True)
@@ -148,7 +145,6 @@ class AdminProfileCreateSerializer(serializers.ModelSerializer):
         
         return admin_profile
 
-
 class AdminActivityLogSerializer(serializers.ModelSerializer):
     """Serializer for AdminActivityLog model"""
     admin_user_email = serializers.CharField(source='admin_user.email', read_only=True)
@@ -169,7 +165,6 @@ class AdminActivityLogSerializer(serializers.ModelSerializer):
             'id', 'admin_user_email', 'admin_user_name', 'action_display',
             'reviewed_by_name', 'timestamp'
         ]
-
 
 class AdminSessionSerializer(serializers.ModelSerializer):
     """Serializer for AdminSession model"""
@@ -198,7 +193,6 @@ class AdminSessionSerializer(serializers.ModelSerializer):
     def get_is_expired(self, obj):
         """Check if session is expired"""
         return obj.is_expired()
-
 
 class AdminPermissionOverrideSerializer(serializers.ModelSerializer):
     """Serializer for AdminPermissionOverride model"""
@@ -231,7 +225,6 @@ class AdminPermissionOverrideSerializer(serializers.ModelSerializer):
         """Check if override is still valid"""
         return obj.is_valid()
 
-
 class UserAdminSerializer(serializers.ModelSerializer):
     """Serializer for User model with admin-specific fields"""
     admin_profile = AdminProfileSerializer(read_only=True)
@@ -258,7 +251,6 @@ class UserAdminSerializer(serializers.ModelSerializer):
         if obj.user_type in [1, 2, 3, 4]:
             return obj.user_type
         return None
-
 
 class AdminUserCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating new admin users"""
@@ -298,14 +290,12 @@ class AdminUserCreateSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
-
 class PermissionOverviewSerializer(serializers.Serializer):
     """Serializer for permission overview response"""
     user_permissions = serializers.ListField(child=serializers.CharField())
     all_permissions = serializers.ListField(child=serializers.DictField())
     user_role = serializers.CharField()
     user_level = serializers.IntegerField()
-
 
 class AccessibleAdminSerializer(serializers.Serializer):
     """Serializer for accessible admins response"""

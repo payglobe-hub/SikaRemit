@@ -72,7 +72,6 @@ def connect_signals():
     post_save.connect(auto_sync_to_accounting, sender=Payment)
     post_save.connect(handle_exemption_status, sender=CrossBorderRemittance)
 
-
 # ---------------------------------------------------------------------------
 # Notification signals (merged from signals/notifications.py)
 # ---------------------------------------------------------------------------
@@ -97,7 +96,6 @@ def transaction_notification_handler(sender, instance, created, **kwargs):
     except Exception as e:
         logger.error(f"Transaction notification failed: {str(e)}")
 
-
 @receiver(post_save)
 def remittance_notification_handler(sender, instance, created, **kwargs):
     """Send notifications for remittance events"""
@@ -115,7 +113,6 @@ def remittance_notification_handler(sender, instance, created, **kwargs):
                 NotificationService.notify_remittance_event(instance, 'failed')
     except Exception as e:
         logger.error(f"Remittance notification failed: {str(e)}")
-
 
 @receiver(post_save)
 def kyc_notification_handler(sender, instance, created, **kwargs):

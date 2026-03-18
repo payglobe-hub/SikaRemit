@@ -8,13 +8,11 @@ from .referrals import (
 
 User = get_user_model()
 
-
 class UserBasicSerializer(serializers.ModelSerializer):
     """Basic user serializer for referrals"""
     class Meta:
         model = User
         fields = ['id', 'email', 'first_name', 'last_name']
-
 
 class ReferralCodeSerializer(serializers.ModelSerializer):
     """Serializer for referral codes"""
@@ -25,7 +23,6 @@ class ReferralCodeSerializer(serializers.ModelSerializer):
             'success_rate', 'created_at', 'expires_at'
         ]
         read_only_fields = ['id', 'created_at', 'success_rate']
-
 
 class ReferralSerializer(serializers.ModelSerializer):
     """Serializer for referrals"""
@@ -52,7 +49,6 @@ class ReferralSerializer(serializers.ModelSerializer):
             'days_since_created', 'is_expired', 'created_at', 'updated_at'
         ]
 
-
 class RewardSerializer(serializers.ModelSerializer):
     """Serializer for rewards"""
     # Computed fields
@@ -71,7 +67,6 @@ class RewardSerializer(serializers.ModelSerializer):
             'updated_at', 'redeemed_at'
         ]
 
-
 class ReferralStatsSerializer(serializers.Serializer):
     """Serializer for referral statistics"""
     referral_code = serializers.CharField()
@@ -82,7 +77,6 @@ class ReferralStatsSerializer(serializers.Serializer):
     total_earned = serializers.DecimalField(max_digits=15, decimal_places=2)
     available_rewards = serializers.DecimalField(max_digits=15, decimal_places=2)
     recent_referrals = serializers.ListField()
-
 
 class ReferralCampaignSerializer(serializers.ModelSerializer):
     """Serializer for referral campaigns"""
@@ -104,14 +98,12 @@ class ReferralCampaignSerializer(serializers.ModelSerializer):
             'is_expired', 'success_rate', 'created_at'
         ]
 
-
 class LeaderboardEntrySerializer(serializers.Serializer):
     """Serializer for leaderboard entries"""
     user = UserBasicSerializer()
     successful_referrals = serializers.IntegerField()
     total_uses = serializers.IntegerField()
     success_rate = serializers.FloatField()
-
 
 class LeaderboardSerializer(serializers.Serializer):
     """Serializer for referral leaderboard"""

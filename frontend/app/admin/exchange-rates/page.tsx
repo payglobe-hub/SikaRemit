@@ -113,7 +113,7 @@ export default function ExchangeRatesAdmin() {
       const currencyList = Array.isArray(data) ? data : (data.results || [])
       setCurrencies(currencyList.filter((c: Currency) => c.is_active))
     } catch (error) {
-      console.error('Failed to load currencies:', error)
+      
       toast({
         title: 'Warning',
         description: 'Failed to load currencies. Please refresh the page.',

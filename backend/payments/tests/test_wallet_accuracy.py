@@ -14,7 +14,6 @@ from shared.constants import USER_TYPE_CUSTOMER
 
 User = get_user_model()
 
-
 class WalletBalanceModelTests(TestCase):
     """Test WalletBalance model operations directly."""
 
@@ -108,7 +107,6 @@ class WalletBalanceModelTests(TestCase):
         self.assertTrue(result)
         self.assertEqual(self.wallet.available_balance, Decimal('1000.00'))
 
-
 class MultiCurrencyWalletTests(TestCase):
     """Test multi-currency wallet operations."""
 
@@ -177,7 +175,6 @@ class MultiCurrencyWalletTests(TestCase):
         )
         self.assertEqual(ghs_wallet.total_balance, Decimal('1150.00'))
         self.assertEqual(usd_wallet.total_balance, Decimal('500.00'))
-
 
 class WalletTransferTests(TestCase):
     """Test wallet-to-wallet transfers between users."""

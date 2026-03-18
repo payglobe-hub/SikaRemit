@@ -18,7 +18,6 @@ from .serializers_merchant_dashboard import (
     MerchantOrderItemSerializer
 )
 
-
 class OrderFulfillmentViewSet(viewsets.ViewSet):
     """
     Order fulfillment tracking and management for merchants

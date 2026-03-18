@@ -9,7 +9,6 @@ from django.utils import timezone
 from accounts.models import User
 from payments.models import Payment
 
-
 class USSDSession(models.Model):
     """USSD Session management for maintaining user state across interactions"""
 
@@ -71,7 +70,6 @@ class USSDSession(models.Model):
         self.failed_attempts = 0
         self.save()
 
-
 class USSDMenu(models.Model):
     """USSD Menu definitions for different services"""
 
@@ -117,7 +115,6 @@ class USSDMenu(models.Model):
             if str(option.get('input')) == str(user_input):
                 return option
         return None
-
 
 class USSDTransaction(models.Model):
     """USSD transaction tracking for payments and transfers"""
@@ -236,7 +233,6 @@ class USSDTransaction(models.Model):
         self.save()
         return True, "Transaction rejected"
 
-
 class USSDAnalytics(models.Model):
     """Analytics for USSD usage and performance"""
 
@@ -270,7 +266,6 @@ class USSDAnalytics(models.Model):
 
     def __str__(self):
         return f"USSD Analytics {self.date} - {self.network}"
-
 
 class USSDProvider(models.Model):
     """USSD provider configurations for different networks"""

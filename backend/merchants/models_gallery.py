@@ -9,7 +9,6 @@ from django.conf import settings
 from merchants.models import Product
 import uuid
 
-
 class ProductGallery(models.Model):
     """Model for storing multiple product images"""
     
@@ -94,7 +93,6 @@ class ProductGallery(models.Model):
         if self.thumbnail:
             return f"{settings.MEDIA_URL}{self.thumbnail.url}"
         return None
-
 
 class ProductGalleryService:
     """Service for managing product gallery operations"""

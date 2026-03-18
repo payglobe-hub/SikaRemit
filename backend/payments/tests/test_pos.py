@@ -13,7 +13,6 @@ from shared.constants import USER_TYPE_MERCHANT
 
 User = get_user_model()
 
-
 class POSDeviceTests(TestCase):
     """Test POS device creation and properties."""
 
