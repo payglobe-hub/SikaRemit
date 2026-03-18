@@ -18,7 +18,7 @@ load_dotenv(BASE_DIR / '.env')
 import dj_database_url
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', None)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-key-for-development-change-in-production')
 
 # Custom user model
 AUTH_USER_MODEL = 'users.User'

@@ -18,32 +18,9 @@ def initialize_sentry():
     """
     Initialize Sentry error monitoring
     """
-    dsn = getattr(settings, 'SENTRY_DSN', None)
-    if not dsn or not dsn.startswith(('http://', 'https://')):
-        logger.warning("Sentry DSN not configured or invalid. Error monitoring disabled.")
-        return
-    
-    try:
-        sentry_sdk.init(
-            dsn=settings.SENTRY_DSN,
-            integrations=[
-                DjangoIntegration(),
-                CeleryIntegration(),
-                RedisIntegration(),
-            ],
-            traces_sample_rate=getattr(settings, 'SENTRY_TRACES_SAMPLE_RATE', 0.1),
-            environment=getattr(settings, 'ENVIRONMENT', 'development'),
-            release=getattr(settings, 'RELEASE_VERSION', 'dev'),
-            before_send=filter_sensitive_data,
-            send_default_pii=False,
-            ignore_errors=[
-                KeyboardInterrupt,
-                'django.http.Http404',
-            ],
-        )
-        logger.info("Sentry error monitoring initialized successfully")
-    except Exception as e:
-        logger.warning(f"Failed to initialize Sentry: {e}. Error monitoring disabled.")
+    # Disabled for deployment stability
+    logger.warning("Sentry error monitoring is disabled for deployment stability.")
+    return
 
 def filter_sensitive_data(event, hint):
     """
