@@ -13,13 +13,16 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator
 from channels.middleware import BaseMiddleware
+from urllib.parse import parse_qs
+
+# Set Django settings module BEFORE any Django imports
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
+
+# Now import Django components
 from django.contrib.auth.models import AnonymousUser
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth import get_user_model
-from urllib.parse import parse_qs
 from notifications.routing import websocket_urlpatterns
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
 User = get_user_model()
 

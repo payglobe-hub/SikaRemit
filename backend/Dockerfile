@@ -40,6 +40,9 @@ RUN mkdir -p /app/logs && chown -R sikaremit:sikaremit /app
 # Switch to non-root user
 USER sikaremit
 
+# Set Django settings module
+ENV DJANGO_SETTINGS_MODULE=core.settings
+
 # Cloud Run sets PORT env var (default 8080)
 ENV PORT=8080
 
