@@ -21,8 +21,20 @@ python manage.py collectstatic --noinput
 echo "🗄️ Running database migrations..."
 python manage.py migrate --noinput || echo "⚠️ Migration failed, continuing..."
 
+# Test Django import before starting Gunicorn
+echo "🧪 Testing Django import..."
+python -c "
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
+import django
+django.setup()
+print('✅ Django setup successful')
+" || echo "❌ Django setup failed"
+
 # Start Gunicorn directly without admin user creation
 echo "🎯 Starting Gunicorn server..."
+echo "🔍 Command: gunicorn core.asgi:application --bind 0.0.0.0:${PORT:-8000} --worker-class uvicorn.workers.UvicornWorker --workers 1 --threads 2 --timeout 60 --graceful-timeout 30 --max-requests 500 --access-logfile - --error-logfile - --log-level info"
+
 exec gunicorn core.asgi:application \
     --bind 0.0.0.0:${PORT:-8000} \
     --worker-class uvicorn.workers.UvicornWorker \
