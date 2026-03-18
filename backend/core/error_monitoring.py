@@ -23,38 +23,27 @@ def initialize_sentry():
         logger.warning("Sentry DSN not configured or invalid. Error monitoring disabled.")
         return
     
-    sentry_sdk.init(
-        dsn=settings.SENTRY_DSN,
-        integrations=[
-            DjangoIntegration(),
-            CeleryIntegration(),
-            RedisIntegration(),
-        ],
-        
-        # Set traces_sample_rate to 1.0 to capture 100% of transactions for performance monitoring
-        # Adjust this value in production
-        traces_sample_rate=getattr(settings, 'SENTRY_TRACES_SAMPLE_RATE', 0.1),
-        
-        # Send default PII (Personally Identifiable Information)
-        send_default_pii=False,
-        
-        # Environment
-        environment=getattr(settings, 'ENVIRONMENT', 'development'),
-        
-        # Release tracking
-        release=getattr(settings, 'RELEASE_VERSION', None),
-        
-        # Before send hook to filter sensitive data
-        before_send=filter_sensitive_data,
-        
-        # Ignore specific errors
-        ignore_errors=[
-            KeyboardInterrupt,
-            'django.http.Http404',
-        ],
-    )
-    
-    logger.info("Sentry error monitoring initialized")
+    try:
+        sentry_sdk.init(
+            dsn=settings.SENTRY_DSN,
+            integrations=[
+                DjangoIntegration(),
+                CeleryIntegration(),
+                RedisIntegration(),
+            ],
+            traces_sample_rate=getattr(settings, 'SENTRY_TRACES_SAMPLE_RATE', 0.1),
+            environment=getattr(settings, 'ENVIRONMENT', 'development'),
+            release=getattr(settings, 'RELEASE_VERSION', 'dev'),
+            before_send=filter_sensitive_data,
+            send_default_pii=False,
+            ignore_errors=[
+                KeyboardInterrupt,
+                'django.http.Http404',
+            ],
+        )
+        logger.info("Sentry error monitoring initialized successfully")
+    except Exception as e:
+        logger.warning(f"Failed to initialize Sentry: {e}. Error monitoring disabled.")
 
 def filter_sensitive_data(event, hint):
     """

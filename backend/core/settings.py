@@ -417,6 +417,16 @@ SENTRY_TRACES_SAMPLE_RATE = float(os.environ.get('SENTRY_TRACES_SAMPLE_RATE', '0
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
 RELEASE_VERSION = os.environ.get('RELEASE_VERSION', 'dev')
 
+# Initialize Sentry if DSN is configured and valid, and not running tests
+if SENTRY_DSN and SENTRY_DSN.startswith(('http://', 'https://')) and 'test' not in sys.argv:
+    try:
+        from core.error_monitoring import initialize_sentry
+        initialize_sentry()
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Failed to initialize Sentry: {e}. Continuing without error monitoring.")
+
 # API Versioning
 REST_FRAMEWORK['DEFAULT_VERSIONING_CLASS'] = 'core.versioning.SikaRemitAPIVersioning'
 REST_FRAMEWORK['DEFAULT_VERSION'] = 'v1'
