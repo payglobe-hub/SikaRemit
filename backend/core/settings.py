@@ -123,10 +123,10 @@ SPECTACULAR_SETTINGS = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'core.middleware.security.SecurityHeadersMiddleware',
-    'core.middleware.security.SSLRedirectMiddleware',
-    'core.middleware.security.RateLimitMiddleware',
-    'core.middleware.security.SecurityAuditMiddleware',
+    # 'core.middleware.security.SecurityHeadersMiddleware',
+    # 'core.middleware.security.SSLRedirectMiddleware',
+    # 'core.middleware.security.RateLimitMiddleware',
+    # 'core.middleware.security.SecurityAuditMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -137,9 +137,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'axes.middleware.AxesMiddleware',
-    'core.middleware.security_middleware.IPTrackingMiddleware',
-    'core.middleware.security_middleware.DeviceTrackingMiddleware',
-    'core.middleware.security_middleware.AuditLoggingMiddleware',
+    # 'core.middleware.security_middleware.IPTrackingMiddleware',
+    # 'core.middleware.security_middleware.DeviceTrackingMiddleware',
+    # 'core.middleware.security_middleware.AuditLoggingMiddleware',
 ]
 
 # Add production-only security middleware
