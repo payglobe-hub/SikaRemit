@@ -36,6 +36,10 @@ IS_PRODUCTION = os.environ.get('ENVIRONMENT', 'development').lower() == 'product
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,192.168.43.210,testserver,sikaremit.onrender.com').split(',')
 
+# Always ensure sikaremit.onrender.com is included
+if 'sikaremit.onrender.com' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('sikaremit.onrender.com')
+
 # Debug: Print ALLOWED_HOSTS to see what's actually being loaded
 print(f"DEBUG: ALLOWED_HOSTS = {ALLOWED_HOSTS}")
 print(f"DEBUG: ALLOWED_HOSTS env var = {os.environ.get('ALLOWED_HOSTS', 'NOT_SET')}")
