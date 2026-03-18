@@ -46,7 +46,7 @@ services:
           name: sikaremit-redis
           property: connectionString
       - key: ALLOWED_HOSTS
-        value: "sikaremit-api.onrender.com,localhost,127.0.0.1"
+        value: "sikaremit.onrender.com,sikaremit-api.onrender.com,localhost,127.0.0.1"
       - key: CORS_ALLOWED_ORIGINS
         value: "https://sikaremit.onrender.com,https://sikaremit-api.onrender.com"
       - key: ENVIRONMENT
