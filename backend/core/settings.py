@@ -34,7 +34,7 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 # Environment detection
 IS_PRODUCTION = os.environ.get('ENVIRONMENT', 'development').lower() == 'production'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,192.168.43.210,testserver').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,192.168.43.210,testserver,sikaremit.onrender.com').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
