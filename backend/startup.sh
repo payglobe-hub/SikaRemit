@@ -33,6 +33,4 @@ exec gunicorn core.asgi:application \
     --max-requests 500 \
     --access-logfile - \
     --error-logfile - \
-    --log-level info \
-    --keepalive 2 \
-    --max-keepalive-requests 1000
+    --log-level info
