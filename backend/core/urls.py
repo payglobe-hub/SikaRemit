@@ -43,6 +43,15 @@ admin_router.register(r'report-files', AdminReportViewSet, basename='admin-repor
 def simple_health_check(request):
     return JsonResponse({'status': 'healthy', 'message': 'Backend is running'})
 
+def debug_hosts(request):
+    """Debug endpoint to check ALLOWED_HOSTS"""
+    from django.conf import settings
+    return JsonResponse({
+        'ALLOWED_HOSTS': settings.ALLOWED_HOSTS,
+        'HTTP_HOST': request.get_host(),
+        'ENVIRONMENT': getattr(settings, 'ENVIRONMENT', 'unknown')
+    })
+
 @method_decorator(csrf_exempt, name='dispatch')
 class SimpleCurrenciesView(APIView):
     permission_classes = [AllowAny]
@@ -75,6 +84,7 @@ urlpatterns = [
     # Health Check
     path('health/', simple_health_check, name='health-check'),
     path('api/v1/health/', simple_health_check, name='api-health-check'),
+    path('debug/hosts/', debug_hosts, name='debug-hosts'),
 
     # Accounts API (includes customers, support tickets, etc.)
     path('api/v1/accounts/', include('accounts.urls')),
