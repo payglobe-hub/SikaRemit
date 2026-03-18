@@ -8,21 +8,31 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
 """
 
 import os
-from django.core.asgi import get_asgi_application
-from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.auth import AuthMiddlewareStack
-from channels.security.websocket import AllowedHostsOriginValidator
-from channels.middleware import BaseMiddleware
 from urllib.parse import parse_qs
 
 # Set Django settings module BEFORE any Django imports
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
-# Now import Django components
+# Initialize Django before importing any Django components
+import django
+django.setup()
+
+# Now import Django components after Django is fully initialized
+from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+from channels.security.websocket import AllowedHostsOriginValidator
+from channels.middleware import BaseMiddleware
 from django.contrib.auth.models import AnonymousUser
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth import get_user_model
-from notifications.routing import websocket_urlpatterns
+
+# Import websocket routing after Django is initialized
+try:
+    from notifications.routing import websocket_urlpatterns
+except ImportError:
+    # Fallback if notifications app is not available
+    websocket_urlpatterns = []
 
 User = get_user_model()
 

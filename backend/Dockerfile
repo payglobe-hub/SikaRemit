@@ -5,6 +5,9 @@
 
 FROM python:3.11-slim AS base
 
+# Set Django settings module early
+ENV DJANGO_SETTINGS_MODULE=core.settings
+
 # Prevent Python from writing .pyc files and enable unbuffered output
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -31,6 +34,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application code
 COPY . .
 
+# Copy startup script
+COPY startup.sh /app/startup.sh
+RUN chmod +x /app/startup.sh
+
 # Collect static files (uses whitenoise for serving)
 RUN python manage.py collectstatic --noinput --settings=core.settings 2>/dev/null || true
 
@@ -50,16 +57,5 @@ ENV PORT=8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:${PORT}/api/v1/health/')" || exit 1
 
-# Default entrypoint: Gunicorn with Uvicorn workers (ASGI for WebSocket support)
-CMD exec gunicorn core.asgi:application \
-    --bind 0.0.0.0:${PORT} \
-    --worker-class uvicorn.workers.UvicornWorker \
-    --workers 2 \
-    --threads 4 \
-    --timeout 120 \
-    --graceful-timeout 30 \
-    --max-requests 1000 \
-    --max-requests-jitter 50 \
-    --access-logfile - \
-    --error-logfile - \
-    --log-level info
+# Use startup script
+CMD ["/app/startup.sh"]
