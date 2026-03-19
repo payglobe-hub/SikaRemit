@@ -309,6 +309,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://sikaremit.com",
     "https://www.sikaremit.com",
     "https://sika-remit-six.vercel.app",
+    "https://sika-remit-git-main-pay-globe.vercel.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
