@@ -20,4 +20,7 @@ urlpatterns = [
     path('stores/', views_public.PublicStoreListView.as_view(), name='store-list'),
     path('stores/<uuid:pk>/', views_public.PublicStoreDetailView.as_view(), name='store-detail'),
     path('stores/<uuid:store_id>/products/', views_public.StoreProductListView.as_view(), name='store-products'),
+    
+    # Merchant Application URL
+    path('applications/', views_public.submit_merchant_application, name='submit-merchant-application'),
 ]

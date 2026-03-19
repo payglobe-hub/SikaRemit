@@ -15,6 +15,7 @@ const PUBLIC_AUTH_PATHS = [
   '/api/v1/payments/exchange-rates/',
   '/api/v1/users/admin/permissions-overview/',
   '/api/v1/users/admin/accessible-admins/',
+  '/api/v1/merchants/public/applications/',
 ];
 
 const isPublicAuthRequest = (url?: string) => {
@@ -143,31 +144,32 @@ api.interceptors.response.use(
 
 // Merchant API functions for admin merchant management
 export const merchantApi = {
-  // Applications
+  // Applications - Public endpoint for unauthenticated submissions
   submitApplication: (applicationData: any) =>
-    api.post('/api/v1/merchants/applications/', applicationData),
+    api.post('/api/v1/merchants/public/applications/', applicationData),
 
+  // Admin functions (require authentication)
   getApplications: () =>
-    api.get('/api/v1/admin/merchants/applications/'),
+    api.get('/api/v1/merchants/applications/'),
 
   approveApplication: (id: string) =>
-    api.post(`/api/v1/admin/merchants/applications/${id}/approve/`),
+    api.post(`/api/v1/merchants/applications/${id}/approve/`),
 
   rejectApplication: (id: string, reason: string) =>
-    api.post(`/api/v1/admin/merchants/applications/${id}/reject/`, { reason }),
+    api.post(`/api/v1/merchants/applications/${id}/reject/`, { reason }),
 
   // Invitations
   getInvitations: () =>
-    api.get('/api/v1/admin/merchants/invitations/'),
+    api.get('/api/v1/merchants/invitations/'),
 
   createInvitation: (invitationData: any) =>
-    api.post('/api/v1/admin/merchants/invitations/', invitationData),
+    api.post('/api/v1/merchants/invitations/', invitationData),
 
   resendInvitation: (id: string) =>
-    api.post(`/api/v1/admin/merchants/invitations/${id}/resend/`),
+    api.post(`/api/v1/merchants/invitations/${id}/resend/`),
 
   cancelInvitation: (id: string) =>
-    api.post(`/api/v1/admin/merchants/invitations/${id}/cancel/`),
+    api.post(`/api/v1/merchants/invitations/${id}/cancel/`),
 
   validateInvitation: (token: string) =>
     api.get(`/api/v1/merchants/invitations/validate/${token}/`),

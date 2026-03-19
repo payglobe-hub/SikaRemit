@@ -10,8 +10,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Avg, Count
-from merchants.models import Product, Store
-from merchants.serializers import ProductSerializer, StoreSerializer
+from merchants.models import Product, Store, MerchantApplication
+from merchants.serializers import ProductSerializer, StoreSerializer, MerchantApplicationSerializer
 from .filters import ProductFilter
 from .pagination import StandardResultsSetPagination
 
@@ -219,3 +219,57 @@ def search_products(request):
     
     serializer = ProductSerializer(products[:50], many=True, context={'request': request})
     return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def submit_merchant_application(request):
+    """
+    Public API for submitting merchant applications
+    Allows unauthenticated users to apply to become merchants
+    """
+    try:
+        serializer = MerchantApplicationSerializer(data=request.data)
+        if serializer.is_valid():
+            application = serializer.save()
+            
+            # Send notification to admins about new application
+            from notifications.services import NotificationService
+            from shared.constants import USER_TYPE_SUPER_ADMIN, USER_TYPE_BUSINESS_ADMIN
+            from django.contrib.auth import get_user_model
+            
+            User = get_user_model()
+            admin_users = User.objects.filter(user_type__in=[USER_TYPE_SUPER_ADMIN, USER_TYPE_BUSINESS_ADMIN])
+            
+            for admin in admin_users:
+                NotificationService.create_notification(
+                    user=admin,
+                    title="New Merchant Application",
+                    message=f"A new merchant application has been submitted by {application.contact_first_name} {application.contact_last_name} for {application.business_name}.",
+                    level='info',
+                    notification_type='merchant_application_submitted',
+                    metadata={
+                        'application_id': str(application.id),
+                        'business_name': application.business_name,
+                        'contact_email': application.contact_email
+                    }
+                )
+            
+            return Response({
+                'success': True,
+                'message': 'Application submitted successfully! We will review it within 2-3 business days.',
+                'application_id': application.id
+            }, status=status.HTTP_201_CREATED)
+        
+        return Response({
+            'success': False,
+            'errors': serializer.errors,
+            'message': 'Please correct the errors below.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': 'An error occurred while submitting your application. Please try again.',
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
