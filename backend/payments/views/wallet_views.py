@@ -273,6 +273,14 @@ def exchange_rates(request):
         base_currency_code = request.query_params.get('base', 'USD')
         target_currency_code = request.query_params.get('target')
 
+        # Handle empty database case
+        if Currency.objects.count() == 0:
+            return Response({
+                'base': base_currency_code,
+                'rates': {},
+                'message': 'Currency data not available. Please contact administrator.'
+            })
+
         base_currency = CurrencyService.get_currency_by_code(base_currency_code)
         if not base_currency:
             return Response(
