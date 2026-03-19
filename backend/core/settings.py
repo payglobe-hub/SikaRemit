@@ -307,6 +307,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3002",
     "http://192.168.43.210:3000",
     "https://sikaremit.com",
+    "https://www.sikaremit.com",
+    "https://sika-remit-six.vercel.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
