@@ -73,12 +73,13 @@ class SystemMetricsAPIView(APIView):
 
     def _calculate_avg_processing_time(self, transactions):
         """Calculate average transaction processing time in seconds"""
-        completed_transactions = transactions.filter(status='completed', completed_at__isnull=False)
+        completed_transactions = transactions.filter(status='completed')
         
         if completed_transactions.exists():
             # Calculate average processing time for completed transactions
+            # Use updated_at as proxy for completion time since completed_at field doesn't exist
             avg_duration = completed_transactions.annotate(
-                duration=F('completed_at') - F('created_at')
+                duration=F('updated_at') - F('created_at')
             ).aggregate(avg=Avg('duration'))['avg']
             
             if avg_duration:

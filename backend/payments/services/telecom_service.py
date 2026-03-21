@@ -114,3 +114,85 @@ class TelecomService:
             {'value': key, 'label': config['name']}
             for key, config in self.providers.items()
         ]
+    
+    def get_providers_by_country(self, country_code: str) -> List[Dict[str, Any]]:
+        """Get providers available in a specific country"""
+        # For now, return all providers for Ghana
+        if country_code.upper() == 'GH':
+            return [
+                {
+                    'code': 'mtn',
+                    'name': 'MTN',
+                    'display_name': 'MTN Ghana',
+                    'country': 'GH',
+                    'is_active': True
+                },
+                {
+                    'code': 'telecel',
+                    'name': 'Telecel',
+                    'display_name': 'Telecel Ghana',
+                    'country': 'GH',
+                    'is_active': True
+                },
+                {
+                    'code': 'airteltigo',
+                    'name': 'AirtelTigo',
+                    'display_name': 'AirtelTigo Ghana',
+                    'country': 'GH',
+                    'is_active': True
+                }
+            ]
+        return []
+    
+    def get_data_packages_by_country(self, provider: str, country_code: str) -> List[Dict[str, Any]]:
+        """Get data packages for a provider in a specific country"""
+        if country_code.upper() != 'GH':
+            return []
+        
+        # Return mock data packages for testing
+        mock_packages = {
+            'mtn': [
+                {
+                    'id': 'mtn-100mb',
+                    'code': 'DATA_100MB',
+                    'name': '100MB Daily',
+                    'size': '100MB',
+                    'validity': '24 hours',
+                    'price': 2.50,
+                    'description': '100MB data valid for 24 hours'
+                },
+                {
+                    'id': 'mtn-1gb',
+                    'code': 'DATA_1GB',
+                    'name': '1GB Weekly',
+                    'size': '1GB',
+                    'validity': '7 days',
+                    'price': 15.00,
+                    'description': '1GB data valid for 7 days'
+                }
+            ],
+            'telecel': [
+                {
+                    'id': 'telecel-500mb',
+                    'code': 'DATA_500MB',
+                    'name': '500MB Daily',
+                    'size': '500MB',
+                    'validity': '24 hours',
+                    'price': 5.00,
+                    'description': '500MB data valid for 24 hours'
+                }
+            ],
+            'airteltigo': [
+                {
+                    'id': 'airteltigo-2gb',
+                    'code': 'DATA_2GB',
+                    'name': '2GB Monthly',
+                    'size': '2GB',
+                    'validity': '30 days',
+                    'price': 30.00,
+                    'description': '2GB data valid for 30 days'
+                }
+            ]
+        }
+        
+        return mock_packages.get(provider.lower(), [])

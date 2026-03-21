@@ -18,6 +18,39 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+    
+    # Session Security
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Strict'
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_SAMESITE = 'Strict'
+    
+    # Database Security
+    DATABASES = {
+        'default': {
+            'OPTIONS': {
+                'sslmode': 'require',  # Force SSL connection
+            }
+        }
+    }
+    
+    # CORS Security (Production Only)
+    CORS_ALLOWED_ORIGINS = [
+        "https://sikaremit.com",
+        "https://www.sikaremit.com",
+    ]
+    CORS_ALLOW_CREDENTIALS = True
+    
+    # Security Headers
+    SECURITY_HEADERS = {
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'X-XSS-Protection': '1; mode=block',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://api.stripe.com",
+    }
 
 # Stripe Configuration
 STRIPE_LIVE_MODE = os.environ.get('STRIPE_SECRET_KEY', '').startswith('sk_live_')

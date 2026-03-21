@@ -15,6 +15,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 from dotenv import load_dotenv
 load_dotenv(BASE_DIR / '.env')
 
+# Force production environment if .env.production exists
+if (BASE_DIR / '.env.production').exists() and not (BASE_DIR / '.env').exists():
+    load_dotenv(BASE_DIR / '.env.production')
+
 import dj_database_url
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -144,6 +148,10 @@ MIDDLEWARE = [
     # 'core.middleware.security_middleware.IPTrackingMiddleware',
     # 'core.middleware.security_middleware.DeviceTrackingMiddleware',
     # 'core.middleware.security_middleware.AuditLoggingMiddleware',
+    # Prometheus middleware
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
+    'backend.monitoring.prometheus_metrics.PrometheusMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 # Add production-only security middleware
@@ -298,20 +306,7 @@ SIMPLE_JWT = {
 }
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-    "http://localhost:3002",
-    "http://127.0.0.1:3002",
-    "http://192.168.43.210:3000",
-    "https://sikaremit.com",
-    "https://www.sikaremit.com",
-    "https://sika-remit-six.vercel.app",
-    "https://sika-remit-git-main-pay-globe.vercel.app",
-]
-
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     "DELETE",
@@ -592,6 +587,17 @@ SYSTEM_CHECKS = [
     'users.system_checks.check_user_type_signal_consistency',
     'core.startup_checks.check_production_configuration',
 ]
+
+# Grafana Monitoring Configuration
+GRAFANA_URL = os.environ.get('GRAFANA_URL', 'https://payglobesr.grafana.net/')
+GRAFANA_API_KEY = os.environ.get('GRAFANA_API_KEY', 'your-grafana-api-key')
+GRAFANA_USERNAME = os.environ.get('GRAFANA_USERNAME', 'admin')
+GRAFANA_PASSWORD = os.environ.get('GRAFANA_PASSWORD', 'your-grafana-password')
+
+# Prometheus Metrics Configuration
+PROMETHEUS_METRICS_ENABLED = os.environ.get('PROMETHEUS_METRICS_ENABLED', 'False').lower() == 'true'
+PROMETHEUS_METRICS_EXPORT_PORT = int(os.environ.get('PROMETHEUS_METRICS_EXPORT_PORT', '8001'))
+PROMETHEUS_MULTIPROC_DIR = os.environ.get('PROMETHEUS_MULTIPROC_DIR', '/tmp/prometheus_multiproc_dir')
 
 # Logging configuration to suppress gateway warnings
 LOGGING = {

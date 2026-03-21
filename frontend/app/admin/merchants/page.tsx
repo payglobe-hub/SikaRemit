@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Building2, Search, Plus, Filter, Trash2, UserCheck, Mail, Phone, MapPin, Calendar } from 'lucide-react'
+import { Building2, Search, Plus, Filter, Trash2, UserCheck, Mail, Phone, MapPin, Calendar, FileText } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
@@ -32,6 +32,23 @@ interface Merchant {
   business_type?: string
   last_login?: string
   kyc_status?: string
+}
+
+interface MerchantApplication {
+  id: string;
+  business_name: string;
+  business_type: string;
+  business_email: string;
+  contact_first_name: string;
+  contact_last_name: string;
+  contact_email: string;
+  contact_phone: string;
+  industry: string;
+  status: 'pending' | 'approved' | 'rejected';
+  submitted_at: string;
+  reviewed_at?: string;
+  reviewed_by?: string;
+  review_notes?: string;
 }
 
 interface MerchantInvitation {
@@ -62,6 +79,19 @@ async function fetchMerchants(search: string = ''): Promise<Merchant[]> {
   return merchants
 }
 
+async function fetchMerchantApplications(): Promise<MerchantApplication[]> {
+  const response = await api.get('/api/v1/merchants/applications/')
+  
+  const data = response.data
+  let applications: MerchantApplication[] = []
+  if (data.results && Array.isArray(data.results)) {
+    applications = data.results
+  } else if (Array.isArray(data)) {
+    applications = data
+  }
+  return applications
+}
+
 async function fetchMerchantInvitations(): Promise<MerchantInvitation[]> {
   // Use API directly - auth headers will be added by axios interceptor
   const response = await api.get('/api/v1/admin/merchants/invitations/')
@@ -80,12 +110,14 @@ export default function AdminMerchantsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [showInactive, setShowInactive] = useState(false)
-  const [activeTab, setActiveTab] = useState<'merchants' | 'invitations'>('merchants')
+  const [activeTab, setActiveTab] = useState<'merchants' | 'applications' | 'invitations'>('merchants')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isApplicationDialogOpen, setIsApplicationDialogOpen] = useState(false)
   const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null)
+  const [selectedApplication, setSelectedApplication] = useState<MerchantApplication | null>(null)
   const [createFormData, setCreateFormData] = useState({
     email: '',
     first_name: '',
@@ -117,6 +149,12 @@ export default function AdminMerchantsPage() {
   const { data: allMerchants = [], isLoading: merchantsLoading } = useQuery({
     queryKey: ['admin-merchants', debouncedSearch],
     queryFn: () => fetchMerchants(debouncedSearch),
+    retry: false
+  })
+
+  const { data: applications = [], isLoading: applicationsLoading } = useQuery({
+    queryKey: ['admin-merchant-applications'],
+    queryFn: fetchMerchantApplications,
     retry: false
   })
 
@@ -199,6 +237,39 @@ export default function AdminMerchantsPage() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.error || 'Failed to update merchant status')
+    }
+  })
+
+  const approveApplicationMutation = useMutation({
+    mutationFn: async (applicationId: string) => {
+      const response = await api.post(`/api/v1/merchants/applications/${applicationId}/approve/`)
+      return response.data
+    },
+    onSuccess: () => {
+      toast.success('Application approved successfully')
+      setIsApplicationDialogOpen(false)
+      setSelectedApplication(null)
+      queryClient.invalidateQueries({ queryKey: ['admin-merchant-applications'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-merchant-invitations'] })
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'Failed to approve application')
+    }
+  })
+
+  const rejectApplicationMutation = useMutation({
+    mutationFn: async ({ applicationId, reason }: { applicationId: string; reason: string }) => {
+      const response = await api.post(`/api/v1/merchants/applications/${applicationId}/reject/`, { reason })
+      return response.data
+    },
+    onSuccess: () => {
+      toast.success('Application rejected successfully')
+      setIsApplicationDialogOpen(false)
+      setSelectedApplication(null)
+      queryClient.invalidateQueries({ queryKey: ['admin-merchant-applications'] })
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'Failed to reject application')
     }
   })
 
@@ -343,6 +414,17 @@ export default function AdminMerchantsPage() {
             Existing Merchants ({merchants.length})
           </button>
           <button
+            onClick={() => setActiveTab('applications')}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
+              activeTab === 'applications'
+                ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'
+            }`}
+          >
+            <FileText className="h-4 w-4" />
+            Applications ({applications.filter(a => a.status === 'pending').length})
+          </button>
+          <button
             onClick={() => setActiveTab('invitations')}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
               activeTab === 'invitations'
@@ -361,7 +443,7 @@ export default function AdminMerchantsPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <Input
-                  placeholder={`Search ${activeTab === 'merchants' ? 'merchants' : 'invitations'} by email or business name...`}
+                  placeholder={`Search ${activeTab === 'merchants' ? 'merchants' : activeTab === 'applications' ? 'applications' : 'invitations'} by email or business name...`}
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
                   className="pl-10 bg-white/50 backdrop-blur-sm border-white/30 focus:border-blue-300"
@@ -440,11 +522,126 @@ export default function AdminMerchantsPage() {
                           </td>
                           <td className="p-4">
                             <div className="flex gap-2">
-                              <Button variant="ghost" size="sm" onClick={() => handleViewMerchant(merchant)}>View</Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleEditMerchant(merchant)}>Edit</Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleToggleMerchantStatus(merchant)}>
-                                {merchant.is_active ? 'Suspend' : 'Activate'}
+                              <Button variant="ghost" size="sm" onClick={() => {
+                                setSelectedMerchant(merchant)
+                                setIsViewDialogOpen(true)
+                              }}>
+                                View
                               </Button>
+                              <Button variant="ghost" size="sm" onClick={() => toggleMerchantStatusMutation.mutate(merchant)} disabled={toggleMerchantStatusMutation.isPending}>
+                                {merchant.is_active ? 'Deactivate' : 'Activate'}
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : activeTab === 'applications' ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-4 font-medium">Business</th>
+                      <th className="text-left p-4 font-medium">Contact</th>
+                      <th className="text-left p-4 font-medium">Industry</th>
+                      <th className="text-left p-4 font-medium">Status</th>
+                      <th className="text-left p-4 font-medium">Submitted</th>
+                      <th className="text-left p-4 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {applicationsLoading ? (
+                      <tr>
+                        <td colSpan={6} className="text-center p-8 text-muted-foreground">
+                          Loading applications...
+                        </td>
+                      </tr>
+                    ) : applications.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="text-center p-8 text-muted-foreground">
+                          No applications found
+                        </td>
+                      </tr>
+                    ) : (
+                      applications.map((application) => (
+                        <tr key={application.id} className="border-b hover:bg-muted/50">
+                          <td className="p-4">
+                            <div>
+                              <div className="font-medium">{application.business_name}</div>
+                              <div className="text-sm text-slate-500">{application.business_type}</div>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div>
+                              <div className="font-medium">{application.contact_first_name} {application.contact_last_name}</div>
+                              <div className="text-sm text-slate-500">{application.contact_email}</div>
+                              <div className="text-sm text-slate-500 flex items-center gap-1">
+                                <Phone className="h-3 w-3" />
+                                {application.contact_phone}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <Badge variant="outline">
+                              {application.industry}
+                            </Badge>
+                          </td>
+                          <td className="p-4">
+                            <Badge className={`text-xs ${
+                              application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              application.status === 'approved' ? 'bg-green-100 text-green-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {application.status.toUpperCase()}
+                            </Badge>
+                          </td>
+                          <td className="p-4">
+                            <div className="text-sm text-slate-500">
+                              {new Date(application.submitted_at).toLocaleDateString()}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedApplication(application)
+                                  setIsApplicationDialogOpen(true)
+                                }}
+                              >
+                                Review
+                              </Button>
+                              {application.status === 'pending' && (
+                                <>
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => approveApplicationMutation.mutate(application.id)}
+                                    disabled={approveApplicationMutation.isPending}
+                                  >
+                                    Approve
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => {
+                                      if (confirm('Are you sure you want to reject this application?')) {
+                                        const reason = prompt('Please provide a reason for rejection:')
+                                        if (reason) {
+                                          rejectApplicationMutation.mutate({ applicationId: application.id, reason })
+                                        }
+                                      }
+                                    }}
+                                    disabled={rejectApplicationMutation.isPending}
+                                  >
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -461,8 +658,9 @@ export default function AdminMerchantsPage() {
                       <th className="text-left p-4 font-medium">Business</th>
                       <th className="text-left p-4 font-medium">Email</th>
                       <th className="text-left p-4 font-medium">Invited By</th>
-                      <th className="text-left p-4 font-medium">Status</th>
                       <th className="text-left p-4 font-medium">Expires</th>
+                      <th className="text-left p-4 font-medium">Status</th>
+                      <th className="text-left p-4 font-medium">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -861,6 +1059,103 @@ export default function AdminMerchantsPage() {
               >
                 {updateMerchantMutation.isPending ? 'Updating...' : 'Update Merchant'}
               </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Application Review Dialog */}
+      <Dialog open={isApplicationDialogOpen} onOpenChange={setIsApplicationDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Merchant Application Review</DialogTitle>
+            <DialogDescription>
+              Review the merchant application details and take action.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedApplication && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Business Name:</Label>
+                <span className="col-span-3">{selectedApplication.business_name}</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Business Type:</Label>
+                <span className="col-span-3">{selectedApplication.business_type}</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Industry:</Label>
+                <span className="col-span-3">{selectedApplication.industry}</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Contact Person:</Label>
+                <span className="col-span-3">{selectedApplication.contact_first_name} {selectedApplication.contact_last_name}</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Contact Email:</Label>
+                <span className="col-span-3">{selectedApplication.contact_email}</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Contact Phone:</Label>
+                <span className="col-span-3">{selectedApplication.contact_phone}</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Business Email:</Label>
+                <span className="col-span-3">{selectedApplication.business_email}</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Status:</Label>
+                <span className="col-span-3">
+                  <Badge className={`text-xs ${
+                    selectedApplication.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    selectedApplication.status === 'approved' ? 'bg-green-100 text-green-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {selectedApplication.status.toUpperCase()}
+                  </Badge>
+                </span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-medium">Submitted:</Label>
+                <span className="col-span-3">{new Date(selectedApplication.submitted_at).toLocaleString()}</span>
+              </div>
+              {selectedApplication.reviewed_at && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right font-medium">Reviewed:</Label>
+                  <span className="col-span-3">{new Date(selectedApplication.reviewed_at).toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsApplicationDialogOpen(false)}>
+                Close
+              </Button>
+              {selectedApplication?.status === 'pending' && (
+                <>
+                  <Button
+                    variant="default"
+                    onClick={() => approveApplicationMutation.mutate(selectedApplication.id)}
+                    disabled={approveApplicationMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {approveApplicationMutation.isPending ? 'Approving...' : 'Approve Application'}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      const reason = prompt('Please provide a reason for rejection:')
+                      if (reason) {
+                        rejectApplicationMutation.mutate({ applicationId: selectedApplication.id, reason })
+                      }
+                    }}
+                    disabled={rejectApplicationMutation.isPending}
+                  >
+                    {rejectApplicationMutation.isPending ? 'Rejecting...' : 'Reject Application'}
+                  </Button>
+                </>
+              )}
             </div>
           </DialogFooter>
         </DialogContent>

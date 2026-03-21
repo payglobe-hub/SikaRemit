@@ -12,11 +12,12 @@ from .models import RegulatorySubmission, SuspiciousActivityReport, BOGMonthlyRe
 from users.models import User, KYCDocument
 from core.response import APIResponse
 from shared.constants import USER_TYPE_MERCHANT, USER_TYPE_CUSTOMER
+from users.permissions import IsAdminUser
 
 class RegulatorySubmissionViewSet(viewsets.ModelViewSet):
     queryset = RegulatorySubmission.objects.all()
     serializer_class = None  # Will need to create serializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]  # Only admins can access compliance
     
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -33,7 +34,7 @@ class RegulatorySubmissionViewSet(viewsets.ModelViewSet):
         return queryset.order_by('-submitted_at')
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])  # Only admins can access compliance stats
 def compliance_stats(request):
     """Get compliance statistics for dashboard"""
     try:
@@ -76,7 +77,7 @@ def compliance_stats(request):
         )
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])  # Only admins can access KYC reviews
 def kyc_reviews(request):
     """Get KYC reviews list"""
     try:
@@ -127,7 +128,7 @@ def kyc_reviews(request):
         )
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])  # Only admins can export compliance reports
 def export_compliance_report(request):
     """Export compliance report in various formats"""
     try:

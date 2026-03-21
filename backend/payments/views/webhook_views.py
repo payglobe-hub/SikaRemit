@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from users.permissions import IsAdminUser
+from users.permissions import IsAdminUser, IsSuperAdmin
 from rest_framework import serializers
 from django.db.models import Count, Sum
 from django.utils import timezone
@@ -40,7 +40,7 @@ class WebhookViewSet(viewsets.ModelViewSet):
     """Admin viewset for managing webhooks"""
     queryset = Webhook.objects.all()
     serializer_class = WebhookSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsSuperAdmin]  # Only super admin can manage webhooks
     
     @action(detail=False, methods=['get'])
     def stats(self, request):

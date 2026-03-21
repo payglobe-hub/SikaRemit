@@ -390,7 +390,7 @@ class AdminUserCreateView(APIView):
 class AdminUserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = AccountsUserSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsSuperAdmin]  # Only super admin can manage users
     
     def get_queryset(self):
         queryset = super().get_queryset()

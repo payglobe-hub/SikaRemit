@@ -602,27 +602,92 @@ def onboarding_status(request):
         return Response(OnboardingSerializer(onboarding).data)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, IsMerchantUser])
 def upload_verification(request):
-    """Handle verification document upload"""
-    serializer = VerificationSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    
-    onboarding = MerchantOnboarding.objects.get(merchant=request.user.merchant_profile)
-    if onboarding.status != MerchantOnboarding.VERIFICATION:
-        return Response({'error': 'Not in verification stage'}, status=400)
-    
-    # In a real implementation, this would save to cloud storage
-    doc_type = serializer.validated_data['document_type']
-    onboarding.data[f'{doc_type}_file'] = serializer.validated_data['document_file'].name
-    onboarding.save()
-    
-    # Check if all required docs are uploaded
-    required_docs = ['id_card', 'business_license']
-    if all(f'{doc}_file' in onboarding.data for doc in required_docs):
-        onboarding.status = MerchantOnboarding.COMPLETED
+    """Upload verification documents with actual file storage"""
+    try:
+        from django.core.files.storage import default_storage
+        from django.conf import settings
+        import uuid
+        import os
+        
+        serializer = VerificationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        onboarding = MerchantOnboarding.objects.get(merchant=request.user.merchant_profile)
+        if onboarding.status != MerchantOnboarding.VERIFICATION:
+            return Response({'error': 'Not in verification stage'}, status=400)
+        
+        # Get the uploaded file
+        doc_type = serializer.validated_data['document_type']
+        document_file = serializer.validated_data['document_file']
+        
+        # Generate unique filename
+        file_extension = os.path.splitext(document_file.name)[1]
+        unique_filename = f"{doc_type}_{request.user.id}_{uuid.uuid4()}{file_extension}"
+        
+        # Create directory structure
+        upload_path = f"merchant_documents/{request.user.id}/"
+        full_path = os.path.join(upload_path, unique_filename)
+        
+        # Save file to storage
+        if default_storage.exists(full_path):
+            default_storage.delete(full_path)
+        
+        saved_path = default_storage.save(full_path, document_file)
+        file_url = default_storage.url(saved_path)
+        
+        # Store file info in onboarding data
+        if 'documents' not in onboarding.data:
+            onboarding.data['documents'] = {}
+        
+        onboarding.data['documents'][doc_type] = {
+            'filename': unique_filename,
+            'original_name': document_file.name,
+            'file_path': saved_path,
+            'file_url': file_url,
+            'uploaded_at': timezone.now().isoformat(),
+            'file_size': document_file.size
+        }
+        
         onboarding.save()
-    
-    return Response({'status': 'success'})
+        
+        # Check if all required docs are uploaded
+        required_docs = ['id_card', 'business_license']
+        uploaded_docs = list(onboarding.data.get('documents', {}).keys())
+        
+        if all(doc in uploaded_docs for doc in required_docs):
+            onboarding.status = MerchantOnboarding.COMPLETED
+            onboarding.is_verified = True
+            onboarding.save()
+            
+            # Send completion notification
+            NotificationService.create_notification(
+                user=request.user,
+                title="Onboarding Completed!",
+                message=f"Congratulations! Your merchant onboarding has been completed successfully.",
+                level='success',
+                notification_type='merchant_onboarding_completed',
+                metadata={
+                    'merchant_id': str(onboarding.merchant.id),
+                    'completed_at': timezone.now().isoformat()
+                }
+            )
+        
+        return Response({
+            'status': 'success',
+            'message': f'{doc_type.replace("_", " ").title()} uploaded successfully',
+            'document_type': doc_type,
+            'file_url': file_url,
+            'all_required_uploaded': all(doc in uploaded_docs for doc in required_docs),
+            'onboarding_completed': onboarding.status == MerchantOnboarding.COMPLETED
+        })
+        
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': f'Failed to upload document: {str(e)}'
+        }, status=500)
 
 class ReportTemplateViewSet(viewsets.ReadOnlyModelViewSet):
     """API for report templates"""
@@ -1064,85 +1129,99 @@ class MerchantAnalyticsViewSet(viewsets.ViewSet):
     
     def _get_merchant_analytics(self, merchant):
         """Shared analytics computation used by both list and overview"""
-        now = timezone.now()
-        current_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        prev_month_start = (current_month_start - timedelta(days=1)).replace(day=1)
-        
-        # Current period totals
-        total_transactions = Transaction.objects.filter(merchant=merchant).count()
-        total_customers = MerchantCustomer.objects.filter(merchant=merchant).count()
-        active_customers = MerchantCustomer.objects.filter(merchant=merchant, status='active').count()
-        total_revenue = Transaction.objects.filter(
-            merchant=merchant, status='completed'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        # Previous month totals for change %
-        prev_revenue = Transaction.objects.filter(
-            merchant=merchant, status='completed',
-            created_at__gte=prev_month_start, created_at__lt=current_month_start
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        curr_revenue = Transaction.objects.filter(
-            merchant=merchant, status='completed',
-            created_at__gte=current_month_start
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        prev_txn_count = Transaction.objects.filter(
-            merchant=merchant, created_at__gte=prev_month_start, created_at__lt=current_month_start
-        ).count()
-        curr_txn_count = Transaction.objects.filter(
-            merchant=merchant, created_at__gte=current_month_start
-        ).count()
-        
-        prev_cust_count = MerchantCustomer.objects.filter(
-            merchant=merchant, onboarded_at__gte=prev_month_start, onboarded_at__lt=current_month_start
-        ).count()
-        curr_cust_count = MerchantCustomer.objects.filter(
-            merchant=merchant, onboarded_at__gte=current_month_start
-        ).count()
-        
-        def pct_change(current, previous):
-            if previous == 0:
-                return 100.0 if current > 0 else 0.0
-            return round(((current - previous) / previous) * 100, 1)
-        
-        revenue_change = pct_change(float(curr_revenue), float(prev_revenue))
-        txn_change = pct_change(curr_txn_count, prev_txn_count)
-        cust_change = pct_change(curr_cust_count, prev_cust_count)
-        
-        # Pending payouts from Payout model
-        from accounts.models import Payout
-        pending_payouts = Payout.objects.filter(
-            merchant=merchant, status='pending'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        # Monthly revenue chart data (last 6 months)
-        chart_data = []
-        for i in range(5, -1, -1):
-            month_start = (now - timedelta(days=30 * i)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            if i > 0:
-                month_end = (now - timedelta(days=30 * (i - 1))).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            else:
-                month_end = now
-            month_rev = Transaction.objects.filter(
-                merchant=merchant, status='completed',
-                created_at__gte=month_start, created_at__lt=month_end
+        try:
+            now = timezone.now()
+            current_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            prev_month_start = (current_month_start - timedelta(days=1)).replace(day=1)
+            
+            # Current period totals
+            total_transactions = Transaction.objects.filter(merchant=merchant).count()
+            total_customers = MerchantCustomer.objects.filter(merchant=merchant).count()
+            active_customers = MerchantCustomer.objects.filter(merchant=merchant, status='active').count()
+            total_revenue = Transaction.objects.filter(
+                merchant=merchant, status='completed'
             ).aggregate(total=Sum('amount'))['total'] or 0
-            chart_data.append({
-                'month': month_start.strftime('%b %Y'),
-                'revenue': float(month_rev)
-            })
-        
-        return {
-            'total_transactions': total_transactions,
-            'total_customers': total_customers,
-            'active_customers': active_customers,
-            'total_revenue': float(total_revenue),
-            'pending_payouts': float(pending_payouts),
-            'revenue_change': revenue_change,
-            'txn_change': txn_change,
-            'cust_change': cust_change,
-            'chart_data': chart_data,
-        }
+            
+            # Previous month totals for change %
+            prev_revenue = Transaction.objects.filter(
+                merchant=merchant, status='completed',
+                created_at__gte=prev_month_start, created_at__lt=current_month_start
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            curr_revenue = Transaction.objects.filter(
+                merchant=merchant, status='completed',
+                created_at__gte=current_month_start
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            
+            prev_txn_count = Transaction.objects.filter(
+                merchant=merchant, created_at__gte=prev_month_start, created_at__lt=current_month_start
+            ).count()
+            curr_txn_count = Transaction.objects.filter(
+                merchant=merchant, created_at__gte=current_month_start
+            ).count()
+            
+            prev_cust_count = MerchantCustomer.objects.filter(
+                merchant=merchant, onboarded_at__gte=prev_month_start, onboarded_at__lt=current_month_start
+            ).count()
+            curr_cust_count = MerchantCustomer.objects.filter(
+                merchant=merchant, onboarded_at__gte=current_month_start
+            ).count()
+            
+            def pct_change(current, previous):
+                if previous == 0:
+                    return 100.0 if current > 0 else 0.0
+                return round(((current - previous) / previous) * 100, 1)
+            
+            revenue_change = pct_change(float(curr_revenue), float(prev_revenue))
+            txn_change = pct_change(curr_txn_count, prev_txn_count)
+            cust_change = pct_change(curr_cust_count, prev_cust_count)
+            
+            # Pending payouts from Payout model
+            from accounts.models import Payout
+            pending_payouts = Payout.objects.filter(
+                merchant=merchant, status='pending'
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            
+            # Monthly revenue chart data (last 6 months)
+            chart_data = []
+            for i in range(5, -1, -1):
+                month_start = (now - timedelta(days=30 * i)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                if i > 0:
+                    month_end = (now - timedelta(days=30 * (i - 1))).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                else:
+                    month_end = now
+                month_rev = Transaction.objects.filter(
+                    merchant=merchant, status='completed',
+                    created_at__gte=month_start, created_at__lt=month_end
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                chart_data.append({
+                    'month': month_start.strftime('%b %Y'),
+                    'revenue': float(month_rev)
+                })
+            
+            return {
+                'total_transactions': total_transactions,
+                'total_customers': total_customers,
+                'active_customers': active_customers,
+                'total_revenue': float(total_revenue),
+                'pending_payouts': float(pending_payouts),
+                'revenue_change': revenue_change,
+                'txn_change': txn_change,
+                'cust_change': cust_change,
+                'chart_data': chart_data,
+            }
+        except Exception as e:
+            print(f"Error in analytics: {str(e)}")
+            return {
+                'total_transactions': 0,
+                'total_customers': 0,
+                'active_customers': 0,
+                'total_revenue': 0.0,
+                'pending_payouts': 0.0,
+                'revenue_change': 0.0,
+                'txn_change': 0.0,
+                'cust_change': 0.0,
+                'chart_data': [],
+            }
     
     def list(self, request):
         """Get merchant analytics data"""

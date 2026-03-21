@@ -21,7 +21,7 @@ from functools import wraps
 import time
 import logging
 
-from .api.notifications import NotificationService
+from notifications.services import NotificationService
 from .serializers import (
     UserLoginSerializer, UserRegisterSerializer, AccountsUserSerializer,
     MyTokenObtainPairSerializer,

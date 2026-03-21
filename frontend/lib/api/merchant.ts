@@ -101,18 +101,43 @@ export async function getMerchant(merchantId?: string) {
 }
 
 export async function getMerchantOnboardingStatus(): Promise<{
-  status: 'not_started' | 'in_progress' | 'completed' | 'rejected';
-  current_step?: string;
-  completed_steps: string[];
+  status: 'pending' | 'business_info' | 'bank_details' | 'verification' | 'completed';
+  current_step: number;
+  total_steps: number;
+  data: any;
   is_verified: boolean;
-  submitted_at?: string;
+  created_at: string;
+  updated_at: string;
 }> {
   const response = await api.get('/api/v1/merchants/onboarding/');
   return response.data;
 }
 
-export async function updateMerchantOnboarding(data: any): Promise<{ success: boolean; message: string }> {
-  const response = await api.post('/api/v1/merchants/onboarding/verify/', data);
+export async function updateMerchantOnboarding(data: any): Promise<{
+  status: string;
+  current_step: number;
+  total_steps: number;
+  data: any;
+  is_verified: boolean;
+  message: string;
+}> {
+  const response = await api.post('/api/v1/merchants/onboarding/', data);
+  return response.data;
+}
+
+export async function uploadVerificationDocument(data: {
+  document_type: string;
+  document_file: File;
+}): Promise<{ status: string; message: string }> {
+  const formData = new FormData();
+  formData.append('document_type', data.document_type);
+  formData.append('document_file', data.document_file);
+
+  const response = await api.post('/api/v1/merchants/onboarding/verify/', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return response.data;
 }
 
