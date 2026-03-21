@@ -1,0 +1,10 @@
+Hello {{ user.email }},
+
+Here are your MFA backup codes (each can be used once):
+
+{% for code in codes %}- {{ code }}
+{% endfor %}
+
+Store these securely. If you lose them, you can generate new codes (invalidating these).
+
+- The SikaRemit Team

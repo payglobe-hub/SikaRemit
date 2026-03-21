@@ -1,0 +1,72 @@
+name: Mobile Apps CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'sikaremit-customer-app/**'
+      - 'sikaremit-merchant-app/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'sikaremit-customer-app/**'
+      - 'sikaremit-merchant-app/**'
+
+jobs:
+  customer-app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sikaremit-customer-app
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: sikaremit-customer-app/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Type checking
+      run: npx tsc --noEmit
+
+    - name: Lint
+      run: npx eslint . --ext .ts,.tsx --max-warnings=0
+      continue-on-error: true
+
+    - name: Run tests
+      run: npm test -- --passWithNoTests
+
+  merchant-app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sikaremit-merchant-app
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: sikaremit-merchant-app/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Type checking
+      run: npx tsc --noEmit
+
+    - name: Lint
+      run: npx eslint . --ext .ts,.tsx --max-warnings=0
+      continue-on-error: true
+
+    - name: Run tests
+      run: npm test -- --passWithNoTests
