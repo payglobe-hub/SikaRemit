@@ -8,8 +8,8 @@ const nextConfig = {
   compress: true,
   trailingSlash: false,
   
-  // Enable standalone output for Docker
-  output: 'standalone',
+  // Disable standalone for Vercel deployment
+  // output: 'standalone',
   
   eslint: {
     ignoreDuringBuilds: true,
@@ -72,9 +72,16 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'localhost',
       },
+      {
+        protocol: 'https',
+        hostname: 'sikaremit.onrender.com',
+      },
     ],
     formats: ['image/avif', 'image/webp'],
   },
+  
+  // Static file handling for Vercel
+  generateStaticParams: true,
 }
 
 module.exports = withBundleAnalyzer(nextConfig);
