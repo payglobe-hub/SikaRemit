@@ -87,8 +87,8 @@ export default function MerchantDashboard() {
 
       {/* Key Metrics */}
       <section>
-        <h2 className="text-lg sm:text-xl font-bold text-foreground mb-4">Key Metrics</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <h2 className="text-base sm:text-lg font-bold text-foreground mb-3">Key Metrics</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {stats.map((stat) => (
             <Card key={stat.title} className="group hover:shadow-lg hover:border-primary/50 transition-all duration-300 relative overflow-hidden">
               <div className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 group-hover:opacity-100 transition-all duration-500`} />
@@ -101,7 +101,7 @@ export default function MerchantDashboard() {
                 </div>
               </CardHeader>
               <CardContent className="relative z-10">
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                <div className="text-xl font-bold text-foreground">{stat.value}</div>
                 {stat.trend && (
                   <div className="flex items-center gap-1 mt-1">
                     <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${
@@ -122,8 +122,8 @@ export default function MerchantDashboard() {
 
       {/* Quick Actions */}
       <section>
-        <h2 className="text-lg sm:text-xl font-bold text-foreground mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        <h2 className="text-base sm:text-lg font-bold text-foreground mb-3">Quick Actions</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
           {QUICK_ACTIONS.map((action) => (
             <Link key={action.title} href={action.href}>
               <Card className="group hover:shadow-lg hover:border-primary/50 transition-all duration-300 h-full">

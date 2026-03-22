@@ -253,12 +253,12 @@ export default function AdminManagementPage() {
         </div>
       }
     >
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 bg-clip-text text-transparent flex items-center gap-3">
-            <Crown className="h-8 w-8 text-blue-600" />
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 bg-clip-text text-transparent flex items-center gap-3">
+            <Crown className="h-6 w-6 text-blue-600" />
             Admin Management
           </h1>
           <p className="text-slate-600 mt-1 text-base">Manage admin users, roles, permissions, and monitor activity</p>
@@ -277,9 +277,9 @@ export default function AdminManagementPage() {
 
       {/* Stats Cards */}
       {permissionOverview && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600">Total Admins</p>
@@ -290,7 +290,7 @@ export default function AdminManagementPage() {
             </CardContent>
           </Card>
           <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600">Active Sessions</p>
@@ -301,7 +301,7 @@ export default function AdminManagementPage() {
             </CardContent>
           </Card>
           <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600">Recent Activity</p>
@@ -312,7 +312,7 @@ export default function AdminManagementPage() {
             </CardContent>
           </Card>
           <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600">Unique Roles</p>

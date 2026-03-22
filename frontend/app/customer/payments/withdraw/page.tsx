@@ -158,7 +158,7 @@ export default function WithdrawPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-4">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
           <Link href="/customer/dashboard" className="flex items-center gap-2">
@@ -181,13 +181,13 @@ export default function WithdrawPage() {
         <CardContent>
           {/* Balance Display */}
           {limits && (
-            <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 mb-6">
+            <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-3 mb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Available Balance</p>
-                  <p className="text-2xl font-bold">GHS {limits.available_balance.toFixed(2)}</p>
+                  <p className="text-xl font-bold">GHS {limits.available_balance.toFixed(2)}</p>
                 </div>
-                <Wallet className="h-10 w-10 text-primary/50" />
+                <Wallet className="h-8 w-8 text-primary/50" />
               </div>
             </div>
           )}
@@ -216,9 +216,9 @@ export default function WithdrawPage() {
                 </TabsList>
 
                 {/* Mobile Money Tab */}
-                <TabsContent value="mobile-money" className="space-y-4 mt-4">
-                  <form onSubmit={handleMomoSubmit} className="space-y-4">
-                    <div className="space-y-2">
+                <TabsContent value="mobile-money" className="space-y-3 mt-3">
+                  <form onSubmit={handleMomoSubmit} className="space-y-3">
+                    <div className="space-y-1">
                       <Label htmlFor="momo-amount">Amount (GHS)</Label>
                       <Input
                         id="momo-amount"
@@ -239,7 +239,7 @@ export default function WithdrawPage() {
                       )}
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label htmlFor="momo-phone">Phone Number</Label>
                       <Input
                         id="momo-phone"
@@ -252,7 +252,7 @@ export default function WithdrawPage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label htmlFor="momo-provider">Provider</Label>
                       <Select value={momoProvider} onValueChange={(value: 'MTN' | 'Telecel' | 'AirtelTigo' | 'G-Money') => setMomoProvider(value)}>
                         <SelectTrigger>
@@ -320,7 +320,7 @@ export default function WithdrawPage() {
                 {/* Bank Transfer Tab */}
                 <TabsContent value="bank-transfer" className="space-y-4 mt-4">
                   <form onSubmit={handleBankSubmit} className="space-y-4">
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label htmlFor="bank-amount">Amount (GHS)</Label>
                       <Input
                         id="bank-amount"
@@ -341,7 +341,7 @@ export default function WithdrawPage() {
                       )}
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label htmlFor="account-number">Account Number</Label>
                       <Input
                         id="account-number"
@@ -354,7 +354,7 @@ export default function WithdrawPage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label htmlFor="account-name">Account Name</Label>
                       <Input
                         id="account-name"

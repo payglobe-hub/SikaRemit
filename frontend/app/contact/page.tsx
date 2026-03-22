@@ -9,16 +9,16 @@ import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react'
 
 export default function ContactPage() {
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto py-6 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
-          <p className="text-xl text-gray-600">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">Contact Us</h1>
+          <p className="text-base text-gray-600">
             Get in touch with our support team. We're here to help!
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
           {/* Contact Form */}
           <Card>
             <CardHeader>
@@ -30,8 +30,8 @@ export default function ContactPage() {
                 Fill out the form below and we'll get back to you as soon as possible.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-2">
                 <div>
                   <Label htmlFor="firstName">First Name</Label>
                   <Input id="firstName" placeholder="John" />
@@ -69,7 +69,7 @@ export default function ContactPage() {
           </Card>
 
           {/* Contact Information */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>Contact Information</CardTitle>
@@ -77,7 +77,7 @@ export default function ContactPage() {
                   Multiple ways to reach our support team
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                     <Mail className="h-5 w-5 text-blue-600" />

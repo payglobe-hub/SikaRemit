@@ -240,12 +240,12 @@ export default function AdminFeesPage() {
   }
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <DollarSign className="h-8 w-8" />
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <DollarSign className="h-6 w-6" />
               Fee Management
             </h1>
             <p className="text-muted-foreground mt-1">

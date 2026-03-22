@@ -20,29 +20,29 @@ export default function AuthPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo and Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl mb-6 overflow-hidden">
-            <img src="/logos/SikaRemit.jpeg" alt="SikaRemit" className="w-12 h-12 object-cover rounded-xl" />
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl mb-4 overflow-hidden">
+            <img src="/logos/SikaRemit.jpeg" alt="SikaRemit" className="w-8 h-8 object-cover rounded-xl" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Welcome to SikaRemit
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-base text-gray-600">
             Your gateway to secure, fast, and reliable payment solutions worldwide
           </p>
         </div>
 
         {/* Main Action Cards */}
-        <div className="space-y-4 mb-8">
+        <div className="space-y-3 mb-6">
           <Link href="/auth/login" className="block group">
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 group-hover:border-blue-300">
+            <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 group-hover:border-blue-300">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                  <LogIn className="w-6 h-6 text-blue-600" />
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                  <LogIn className="w-5 h-5 text-blue-600" />
                 </div>
                 <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-300" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Sign In</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Sign In</h3>
               <p className="text-gray-600">Access your existing account and manage your payments</p>
             </div>
           </Link>

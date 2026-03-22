@@ -200,16 +200,16 @@ export default function AdminSettingsPage() {
         </div>
       }
     >
-      <div className="w-full space-y-8">
+      <div className="w-full space-y-4">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 bg-clip-text text-transparent flex items-center gap-3">
-            <Settings className="h-8 w-8 text-blue-600" />
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 bg-clip-text text-transparent flex items-center gap-3">
+            <Settings className="h-6 w-6 text-blue-600" />
             System Settings
           </h1>
           <p className="text-slate-600 mt-1 text-base">Configure system-wide settings and preferences</p>
         </div>
 
-      <Tabs defaultValue="general" className="space-y-6">
+      <Tabs defaultValue="general" className="space-y-4">
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
@@ -219,7 +219,7 @@ export default function AdminSettingsPage() {
           <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="general" className="space-y-6">
+        <TabsContent value="general" className="space-y-4">
           <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-900 flex items-center gap-2">
@@ -227,8 +227,8 @@ export default function AdminSettingsPage() {
                 General Settings
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="system-name">System Name</Label>
                   <Input
@@ -325,7 +325,7 @@ export default function AdminSettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="security" className="space-y-6">
+        <TabsContent value="security" className="space-y-4">
           <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-900 flex items-center gap-2">
@@ -333,8 +333,8 @@ export default function AdminSettingsPage() {
                 Security Settings
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="session-timeout">Session Timeout (minutes)</Label>
                   <Input
@@ -420,7 +420,7 @@ export default function AdminSettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="api" className="space-y-6">
+        <TabsContent value="api" className="space-y-4">
           <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-900 flex items-center gap-2">
@@ -428,8 +428,8 @@ export default function AdminSettingsPage() {
                 API Configuration
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="api-rate-limit">Rate Limit (requests/minute)</Label>
                   <Input
@@ -511,7 +511,7 @@ export default function AdminSettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="notifications" className="space-y-6">
+        <TabsContent value="notifications" className="space-y-4">
           <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-900 flex items-center gap-2">
@@ -519,7 +519,7 @@ export default function AdminSettingsPage() {
                 Notification Settings
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -605,7 +605,7 @@ export default function AdminSettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="currency" className="space-y-6">
+        <TabsContent value="currency" className="space-y-4">
           <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-900 flex items-center gap-2">
@@ -614,7 +614,7 @@ export default function AdminSettingsPage() {
               </CardTitle>
               <p className="text-sm text-slate-600">Set exchange rates from Ghana Cedis (GHS) to other currencies. Changes will be reflected immediately throughout the system.</p>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Object.entries(exchangeRates)
                   .filter(([currency]) => currency !== 'GHS')
@@ -670,7 +670,7 @@ export default function AdminSettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="maintenance" className="space-y-6">
+        <TabsContent value="maintenance" className="space-y-4">
           <Card className="bg-white/40 backdrop-blur-xl border-white/30 shadow-xl shadow-blue-500/5 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-900 flex items-center gap-2">
@@ -678,7 +678,7 @@ export default function AdminSettingsPage() {
                 Maintenance Settings
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -716,7 +716,7 @@ export default function AdminSettingsPage() {
 
               <Separator className="bg-white/30" />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="backup-frequency">Backup Frequency</Label>
                   <Select defaultValue="daily">

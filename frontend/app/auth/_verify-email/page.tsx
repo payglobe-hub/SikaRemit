@@ -55,15 +55,15 @@ function VerifyEmailContent() {
 
       case 'success':
         return (
-          <div className="text-center space-y-6">
+          <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-4 h-4 text-green-600" />
               </div>
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Email Verified!</h2>
-              <p className="text-sm text-gray-600 mt-2">{message}</p>
+              <h2 className="text-md font-semibold text-gray-900">Email Verified!</h2>
+              <p className="text-sm text-gray-600 mt-1">{message}</p>
             </div>
             <div className="space-y-3">
               <Link href="/auth/login">
@@ -82,17 +82,17 @@ function VerifyEmailContent() {
 
       case 'error':
         return (
-          <div className="text-center space-y-6">
+          <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-8 h-8 text-red-600" />
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-red-600" />
               </div>
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Verification Failed</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Verification Failed</h2>
               <p className="text-sm text-gray-600 mt-2">{message}</p>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Button
                 onClick={() => window.location.reload()}
                 variant="outline"
@@ -111,17 +111,17 @@ function VerifyEmailContent() {
 
       case 'invalid':
         return (
-          <div className="text-center space-y-6">
+          <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
-                <Mail className="w-8 h-8 text-yellow-600" />
+              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                <Mail className="w-6 h-6 text-yellow-600" />
               </div>
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Invalid Verification Link</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Invalid Verification Link</h2>
               <p className="text-sm text-gray-600 mt-2">{message}</p>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Link href="/auth/register">
                 <Button className="w-full bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 hover:from-blue-700 hover:via-blue-600 hover:to-indigo-600">
                   Create New Account
@@ -142,7 +142,7 @@ function VerifyEmailContent() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="text-center">
         <h1 className="text-xl font-medium text-center">Email Verification</h1>
         <p className="text-sm text-gray-600 text-center mt-2">
@@ -169,7 +169,7 @@ function VerifyEmailContent() {
 export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="text-center">
           <h1 className="text-xl font-medium text-center">Email Verification</h1>
           <p className="text-sm text-gray-600 text-center mt-2">

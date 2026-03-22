@@ -200,7 +200,7 @@ export default function CompliancePage() {
   // Show loading skeleton while data is loading
   if (statsLoading || reviewsLoading) {
     return (
-      <div className="space-y-6" role="main" aria-label="Compliance Dashboard">
+      <div className="space-y-4" role="main" aria-label="Compliance Dashboard">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Compliance Dashboard</h1>
@@ -225,7 +225,7 @@ export default function CompliancePage() {
   // Show error state if data fails to load
   if (statsError || reviewsError) {
     return (
-      <div className="space-y-6" role="main" aria-label="Compliance Dashboard">
+      <div className="space-y-4" role="main" aria-label="Compliance Dashboard">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Compliance Dashboard</h1>
@@ -282,10 +282,10 @@ export default function CompliancePage() {
   }
 
   return (
-    <div className="space-y-6" role="main" aria-label="Compliance Dashboard">
+    <div className="space-y-4" role="main" aria-label="Compliance Dashboard">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Compliance Dashboard</h1>
+          <h1 className="text-2xl font-bold">Compliance Dashboard</h1>
           <p className="text-gray-600">KYC reviews, risk monitoring, and regulatory compliance</p>
         </div>
         <PermissionGuard permission={PERMISSIONS.REPORTING}>

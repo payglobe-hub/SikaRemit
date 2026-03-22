@@ -296,10 +296,10 @@ export default function ExchangeRatesAdmin() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Exchange Rates</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Exchange Rates</h1>
           <p className="text-muted-foreground">
             Manage currency conversion rates for international remittances
           </p>

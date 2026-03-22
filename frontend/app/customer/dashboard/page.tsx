@@ -159,17 +159,17 @@ export default function CustomerDashboard() {
   ]
 
   return (
-    <div className="container mx-auto px-6 py-8 max-w-7xl">
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
           {/* Header */}
-          <div className="mb-6 sm:mb-8 lg:mb-10">
-            <div className="mb-4 sm:mb-6">
-              <div className="space-y-2">
+          <div className="mb-3 sm:mb-4">
+            <div className="mb-3 sm:mb-4">
+              <div className="space-y-1">
                 <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-2">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-2xl flex items-center justify-center shadow-soft">
                     <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h1 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-foreground truncate">
+                    <h1 className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold text-foreground truncate">
                       Welcome back, {(session?.user as any)?.firstName || 'Customer'}!
                     </h1>
                     <p className="text-xs sm:text-sm text-muted-foreground">
@@ -200,12 +200,12 @@ export default function CustomerDashboard() {
 
           {/* Balance Card */}
           <div className="mb-6 sm:mb-10">
-            <div className="relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-primary to-accent text-white shadow-xl">
+            <div className="relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-primary to-accent text-white shadow-xl">
               <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-12 translate-x-12"></div>
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
               <div className="relative">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                         <Wallet className="h-5 w-5" />
@@ -215,11 +215,11 @@ export default function CustomerDashboard() {
                         <p className="text-xs text-white/50 uppercase tracking-wide">{currency}</p>
                       </div>
                     </div>
-                    <div className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
                       {formatAmountFromBase(accountBalance?.available || 0, 'GHS')}
                     </div>
                   </div>
-                  <div className="text-left sm:text-right space-y-2 sm:space-y-4">
+                  <div className="text-left sm:text-right space-y-1 sm:space-y-2">
                     <div>
                       <p className="text-sm text-white/60">Pending</p>
                       <p className="text-2xl font-semibold">

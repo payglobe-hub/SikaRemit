@@ -8,23 +8,23 @@ export const metadata: Metadata = {
 
 export default function CareersPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-8">Careers at SikaRemit</h1>
+        <h1 className="text-2xl font-bold text-center mb-6">Careers at SikaRemit</h1>
         
-        <Card className="mb-8">
+        <Card className="mb-4">
           <CardHeader>
-            <CardTitle className="text-2xl">Join Our Mission</CardTitle>
+            <CardTitle className="text-xl">Join Our Mission</CardTitle>
           </CardHeader>
           <CardContent>
-            <CardDescription className="text-lg">
+            <CardDescription className="text-base">
               We're looking for talented individuals who are passionate about transforming financial services in Africa. 
               Join us in building the future of remittances and digital payments.
             </CardDescription>
           </CardContent>
         </Card>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
           <Card>
             <CardHeader>
               <CardTitle>Why Work With Us?</CardTitle>

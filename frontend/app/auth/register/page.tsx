@@ -98,7 +98,7 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Back to Auth */}
-        <div className="mb-8">
+        <div className="mb-4">
           <Link href="/auth" className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to options
@@ -106,18 +106,18 @@ export default function RegisterPage() {
         </div>
 
         {/* Register Card */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-lg p-8">
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-lg p-6">
           {/* Logo and Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl mb-4 overflow-hidden">
-              <img src="/logos/SikaRemit.jpeg" alt="SikaRemit" className="w-9 h-9 object-cover rounded-lg" />
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl mb-3 overflow-hidden">
+              <img src="/logos/SikaRemit.jpeg" alt="SikaRemit" className="w-7 h-7 object-cover rounded-lg" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Create Account</h1>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">Create Account</h1>
             <p className="text-gray-600">Join SikaRemit to access secure payment solutions</p>
           </div>
 
           {/* Registration Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name Fields */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -132,7 +132,7 @@ export default function RegisterPage() {
                     value={formData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
                     required
-                    className="pl-10 h-12 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500"
+                    className="pl-10 h-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -149,7 +149,7 @@ export default function RegisterPage() {
                     value={formData.lastName}
                     onChange={(e) => handleInputChange('lastName', e.target.value)}
                     required
-                    className="pl-10 h-12 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500"
+                    className="pl-10 h-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default function RegisterPage() {
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   required
-                  className="pl-10 h-12 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500"
+                  className="pl-10 h-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -188,7 +188,7 @@ export default function RegisterPage() {
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
                   required
-                  className="pl-10 h-12 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500"
+                  className="pl-10 h-10 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -196,7 +196,7 @@ export default function RegisterPage() {
             {/* Submit Button */}
             <Button 
               type="submit" 
-              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+              className="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
               disabled={isLoading}
             >
               {isLoading ? 'Creating Account...' : 'Create Account'}
@@ -216,7 +216,7 @@ export default function RegisterPage() {
             <Button 
               type="button"
               variant="outline" 
-              className="w-full h-12 border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-lg"
+              className="w-full h-10 border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-lg"
               onClick={handleGoogleRegister}
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
@@ -230,7 +230,7 @@ export default function RegisterPage() {
           </form>
 
           {/* Footer Links */}
-          <div className="mt-8 text-center space-y-4">
+          <div className="mt-6 text-center space-y-3">
             <div className="text-sm">
               <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
                 Already have an account? Sign in

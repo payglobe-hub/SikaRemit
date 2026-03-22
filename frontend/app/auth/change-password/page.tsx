@@ -61,13 +61,13 @@ export default function ChangePasswordPage() {
               <Lock className="h-6 w-6 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Change Password</CardTitle>
+          <CardTitle className="text-xl">Change Password</CardTitle>
           <CardDescription>
             Enter your current password and choose a new secure password
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <Label htmlFor="current-password">Current Password</Label>
               <Input
@@ -104,7 +104,7 @@ export default function ChangePasswordPage() {
               />
             </div>
 
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-2 pt-3">
               <Button
                 type="button"
                 variant="outline"

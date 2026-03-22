@@ -159,9 +159,9 @@ export default function AdminOverviewPage() {
   ]
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className={cn(
             adminStyles.text.h1,
@@ -172,7 +172,7 @@ export default function AdminOverviewPage() {
             </div>
             Overview Dashboard
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2 text-base">
+          <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
             Real-time platform overview and key performance metrics
           </p>
         </div>
@@ -199,7 +199,7 @@ export default function AdminOverviewPage() {
       </div>
 
       {/* Key Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <AdminCards.StatCard
           title="Active Users"
           value={overview.active_users.toLocaleString()}

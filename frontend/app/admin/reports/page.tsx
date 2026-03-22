@@ -210,12 +210,12 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <FileText className="h-8 w-8" />
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <FileText className="h-6 w-6" />
               Payment Reports
             </h1>
             <p className="text-muted-foreground mt-1">
@@ -230,7 +230,7 @@ export default function ReportsPage() {
 
         {/* Stats Preview */}
         {stats && !statsLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium">Total Amount</CardTitle>

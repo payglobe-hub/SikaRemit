@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
-import clsx from "classnames"
+import { cn } from "@/lib/utils"
 
 const buttonBaseStyles = [
   "inline-flex items-center justify-center gap-2 rounded-xl text-sm font-medium",
@@ -50,7 +50,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const Comp = asChild ? Slot : "button"
     return (
       <Comp
-        className={clsx(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
       >

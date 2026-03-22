@@ -50,20 +50,20 @@ export default function AdminCustomersPage() {
   }, [])
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 via-green-500 to-emerald-500 bg-clip-text text-transparent flex items-center gap-3">
-            <UserCheck className="h-8 w-8 text-green-600" />
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 via-green-500 to-emerald-500 bg-clip-text text-transparent flex items-center gap-3">
+            <UserCheck className="h-6 w-6 text-green-600" />
             Customer Management
           </h1>
-          <p className="text-slate-600 mt-1 text-base">
+          <p className="text-slate-600 mt-1 text-sm">
             Manage customers on the platform
           </p>
         </div>
         <Button 
-          className="bg-gradient-to-r from-green-600 to-emerald-500 text-white hover:shadow-xl hover:shadow-green-500/25 transition-all duration-300 hover:scale-105 px-6 py-3" 
+          className="bg-gradient-to-r from-green-600 to-emerald-500 text-white hover:shadow-xl hover:shadow-green-500/25 transition-all duration-300 hover:scale-105 px-4 py-2 h-10" 
           onClick={() => setShowCreateDialog(true)}
         >
           <Plus className="h-5 w-5 mr-2" />

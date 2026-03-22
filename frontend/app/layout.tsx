@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { AuthProvider } from '@/lib/auth/context'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -29,9 +30,9 @@ export const metadata: Metadata = {
     siteName: 'SikaRemit',
     images: [
       {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
+        url: '/logos/SikaRemit.jpeg',
+        width: 400,
+        height: 400,
         alt: 'SikaRemit - African Fintech Platform',
       },
     ],
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'SikaRemit - The Future of African Finance',
     description: 'Send money, pay bills, and manage your finances seamlessly across Africa. Powered by mobile money, built for the continent.',
-    images: ['/og-image.jpg'],
+    images: ['/logos/SikaRemit.jpeg'],
   },
   robots: {
     index: true,
@@ -67,10 +68,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="icon" href="/logos/SikaRemit.jpeg" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/logos/SikaRemit.jpeg" />
+        <link rel="icon" type="image/jpeg" sizes="32x32" href="/logos/SikaRemit.jpeg" />
+        <link rel="icon" type="image/jpeg" sizes="16x16" href="/logos/SikaRemit.jpeg" />
         <link rel="manifest" href="/site.webmanifest" />
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
         <meta name="msapplication-TileColor" content="#da532c" />
@@ -113,9 +114,11 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <div id="root">
-          {children}
-        </div>
+        <AuthProvider>
+          <div id="root">
+            {children}
+          </div>
+        </AuthProvider>
         
         {/* Analytics Scripts */}
         <script

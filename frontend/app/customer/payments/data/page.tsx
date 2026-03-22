@@ -81,7 +81,7 @@ export default function DataPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Buy Data</h1>
+            <h1 className="text-2xl font-bold">Buy Data</h1>
             <p className="text-muted-foreground">Purchase data bundles for any network</p>
           </div>
         </div>
@@ -97,8 +97,8 @@ export default function DataPage() {
                 Enter the recipient's phone number and select the amount
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
                 <div>
                   <Label htmlFor="network">Network Provider</Label>
                   <Select value={network} onValueChange={setNetwork}>

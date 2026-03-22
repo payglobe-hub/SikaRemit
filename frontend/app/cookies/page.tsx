@@ -13,14 +13,14 @@ export default function CookiesPage() {
   const [functionalEnabled, setFunctionalEnabled] = React.useState(true)
   const [marketingEnabled, setMarketingEnabled] = React.useState(false)
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto py-4 px-2">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Cookie className="h-12 w-12 text-orange-600" />
-            <h1 className="text-4xl font-bold text-gray-900">Cookie Policy</h1>
+        <div className="text-center mb-6">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Cookie className="h-8 w-8 text-orange-600" />
+            <h1 className="text-2xl font-bold text-gray-900">Cookie Policy</h1>
           </div>
-          <p className="text-xl text-gray-600">
+          <p className="text-md text-gray-600">
             How we use cookies and similar technologies to improve your experience
           </p>
           <p className="text-sm text-gray-500 mt-4">
@@ -28,7 +28,7 @@ export default function CookiesPage() {
           </p>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>What Are Cookies?</CardTitle>

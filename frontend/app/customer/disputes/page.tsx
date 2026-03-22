@@ -143,7 +143,7 @@ export default function CustomerDisputesPage() {
         {/* Statistics Cards */}
         {!statsLoading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-4">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -157,7 +157,7 @@ export default function CustomerDisputesPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-4">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
@@ -171,7 +171,7 @@ export default function CustomerDisputesPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-4">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -185,7 +185,7 @@ export default function CustomerDisputesPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-4">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
@@ -199,7 +199,7 @@ export default function CustomerDisputesPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-4">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">

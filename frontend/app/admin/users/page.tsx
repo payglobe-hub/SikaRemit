@@ -43,12 +43,12 @@ export default function AdminUsersPage() {
   } = userManagement
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 bg-clip-text text-transparent flex items-center gap-3">
-            <Users className="h-8 w-8 text-blue-600" />
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 bg-clip-text text-transparent flex items-center gap-3">
+            <Users className="h-6 w-6 text-blue-600" />
             User Management
           </h1>
           <p className="text-slate-600 mt-1 text-base">
@@ -56,7 +56,7 @@ export default function AdminUsersPage() {
           </p>
         </div>
         <Button 
-          className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 px-6 py-3" 
+          className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 px-4 py-2 h-10" 
           onClick={() => setShowCreateDialog(true)}
         >
           <Plus className="h-5 w-5 mr-2" />

@@ -98,8 +98,8 @@ export default function AdminAnalyticsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <BarChart3 className="h-8 w-8" />
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <BarChart3 className="h-6 w-6" />
               Advanced Analytics Dashboard
             </h1>
             <p className="text-muted-foreground mt-1">
@@ -122,7 +122,7 @@ export default function AdminAnalyticsPage() {
 
         {/* Real-time Status Cards */}
         {realtimeLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             {[1, 2, 3, 4].map((i) => (
               <Card key={i}>
                 <CardHeader className="pb-3">
@@ -136,7 +136,7 @@ export default function AdminAnalyticsPage() {
             ))}
           </div>
         ) : realtimeData ? (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -211,11 +211,11 @@ export default function AdminAnalyticsPage() {
           </TabsList>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
+          <TabsContent value="overview" className="space-y-4">
             {overviewLoading ? (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Loading Key Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
                   {[1, 2, 3, 4, 5, 6].map((i) => (
                     <Card key={i}>
                       <CardHeader className="pb-3">
@@ -246,7 +246,7 @@ export default function AdminAnalyticsPage() {
             ) : overviewData ? (
               <>
                 {/* Key Metrics Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
                   <Card>
                     <CardHeader className="pb-3">
                       <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
@@ -357,7 +357,7 @@ export default function AdminAnalyticsPage() {
                 </Card>
 
                 {/* Transaction Status Breakdown */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <Card>
                     <CardHeader>
                       <CardTitle>Transaction Status</CardTitle>

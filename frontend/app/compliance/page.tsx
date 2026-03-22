@@ -69,25 +69,25 @@ export default function CompliancePage() {
   ]
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto py-4 px-2">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Shield className="h-12 w-12 text-blue-600" />
-            <h1 className="text-4xl font-bold text-gray-900">Compliance & Security</h1>
+        <div className="text-center mb-4">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Shield className="h-8 w-8 text-blue-600" />
+            <h1 className="text-2xl font-bold text-gray-900">Compliance & Security</h1>
           </div>
-          <p className="text-xl text-gray-600">
+          <p className="text-md text-gray-600">
             Our commitment to regulatory compliance and data security
           </p>
         </div>
 
         {/* Overview */}
         <Card className="mb-8">
-          <CardContent className="p-8">
+          <CardContent className="p-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-4">Regulatory Compliance Framework</h2>
-              <p className="text-gray-600 mb-6">
+              <h2 className="text-xl font-bold mb-3">Regulatory Compliance Framework</h2>
+              <p className="text-gray-600 mb-4">
                 SikaRemit maintains the highest standards of compliance across all jurisdictions
                 where we operate. Our compliance program ensures that we meet or exceed all
                 applicable regulatory requirements.
@@ -115,8 +115,8 @@ export default function CompliancePage() {
         </Card>
 
         {/* Compliance Standards */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-6">Compliance Standards</h2>
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-4">Compliance Standards</h2>
           <div className="grid gap-4 md:grid-cols-2">
             {complianceStandards.map((standard, index) => (
               <Card key={index}>
@@ -145,8 +145,8 @@ export default function CompliancePage() {
         </div>
 
         {/* Regulatory Oversight */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-6">Regulatory Oversight</h2>
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-4">Regulatory Oversight</h2>
           <Card>
             <CardContent className="p-6">
               <div className="grid gap-6 md:grid-cols-2">
@@ -166,8 +166,8 @@ export default function CompliancePage() {
         </div>
 
         {/* Security Measures */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-6">Security Measures</h2>
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-4">Security Measures</h2>
           <div className="grid gap-6 md:grid-cols-3">
             <Card>
               <CardContent className="p-6 text-center">

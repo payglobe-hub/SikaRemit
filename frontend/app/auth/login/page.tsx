@@ -43,7 +43,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Back to Auth */}
-        <div className="mb-8">
+        <div className="mb-4">
           <Link href="/auth" className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to options
@@ -51,18 +51,18 @@ export default function LoginPage() {
         </div>
 
         {/* Login Card */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-lg p-8">
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-lg p-6">
           {/* Logo and Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl mb-4 overflow-hidden">
-              <img src="/logos/SikaRemit.jpeg" alt="SikaRemit" className="w-9 h-9 object-cover rounded-lg" />
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl mb-3 overflow-hidden">
+              <img src="/logos/SikaRemit.jpeg" alt="SikaRemit" className="w-7 h-7 object-cover rounded-lg" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">Welcome Back</h1>
             <p className="text-gray-600">Sign in to access your SikaRemit account</p>
           </div>
 
           {/* Login Form */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <LoginForm />
             
             {/* Divider */}
@@ -78,7 +78,7 @@ export default function LoginPage() {
             {/* Google Login */}
             <Button 
               variant="outline" 
-              className="w-full h-12 border-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
+              className="w-full h-10 border-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
               onClick={handleGoogleLogin}
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
@@ -92,7 +92,7 @@ export default function LoginPage() {
           </div>
 
           {/* Footer Links */}
-          <div className="mt-8 text-center space-y-4">
+          <div className="mt-6 text-center space-y-3">
             <div className="flex justify-between text-sm">
               <Link href="/auth/forgot-password" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
                 Forgot your password?

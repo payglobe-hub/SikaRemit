@@ -38,7 +38,7 @@ export default function MerchantAuthPage() {
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
         <div className="w-full max-w-md xl:max-w-lg mx-auto">
           {/* Back to Main Auth */}
-          <div className="mb-8">
+          <div className="mb-6">
             <Link href="/auth">
               <Button variant="ghost" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50">
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -50,12 +50,12 @@ export default function MerchantAuthPage() {
           {/* Auth Card */}
           <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-white/20 dark:border-slate-700/20">
             <CardHeader className="text-center pb-2">
-              <div className="flex items-center justify-center mb-4">
+              <div className="flex items-center justify-center mb-3">
                 <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full shadow-lg">
                   <Building2 className="w-6 h-6 text-white" />
                 </div>
               </div>
-              <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">
+              <CardTitle className="text-lg font-bold text-slate-900 dark:text-white">
                 Merchant Portal
               </CardTitle>
               <CardDescription className="text-slate-600 dark:text-slate-400">
@@ -73,14 +73,14 @@ export default function MerchantAuthPage() {
           </Card>
 
           {/* Merchant Application Section */}
-          <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-white/20 dark:border-slate-700/20 mt-6">
+          <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-white/20 dark:border-slate-700/20 mt-4">
             <CardHeader className="text-center pb-2">
-              <div className="flex items-center justify-center mb-4">
+              <div className="flex items-center justify-center mb-3">
                 <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-lg">
                   <FileText className="w-6 h-6 text-white" />
                 </div>
               </div>
-              <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">
+              <CardTitle className="text-lg font-bold text-slate-900 dark:text-white">
                 Not Invited Yet?
               </CardTitle>
               <CardDescription className="text-slate-600 dark:text-slate-400">
@@ -88,7 +88,7 @@ export default function MerchantAuthPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center space-y-4">
+              <div className="text-center space-y-3">
                 <p className="text-sm text-slate-600 dark:text-slate-400">
                   Join thousands of businesses accepting payments through sikaremit.
                   Submit your application and we'll review it within 2-3 business days.

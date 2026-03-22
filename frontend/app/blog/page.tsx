@@ -8,23 +8,23 @@ export const metadata: Metadata = {
 
 export default function BlogPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-8">SikaRemit Blog</h1>
+        <h1 className="text-2xl font-bold text-center mb-6">SikaRemit Blog</h1>
         
-        <Card className="mb-8">
+        <Card className="mb-4">
           <CardHeader>
-            <CardTitle className="text-2xl">Latest Updates & Insights</CardTitle>
+            <CardTitle className="text-xl">Latest Updates & Insights</CardTitle>
           </CardHeader>
           <CardContent>
-            <CardDescription className="text-lg">
+            <CardDescription className="text-base">
               Stay updated with the latest news, tips, and insights about remittances, digital payments, 
               and financial technology in Africa.
             </CardDescription>
           </CardContent>
         </Card>
 
-        <div className="grid gap-6">
+        <div className="grid gap-4">
           <Card>
             <CardHeader>
               <CardTitle>Welcome to SikaRemit!</CardTitle>
@@ -77,7 +77,7 @@ export default function BlogPage() {
           </Card>
         </div>
 
-        <Card className="mt-8">
+        <Card className="mt-6">
           <CardHeader>
             <CardTitle>Subscribe to Our Newsletter</CardTitle>
           </CardHeader>

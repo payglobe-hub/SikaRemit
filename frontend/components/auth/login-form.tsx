@@ -83,8 +83,8 @@ export function LoginForm({ userType = 'customer' }: { userType?: 'customer' | '
   }
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
+    <div className="space-y-3">
+      <div className="space-y-1">
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
@@ -95,7 +95,7 @@ export function LoginForm({ userType = 'customer' }: { userType?: 'customer' | '
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1">
         <Label htmlFor="password">Password</Label>
         <PasswordInput
           id="password"
@@ -108,7 +108,7 @@ export function LoginForm({ userType = 'customer' }: { userType?: 'customer' | '
       <Button
         onClick={handleLogin}
         disabled={isLoggingIn || !email || !password}
-        className="w-full"
+        className="w-full h-10"
       >
         {isLoggingIn ? 'Logging in...' : 'Login'}
       </Button>

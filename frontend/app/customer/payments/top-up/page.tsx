@@ -64,7 +64,7 @@ export default function TopUpAccountPage() {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">Complete Top-up</h1>
+              <h1 className="text-2xl font-bold">Complete Top-up</h1>
               <p className="text-muted-foreground">Review and complete your account top-up</p>
             </div>
           </div>
@@ -88,7 +88,7 @@ export default function TopUpAccountPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Top Up Account Balance</h1>
+            <h1 className="text-2xl font-bold">Top Up Account Balance</h1>
             <p className="text-muted-foreground">Add funds to your sikaremit account for instant access to all payment features</p>
           </div>
         </div>

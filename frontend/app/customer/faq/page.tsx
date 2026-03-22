@@ -298,7 +298,7 @@ export default function CustomerFAQPage() {
 
         {allQuestions.length === 0 && (
           <Card>
-            <CardContent className="p-8 text-center">
+            <CardContent className="p-6 text-center">
               <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No results found</h3>
               <p className="text-gray-600 mb-4">
@@ -313,10 +313,10 @@ export default function CustomerFAQPage() {
       </div>
 
       {/* Still Need Help Section */}
-      <div className="mt-12 bg-blue-50 rounded-lg p-8">
+      <div className="mt-8 bg-blue-50 rounded-lg p-6">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Still Need Help?</h2>
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+          <h2 className="text-xl font-bold text-gray-900 mb-3">Still Need Help?</h2>
+          <p className="text-gray-600 mb-4 max-w-2xl mx-auto">
             Our support team is here to help you with any questions or issues you may have. 
             We're available 24/7 to assist you.
           </p>

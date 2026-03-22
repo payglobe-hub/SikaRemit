@@ -86,11 +86,11 @@ export default function PaymentsPage() {
       </div>
 
       {/* Payment Method Categories Overview */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-2 sm:gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {paymentCategories.map((category, index) => (
           <Card key={index} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-1">
                 {category.icon}
                 {category.title}
               </CardTitle>
@@ -115,7 +115,7 @@ export default function PaymentsPage() {
       </div>
 
       {/* Features Grid */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2 sm:gap-3 grid-cols-2 lg:grid-cols-4">
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -177,11 +177,11 @@ export default function PaymentsPage() {
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
         <CardContent className="pt-6">
           <div className="text-center">
-            <h3 className="text-lg font-semibold mb-2">Ready to Make a Payment?</h3>
+            <h3 className="text-base font-semibold mb-1">Ready to Make a Payment?</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Start your transaction with our improved payment experience
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="flex flex-col sm:flex-row gap-2 justify-center">
               <Button onClick={() => handlePaymentTypeClick('transfer_domestic')}>
                 Transfer Money
               </Button>

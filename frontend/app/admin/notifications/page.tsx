@@ -139,12 +139,12 @@ export default function AdminNotificationsPage() {
   const unreadCount = notifications.filter(n => !n.is_read).length
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 bg-clip-text text-transparent flex items-center gap-3">
-            <Bell className="h-8 w-8 text-blue-600" />
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 bg-clip-text text-transparent flex items-center gap-3">
+            <Bell className="h-6 w-6 text-blue-600" />
             Notifications
           </h1>
           <p className="text-slate-600 mt-1 text-base">

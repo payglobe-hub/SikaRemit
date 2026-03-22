@@ -170,7 +170,7 @@ export default function BillPaymentPage() {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">Complete Payment</h1>
+              <h1 className="text-2xl font-bold">Complete Payment</h1>
               <p className="text-muted-foreground">Review and pay your bill</p>
             </div>
           </div>
@@ -194,7 +194,7 @@ export default function BillPaymentPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Pay Bills</h1>
+            <h1 className="text-2xl font-bold">Pay Bills</h1>
             <p className="text-muted-foreground">Pay your utility bills and services</p>
           </div>
         </div>

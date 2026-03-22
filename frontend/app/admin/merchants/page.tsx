@@ -373,25 +373,25 @@ export default function AdminMerchantsPage() {
 
   return (
     <>
-      <div className="w-full space-y-8">
+      <div className="w-full space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 bg-clip-text text-transparent flex items-center gap-3">
-              <Building2 className="h-8 w-8 text-blue-600" />
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 bg-clip-text text-transparent flex items-center gap-3">
+              <Building2 className="h-6 w-6 text-blue-600" />
               Merchant Management
             </h1>
             <p className="text-slate-600 mt-1 text-base">Manage merchants and business accounts on the platform</p>
           </div>
           <div className="flex gap-3">
             <Button 
-              className="bg-gradient-to-r from-blue-600 to-indigo-500 text-white hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 px-6 py-3" 
+              className="bg-gradient-to-r from-blue-600 to-indigo-500 text-white hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 px-4 py-2 h-10" 
               onClick={() => setIsInviteDialogOpen(true)}
             >
               <Mail className="h-5 w-5 mr-2" />
               Invite Merchant
             </Button>
             <Button 
-              className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 px-6 py-3" 
+              className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 px-4 py-2 h-10" 
               onClick={() => setIsCreateDialogOpen(true)}
             >
               <Plus className="h-5 w-5 mr-2" />

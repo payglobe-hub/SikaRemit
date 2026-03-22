@@ -303,7 +303,7 @@ export default function KYCUploadPage() {
 
   if (statusLoading || documentsLoading) {
     return (
-      <div className="min-h-screen bg-sikaremit-card space-y-6 p-6">
+      <div className="min-h-screen bg-sikaremit-card space-y-4 p-6">
         <div className="max-w-4xl mx-auto">
           {/* Skeleton Header */}
           <div className="mb-8">
@@ -367,10 +367,10 @@ export default function KYCUploadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-sikaremit-card space-y-6 p-6">
+    <div className="min-h-screen bg-sikaremit-card space-y-4 p-6">
       <div className="max-w-4xl mx-auto">
         {/* Breadcrumb Navigation */}
-        <Breadcrumb className="mb-6">
+        <Breadcrumb className="mb-4">
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink href="/" className="flex items-center gap-1">
@@ -390,7 +390,7 @@ export default function KYCUploadPage() {
         </Breadcrumb>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-sikaremit-foreground">KYC Verification</h1>
+          <h1 className="text-2xl font-bold text-sikaremit-foreground">KYC Verification</h1>
           <p className="text-sikaremit-muted mt-2">
             Complete your identity verification to unlock full account features
           </p>
@@ -474,7 +474,7 @@ export default function KYCUploadPage() {
                 Upload clear photos of your identification documents
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               {/* Document Type Selection */}
               <div className="space-y-2">
                 <Label htmlFor="documentType">Document Type</Label>
@@ -617,7 +617,7 @@ export default function KYCUploadPage() {
                 Upload a clear selfie to match against your approved document
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               {/* Selfie Upload */}
               <div className="space-y-2">
                 <Label>Selfie Image *</Label>
@@ -683,7 +683,7 @@ export default function KYCUploadPage() {
                 Record a short video to confirm you're a real person
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               {/* Video Upload */}
               <div className="space-y-2">
                 <Label>Video Recording *</Label>

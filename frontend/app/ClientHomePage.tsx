@@ -11,7 +11,7 @@ import {
   Sparkles, Globe2, Wallet, Banknote, ArrowUpRight, ArrowDownRight,
   QrCode, Building2, Home, User, Settings, Bell,
   ChevronRight, Play, Download, MessageSquare, Phone, Mail,
-  Facebook, Twitter, Linkedin, Instagram, Youtube, Music,
+  Facebook, Twitter, Linkedin, Instagram, Youtube, Music, Github,
   Clock, ShieldCheck, Rocket, Target, Award, PieChart,
   Activity, DollarSign, Landmark, PiggyBank,
   FileText, Calculator, HelpCircle, Search,
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import PhoneMockup from '@/components/ui/PhoneMockup'
+import { SikaRemitLogo } from '@/lib/utils/logo'
 
 export default function ModernHome() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -28,6 +29,7 @@ export default function ModernHome() {
   const [scrolled, setScrolled] = useState(false)
   const [activeFeature, setActiveFeature] = useState(0)
   const [scrollY, setScrollY] = useState(0)
+  const [floatingElements, setFloatingElements] = useState<Array<{id: number, left: number, top: number, delay: number, duration: number}>>([])
 
   useEffect(() => {
     setIsVisible(true)
@@ -36,6 +38,17 @@ export default function ModernHome() {
       setScrollY(window.scrollY)
     }
     window.addEventListener('scroll', handleScroll)
+    
+    // Generate deterministic floating elements
+    const elements = Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      left: (i * 137.5) % 100, // Deterministic position based on index
+      top: (i * 89.3) % 100,
+      delay: (i * 0.5) % 5,
+      duration: 3 + ((i * 0.7) % 4)
+    }))
+    setFloatingElements(elements)
+    
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -140,10 +153,10 @@ export default function ModernHome() {
 
   // Mobile money providers
   const providers = [
-    { name: 'MTN MoMo', icon: '📱', color: 'bg-orange-500', users: '20M+' },
-    { name: 'Telecel', icon: '📞', color: 'bg-blue-500', users: '5M+' },
-    { name: 'G-Money', icon: '💰', color: 'bg-green-500', users: '3M+' },
-    { name: 'AirtelTigo', icon: '📶', color: 'bg-red-500', users: '8M+' }
+    { name: 'MTN MoMo', logo: '/logos/mtn-momo.png', icon: '📱', color: 'bg-orange-500', users: '20M+' },
+    { name: 'Telecel', logo: '/logos/telecel-cash.jpg', icon: '📞', color: 'bg-blue-500', users: '5M+' },
+    { name: 'G-Money', logo: null, icon: '💰', color: 'bg-green-500', users: '3M+' },
+    { name: 'AirtelTigo', logo: '/logos/airteltigo-money.jpg', icon: '📶', color: 'bg-red-500', users: '8M+' }
   ]
 
   // Testimonials
@@ -180,17 +193,19 @@ export default function ModernHome() {
           : 'bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 lg:h-20">
+          <div className="flex items-center justify-between h-14 lg:h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
+            <Link href="/" className="flex items-center gap-2 group">
               <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                  <span className="text-white font-bold text-lg">S</span>
-                </div>
+                <SikaRemitLogo 
+                  size="sm" 
+                  style="full"
+                  className="shadow-lg group-hover:shadow-xl group-hover:scale-105"
+                />
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
               </div>
               <div>
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <span className="text-base font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   SikaRemit
                 </span>
                 <div className="text-xs text-gray-500">Powered by PayGlobe</div>
@@ -198,7 +213,7 @@ export default function ModernHome() {
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-8">
+            <div className="hidden lg:flex items-center space-x-6">
               <Link href="#features" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
                 Features
               </Link>
@@ -249,14 +264,14 @@ export default function ModernHome() {
             </div>
 
             {/* Auth Buttons */}
-            <div className="hidden lg:flex items-center space-x-4">
+            <div className="hidden lg:flex items-center space-x-3">
               <Link href="/auth/login">
-                <Button variant="ghost" className="font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+                <Button variant="ghost" className="font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 text-sm px-4 py-2">
                   Sign In
                 </Button>
               </Link>
               <Link href="/auth">
-                <Button className="font-medium bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group">
+                <Button className="font-medium bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group text-sm px-4 py-2">
                   Get Started
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
                 </Button>
@@ -276,18 +291,18 @@ export default function ModernHome() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed top-16 left-0 right-0 bg-white border-b border-gray-200 z-[99] p-4 shadow-lg">
-          <div className="flex flex-col gap-2">
-            <Link href="#features" className="px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-50">Features</Link>
-            <Link href="#solutions" className="px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-50">Solutions</Link>
-            <Link href="#pricing" className="px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-50">Pricing</Link>
-            <Link href="#about" className="px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-50">About</Link>
-            <div className="border-t border-gray-200 pt-4 mt-2 flex flex-col gap-2">
+        <div className="lg:hidden fixed top-14 left-0 right-0 bg-white border-b border-gray-200 z-[99] p-3 shadow-lg">
+          <div className="flex flex-col gap-1">
+            <Link href="#features" className="px-3 py-2 text-gray-600 rounded-lg hover:bg-gray-50 text-sm">Features</Link>
+            <Link href="#solutions" className="px-3 py-2 text-gray-600 rounded-lg hover:bg-gray-50 text-sm">Solutions</Link>
+            <Link href="#pricing" className="px-3 py-2 text-gray-600 rounded-lg hover:bg-gray-50 text-sm">Pricing</Link>
+            <Link href="#about" className="px-3 py-2 text-gray-600 rounded-lg hover:bg-gray-50 text-sm">About</Link>
+            <div className="border-t border-gray-200 pt-3 mt-2 flex flex-col gap-2">
               <Link href="/auth/login">
-                <Button variant="ghost" className="w-full justify-center">Sign In</Button>
+                <Button variant="ghost" className="w-full justify-center text-sm">Sign In</Button>
               </Link>
               <Link href="/auth">
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600">Get Started</Button>
+                <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-sm">Get Started</Button>
               </Link>
             </div>
           </div>
@@ -305,26 +320,26 @@ export default function ModernHome() {
 
         {/* Floating Elements */}
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
+          {floatingElements.map((element) => (
             <div
-              key={i}
+              key={element.id}
               className="absolute w-2 h-2 bg-blue-400/30 rounded-full animate-float"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${3 + Math.random() * 4}s`
+                left: `${element.left}%`,
+                top: `${element.top}%`,
+                animationDelay: `${element.delay}s`,
+                animationDuration: `${element.duration}s`
               }}
             ></div>
           ))}
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             {/* Left Content */}
-            <div className="text-center lg:text-left space-y-8">
+            <div className="text-center lg:text-left space-y-6">
               {/* Badge */}
-              <div className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full text-sm font-semibold text-gray-800">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full text-xs font-semibold text-gray-800">
                 <Sparkles className="w-4 h-4" />
                 <span>Trusted by 500,000+ users across Africa</span>
                 <Badge className="bg-green-500 text-white">Live</Badge>
@@ -332,30 +347,30 @@ export default function ModernHome() {
               
               {/* Main Heading */}
               <div className="space-y-4">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight">
                   <span className="text-gray-900">The Future of</span>
                   <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
                     African Finance
                   </span>
                 </h1>
                 
-                <p className="text-xl lg:text-2xl text-gray-600 leading-relaxed max-w-2xl">
+                <p className="text-base lg:text-base text-gray-600 leading-relaxed max-w-2xl">
                   Send money, pay bills, and manage your finances seamlessly across Africa. 
                   Powered by mobile money, built for the continent.
                 </p>
               </div>
               
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                 <Link href="/auth">
-                  <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 group">
+                  <Button size="lg" className="h-10 px-5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium text-sm shadow-xl hover:shadow-2xl transition-all duration-300 group">
                     <Download className="w-5 h-5 mr-2" />
                     Download App
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
                   </Button>
                 </Link>
                 <Link href="#features">
-                  <Button variant="outline" size="lg" className="h-14 px-8 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold text-lg group">
+                  <Button variant="outline" size="lg" className="h-10 px-5 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-medium text-sm group">
                     <Play className="w-5 h-5 mr-2" />
                     Watch Demo
                   </Button>
@@ -363,7 +378,7 @@ export default function ModernHome() {
               </div>
               
               {/* Trust Indicators */}
-              <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start text-sm text-gray-600">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start text-sm text-gray-600">
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
                   <span className="font-medium">No hidden fees</span>
@@ -442,89 +457,27 @@ export default function ModernHome() {
         </div>
       </section>
 
-      {/* Mobile Money Providers Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Integrated with Africa's Leading
-              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Mobile Money Providers
-              </span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Connect with all major mobile money networks across the continent
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {providers.map((provider, index) => (
-              <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-gray-200">
-                <CardContent className="p-6 text-center">
-                  <div className={`w-16 h-16 ${provider.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                    <span className="text-2xl">{provider.icon}</span>
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-2">{provider.name}</h3>
-                  <p className="text-sm text-gray-600">{provider.users} users</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Enhanced Stats Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Trusted Across Africa
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Join thousands of businesses and individuals transforming their financial operations
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center group">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <stat.icon className="w-8 h-8 text-white" />
-                </div>
-                <div className="text-4xl lg:text-5xl font-bold text-gray-900 mb-2">{stat.value}</div>
-                <div className="text-lg font-semibold text-gray-700 mb-1">{stat.label}</div>
-                <div className="text-sm text-gray-500 mb-2">{stat.description}</div>
-                <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${stat.color} bg-current bg-opacity-10`}>
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  {stat.growth}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Enhanced Features Section */}
-      <section id="features" className="py-20 bg-white">
+      <section id="features" className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-8">
             <div className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full text-sm font-semibold text-gray-800 mb-6">
               <Sparkles className="w-4 h-4" />
               <span>Powerful Features</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
               Everything You Need for
               <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Modern Finance
               </span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-base text-gray-600 max-w-3xl mx-auto">
               From mobile money to cross-border payments, we've built the complete financial ecosystem for Africa
             </p>
           </div>
 
           {/* Feature Tabs */}
-          <div className="mb-12">
+          <div className="mb-8">
             <div className="flex flex-wrap justify-center gap-4">
               {features.map((feature, index) => (
                 <button
@@ -565,26 +518,261 @@ export default function ModernHome() {
 
             <div className="relative">
               <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl p-8">
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-white rounded-xl p-4 shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                            <Activity className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <div className="font-semibold text-gray-900">Transaction {i}</div>
-                            <div className="text-sm text-gray-500">Completed successfully</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-semibold text-gray-900">GHS {100 * i}.00</div>
-                          <div className="text-sm text-green-600">Success</div>
-                        </div>
+                <div className="text-center">
+                  <div className="text-lg text-gray-600">
+                    Real-time transaction processing and monitoring
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mobile Money Providers Section */}
+      <section className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3">
+              Integrated with Africa's Leading
+              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Mobile Money Providers
+              </span>
+            </h2>
+            <p className="text-base text-gray-600 max-w-3xl mx-auto">
+              Connect with all major mobile money networks across the continent
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {providers.map((provider, index) => (
+              <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-gray-200">
+                <CardContent className="p-3 text-center">
+                  <div className="w-10 h-10 mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
+                    {provider.logo ? (
+                      <img 
+                        src={provider.logo} 
+                        alt={`${provider.name} Logo`} 
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <div className={`w-full h-full ${provider.color} rounded-2xl flex items-center justify-center`}>
+                        <span className="text-2xl">{provider.icon}</span>
                       </div>
-                    </div>
-                  ))}
+                    )}
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-2">{provider.name}</h3>
+                  <p className="text-sm text-gray-600">{provider.users} users</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Leadership Team Section */}
+      <section className="py-12 bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full text-sm font-semibold text-gray-800 mb-6">
+              <Sparkles className="w-4 h-4" />
+              <span>Leadership Team</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+              Meet the Visionaries
+              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Behind SikaRemit
+              </span>
+            </h2>
+            <p className="text-base text-gray-600 max-w-3xl mx-auto">
+              Led by experienced entrepreneurs and finance experts committed to transforming African finance
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* CEO Card */}
+            <Card className="group hover:shadow-xl transition-all duration-300 bg-white">
+              <CardContent className="p-6 text-center">
+                <div className="w-24 h-24 mx-auto mb-4 relative">
+                  <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                    CEO
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Lawyer Sarpong Boateng</h3>
+                <p className="text-blue-600 font-semibold mb-3">Chief Executive Officer</p>
+                <p className="text-gray-600 text-sm mb-4">
+                  Former Goldman Sachs executive with 15+ years in fintech and African markets. 
+                  Led multiple successful startups across the continent.
+                </p>
+                <div className="flex justify-center gap-2">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Linkedin className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Twitter className="w-4 h-4 text-blue-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CTO Card */}
+            <Card className="group hover:shadow-xl transition-all duration-300 bg-white">
+              <CardContent className="p-6 text-center">
+                <div className="w-24 h-24 mx-auto mb-4 relative">
+                  <div className="w-full h-full bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                    CTO
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Emmanuel Owusu Addo</h3>
+                <p className="text-emerald-600 font-semibold mb-3">Chief Technology Officer</p>
+                <p className="text-gray-600 text-sm mb-4">
+                  A full stack developer expertise in Software and Hardware Engineering, with major focus on fintech and Ecommerce infrastructure.
+                </p>
+                <div className="flex justify-center gap-2">
+                  <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                    <Linkedin className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                    <Github className="w-4 h-4 text-emerald-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CFO Card */}
+            <Card className="group hover:shadow-xl transition-all duration-300 bg-white">
+              <CardContent className="p-6 text-center">
+                <div className="w-24 h-24 mx-auto mb-4 relative">
+                  <div className="w-full h-full bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                    CFO
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Miss Adwoa Sarpong</h3>
+                <p className="text-orange-600 font-semibold mb-3">Chief Financial Officer</p>
+                <p className="text-gray-600 text-sm mb-4">
+                  Chartered accountant with experience at PwC and major African banks. 
+                  Expert in regulatory compliance and cross-border financial operations.
+                </p>
+                <div className="flex justify-center gap-2">
+                  <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                    <Linkedin className="w-4 h-4 text-orange-600" />
+                  </div>
+                  <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                    <Twitter className="w-4 h-4 text-orange-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Partners Section */}
+          <div className="mt-16">
+            <div className="text-center mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Strategic Partners</h3>
+              <p className="text-gray-600">Working with leading organizations across Africa</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="bg-white rounded-xl p-4 text-center shadow-sm">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Building2 className="w-8 h-8 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900">Ecobank</h4>
+                <p className="text-sm text-gray-600">Banking Partner</p>
+              </div>
+              <div className="bg-white rounded-xl p-4 text-center shadow-sm">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Building2 className="w-8 h-8 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900">MTN Group</h4>
+                <p className="text-sm text-gray-600">Telco Partner</p>
+              </div>
+              <div className="bg-white rounded-xl p-4 text-center shadow-sm">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Building2 className="w-8 h-8 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900">Paystack</h4>
+                <p className="text-sm text-gray-600">Payment Partner</p>
+              </div>
+              <div className="bg-white rounded-xl p-4 text-center shadow-sm">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Building2 className="w-8 h-8 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900">Flutterwave</h4>
+                <p className="text-sm text-gray-600">Fintech Partner</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Features Section */}
+      <section id="features" className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full text-sm font-semibold text-gray-800 mb-6">
+              <Sparkles className="w-4 h-4" />
+              <span>Powerful Features</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+              Everything You Need for
+              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Modern Finance
+              </span>
+            </h2>
+            <p className="text-base text-gray-600 max-w-3xl mx-auto">
+              From mobile money to cross-border payments, we've built the complete financial ecosystem for Africa
+            </p>
+          </div>
+
+          {/* Feature Tabs */}
+          <div className="mb-8">
+            <div className="flex flex-wrap justify-center gap-4">
+              {features.map((feature, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveFeature(index)}
+                  className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+                    activeFeature === index
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {feature.title}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Active Feature Display */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className={`${features[activeFeature].bgPattern} rounded-3xl p-8`}>
+              <div className={`w-20 h-20 bg-gradient-to-br ${features[activeFeature].color} rounded-2xl flex items-center justify-center mb-6`}>
+                {renderIcon(features[activeFeature].icon, "w-10 h-10 text-white")}
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">{features[activeFeature].title}</h3>
+              <p className="text-xl text-gray-600 mb-6">{features[activeFeature].description}</p>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white rounded-xl p-4">
+                  <div className="text-2xl font-bold text-gray-900">{features[activeFeature].stats}</div>
+                  <div className="text-sm text-gray-600">Active users</div>
+                </div>
+                <div className="bg-white rounded-xl p-4">
+                  <div className="text-2xl font-bold text-gray-900">{features[activeFeature].highlight}</div>
+                  <div className="text-sm text-gray-600">Key feature</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl p-8">
+                <div className="text-center">
+                  <div className="text-lg text-gray-600">
+                    Real-time transaction processing and monitoring
+                  </div>
                 </div>
               </div>
             </div>
@@ -593,24 +781,24 @@ export default function ModernHome() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
+      <section className="py-12 bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-8">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
               Loved by Users Across
               <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Africa
               </span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-base text-gray-600 max-w-3xl mx-auto">
               See what our customers are saying about their experience
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {testimonials.map((testimonial, index) => (
               <Card key={index} className="group hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-6">
+                <CardContent className="p-4">
                   <div className="flex items-center gap-1 mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
                       <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
@@ -634,7 +822,7 @@ export default function ModernHome() {
       </section>
 
       {/* Enhanced CTA Section */}
-      <section className="py-20 relative overflow-hidden">
+      <section className="py-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600"></div>
         <div className="absolute inset-0">
           <div className="absolute top-20 left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
@@ -642,31 +830,31 @@ export default function ModernHome() {
         </div>
         
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-6">
             Ready to Transform Your
             <span className="block">Financial Future?</span>
           </h2>
-          <p className="text-white/90 text-xl mb-10 leading-relaxed">
+          <p className="text-white/90 text-base mb-10 leading-relaxed">
             Join 500,000+ users already using SikaRemit to send money, pay bills, and manage their finances across Africa.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Link href="/auth">
-              <Button size="lg" className="h-14 px-8 bg-white text-blue-600 hover:bg-gray-100 font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 group">
+              <Button size="lg" className="h-12 px-6 bg-white text-blue-600 hover:bg-gray-100 font-medium text-base shadow-xl hover:shadow-2xl transition-all duration-300 group">
                 <Rocket className="w-5 h-5 mr-2" />
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
               </Button>
             </Link>
             <Link href="/contact">
-              <Button size="lg" variant="outline" className="h-14 px-8 border-white/30 text-white hover:bg-white/10 font-semibold text-lg">
+              <Button size="lg" variant="outline" className="h-12 px-6 border-white/30 text-white hover:bg-white/10 font-medium text-base">
                 <MessageSquare className="w-5 h-5 mr-2" />
                 Contact Sales
               </Button>
             </Link>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center text-white/80 text-sm">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center text-white/80 text-sm">
             <div className="flex items-center justify-center space-x-2">
               <CheckCircle className="w-4 h-4" />
               <span>No credit card required</span>
@@ -686,12 +874,10 @@ export default function ModernHome() {
       {/* Enhanced Footer */}
       <footer className="bg-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">S</span>
-                </div>
+                <SikaRemitLogo size="md" style="base" />
                 <span className="text-xl font-bold">SikaRemit</span>
               </div>
               <p className="text-gray-400 mb-4">
@@ -778,14 +964,14 @@ function EnhancedPhoneMockup() {
         </div>
         
         {/* App Content */}
-        <div className="flex-1 bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 p-6">
+        <div className="flex-1 bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 p-4">
           <div className="space-y-6">
             {/* Header */}
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <span className="text-white text-2xl font-bold">S</span>
               </div>
-              <h3 className="text-gray-900 font-bold text-lg">SikaRemit</h3>
+              <h3 className="text-gray-900 font-bold text-base">SikaRemit</h3>
               <p className="text-gray-600 text-sm">Your money, your way</p>
             </div>
             

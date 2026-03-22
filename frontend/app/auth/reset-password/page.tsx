@@ -18,7 +18,7 @@ function ResetPasswordPage({ token }: { token: string | null }) {
 
   if (!token) {
     return (
-      <div className="text-center space-y-4">
+      <div className="text-center space-y-3">
         <h1 className="text-xl font-bold text-gray-900">Invalid Reset Link</h1>
         <p className="text-sm text-gray-600">
           This password reset link is invalid or has expired.
@@ -72,14 +72,14 @@ function ResetPasswordPage({ token }: { token: string | null }) {
 
   if (isSuccess) {
     return (
-      <div className="text-center space-y-4">
+      <div className="text-center space-y-3">
         <h1 className="text-xl font-bold text-gray-900">Password Reset Successfully</h1>
         <p className="text-sm text-gray-600">
           Your password has been updated. You can now sign in with your new password.
         </p>
         <div className="pt-4">
           <Link href="/auth/login">
-            <Button className="w-full">Sign In</Button>
+            <Button className="w-full h-10">Sign In</Button>
           </Link>
         </div>
       </div>
@@ -93,8 +93,8 @@ function ResetPasswordPage({ token }: { token: string | null }) {
         Enter your new password below
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-        <div className="space-y-2">
+      <form onSubmit={handleSubmit} className="mt-6 space-y-3">
+        <div className="space-y-1">
           <Label htmlFor="password">New Password</Label>
           <Input
             id="password"
@@ -107,7 +107,7 @@ function ResetPasswordPage({ token }: { token: string | null }) {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1">
           <Label htmlFor="confirmPassword">Confirm Password</Label>
           <Input
             id="confirmPassword"
@@ -120,7 +120,7 @@ function ResetPasswordPage({ token }: { token: string | null }) {
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading || !password || !confirmPassword}>
+        <Button type="submit" className="w-full h-10" disabled={isLoading || !password || !confirmPassword}>
           {isLoading ? 'Resetting...' : 'Reset Password'}
         </Button>
 
@@ -142,7 +142,7 @@ function SearchParamsWrapper({ children }: { children: (token: string | null) =>
 
 export default function Page() {
   return (
-    <Suspense fallback={<div className="text-center space-y-4"><p>Loading...</p></div>}>
+    <Suspense fallback={<div className="text-center space-y-3"><p>Loading...</p></div>}>
       <SearchParamsWrapper>
         {(token) => <ResetPasswordPage token={token} />}
       </SearchParamsWrapper>

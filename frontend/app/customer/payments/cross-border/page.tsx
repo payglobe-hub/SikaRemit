@@ -55,7 +55,7 @@ export default function CrossBorderRemittancePage() {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">Complete International Transfer</h1>
+              <h1 className="text-2xl font-bold">Complete International Transfer</h1>
               <p className="text-muted-foreground">Review and complete your cross-border money transfer</p>
             </div>
           </div>
@@ -83,7 +83,7 @@ export default function CrossBorderRemittancePage() {
               <Globe className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Send Internationally</h1>
+              <h1 className="text-2xl font-bold">Send Internationally</h1>
               <p className="text-muted-foreground">Transfer money across borders securely</p>
             </div>
           </div>

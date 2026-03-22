@@ -8,23 +8,23 @@ export const metadata: Metadata = {
 
 export default function APIPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-8">API Documentation</h1>
+        <h1 className="text-3xl font-bold text-center mb-6">API Documentation</h1>
         
-        <Card className="mb-8">
+        <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-2xl">Developer Resources</CardTitle>
+            <CardTitle className="text-xl">Developer Resources</CardTitle>
           </CardHeader>
           <CardContent>
-            <CardDescription className="text-lg">
+            <CardDescription className="text-base">
               Welcome to the SikaRemit API documentation. Here you'll find everything you need to 
               integrate with our platform and build amazing financial applications.
             </CardDescription>
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 mb-8">
+        <div className="grid gap-4 mb-6">
           <Card>
             <CardHeader>
               <CardTitle>Getting Started</CardTitle>
