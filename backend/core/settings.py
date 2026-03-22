@@ -176,10 +176,10 @@ MIDDLEWARE = [
     # 'core.middleware.security_middleware.IPTrackingMiddleware',
     # 'core.middleware.security_middleware.DeviceTrackingMiddleware',
     # 'core.middleware.security_middleware.AuditLoggingMiddleware',
-    # Prometheus middleware
-    'django_prometheus.middleware.PrometheusBeforeMiddleware',
-    'backend.monitoring.prometheus_metrics.PrometheusMiddleware',
-    'django_prometheus.middleware.PrometheusAfterMiddleware',
+    # Prometheus middleware - DISABLED
+    # 'django_prometheus.middleware.PrometheusBeforeMiddleware',
+    # 'backend.monitoring.prometheus_metrics.PrometheusMiddleware',
+    # 'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 # Add production-only security middleware
