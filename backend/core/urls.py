@@ -147,9 +147,12 @@ urlpatterns = [
     # Authentication (allauth)
     path('accounts/', include('allauth.urls')),
 
-    # Metrics endpoint for Prometheus
-    path('', include('django_prometheus.urls')),
+    # Metrics endpoint for Prometheus (only if enabled)
 ]
+
+# Add Prometheus URLs conditionally
+if getattr(settings, 'PROMETHEUS_METRICS_ENABLED', False):
+    urlpatterns.append(path('', include('django_prometheus.urls')))
 
 # Serve static files during development
 if settings.DEBUG:

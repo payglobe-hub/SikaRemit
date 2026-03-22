@@ -215,7 +215,10 @@ class MonitoringMiddleware:
 
     def __call__(self, request):
         import time
-        from django_prometheus.middleware import PrometheusBeforeMiddleware, PrometheusAfterMiddleware
+        
+        # Only use Prometheus middleware if enabled
+        if getattr(settings, 'PROMETHEUS_METRICS_ENABLED', False):
+            from django_prometheus.middleware import PrometheusBeforeMiddleware, PrometheusAfterMiddleware
 
         # Start timing
         start_time = time.time()

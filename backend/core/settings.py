@@ -19,6 +19,23 @@ load_dotenv(BASE_DIR / '.env')
 if (BASE_DIR / '.env.production').exists() and not (BASE_DIR / '.env').exists():
     load_dotenv(BASE_DIR / '.env.production')
 
+# Early environment detection to disable Prometheus before any Django imports
+PORT = os.environ.get('PORT', '8000')
+IS_CLOUD_ENVIRONMENT = any([
+    os.environ.get('VERCEL', ''),
+    os.environ.get('RENDER', ''),
+    os.environ.get('HEROKU', ''),
+    os.environ.get('GCP_PROJECT', ''),
+    os.environ.get('AWS_REGION', ''),
+    os.environ.get('DYNO', ''),  # Heroku
+    PORT and PORT != '8000',  # Non-dev port
+])
+
+# Force disable Prometheus in cloud environments BEFORE any Django imports
+if IS_CLOUD_ENVIRONMENT:
+    os.environ['PROMETHEUS_METRICS_ENABLED'] = 'False'
+    print(f"DEBUG: Cloud environment detected (PORT={PORT}), Prometheus disabled")
+
 import dj_database_url
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -79,7 +96,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     'django_extensions',
-    'django_prometheus',
     'axes',
     'drf_spectacular_sidecar',
     'drf_spectacular',
@@ -102,6 +118,17 @@ INSTALLED_APPS = [
     'ecommerce',
     'django_celery_beat',
 ]
+
+# Conditionally add Prometheus only if enabled and not in containerized environment
+PROMETHEUS_METRICS_ENABLED = os.environ.get('PROMETHEUS_METRICS_ENABLED', 'False').lower() == 'true' and not IS_CLOUD_ENVIRONMENT
+
+print(f"DEBUG: Final PROMETHEUS_METRICS_ENABLED={PROMETHEUS_METRICS_ENABLED}")
+
+if PROMETHEUS_METRICS_ENABLED:
+    INSTALLED_APPS.append('django_prometheus')
+    print("DEBUG: Added django_prometheus to INSTALLED_APPS")
+else:
+    print("DEBUG: Did NOT add django_prometheus to INSTALLED_APPS")
 
 # Django Allauth Configuration
 ACCOUNT_EMAIL_VERIFICATION = 'none'
@@ -594,8 +621,8 @@ GRAFANA_API_KEY = os.environ.get('GRAFANA_API_KEY', 'your-grafana-api-key')
 GRAFANA_USERNAME = os.environ.get('GRAFANA_USERNAME', 'admin')
 GRAFANA_PASSWORD = os.environ.get('GRAFANA_PASSWORD', 'your-grafana-password')
 
-# Prometheus Metrics Configuration
-PROMETHEUS_METRICS_ENABLED = os.environ.get('PROMETHEUS_METRICS_ENABLED', 'False').lower() == 'true'
+# Prometheus Metrics Configuration - Disabled in cloud environments
+PROMETHEUS_METRICS_ENABLED = os.environ.get('PROMETHEUS_METRICS_ENABLED', 'False').lower() == 'true' and not IS_CLOUD_ENVIRONMENT
 PROMETHEUS_METRICS_EXPORT_PORT = int(os.environ.get('PROMETHEUS_METRICS_EXPORT_PORT', '8001'))
 PROMETHEUS_MULTIPROC_DIR = os.environ.get('PROMETHEUS_MULTIPROC_DIR', '/tmp/prometheus_multiproc_dir')
 

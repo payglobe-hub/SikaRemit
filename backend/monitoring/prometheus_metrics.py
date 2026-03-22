@@ -4,10 +4,45 @@ Custom metrics for monitoring application performance and business metrics
 """
 
 from django.conf import settings
-from django_prometheus.exports import ExportToDjangoView
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 import time
 import logging
+
+# Only import Prometheus if enabled
+if getattr(settings, 'PROMETHEUS_METRICS_ENABLED', False):
+    from django_prometheus.exports import ExportToDjangoView
+    from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+else:
+    # Create dummy classes/functions if Prometheus is disabled
+    class ExportToDjangoView:
+        def __init__(self, *args, **kwargs):
+            pass
+        def __call__(self, request):
+            from django.http import HttpResponse
+            return HttpResponse("Prometheus metrics disabled", content_type="text/plain")
+    
+    def Counter(*args, **kwargs):
+        class DummyCounter:
+            def inc(self, *args, **kwargs): pass
+            def labels(self, *args, **kwargs): return self
+        return DummyCounter()
+    
+    def Histogram(*args, **kwargs):
+        class DummyHistogram:
+            def observe(self, *args, **kwargs): pass
+            def labels(self, *args, **kwargs): return self
+        return DummyHistogram()
+    
+    def Gauge(*args, **kwargs):
+        class DummyGauge:
+            def set(self, *args, **kwargs): pass
+            def inc(self, *args, **kwargs): pass
+            def dec(self, *args, **kwargs): pass
+        return DummyGauge()
+    
+    def generate_latest(*args, **kwargs):
+        return b"# Prometheus metrics disabled"
+    
+    CONTENT_TYPE_LATEST = "text/plain"
 
 logger = logging.getLogger(__name__)
 
