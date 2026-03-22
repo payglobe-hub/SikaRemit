@@ -8,6 +8,9 @@ const nextConfig = {
   compress: true,
   trailingSlash: false,
   
+  // Enable standalone output for Docker
+  output: 'standalone',
+  
   eslint: {
     ignoreDuringBuilds: true,
   },
