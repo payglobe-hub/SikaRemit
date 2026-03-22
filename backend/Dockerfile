@@ -26,10 +26,15 @@ RUN groupadd -r sikaremit && useradd -r -g sikaremit -d /app -s /sbin/nologin si
 
 WORKDIR /app
 
+# Force rebuild by adding cache-busting timestamp
+RUN echo "BUILD_TIMESTAMP=$(date +%s)" > /tmp/build_info
+
 # Install Python dependencies (cached layer — only re-runs if requirements.txt changes)
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    pip uninstall -y django-prometheus || true && \
+    echo "FORCED PROMETHEUS REMOVAL"
 
 # Copy application code
 COPY . .

@@ -56,7 +56,6 @@ django-celery-beat==2.5.0
 
 # Monitoring and Logging
 prometheus-client==0.19.0
-# django-prometheus==2.3.1  # Disabled for cloud deployments
 
 # Security
 django-axes==6.3.0
