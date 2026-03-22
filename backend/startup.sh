@@ -1,6 +1,9 @@
 #!/bin/bash
 
 echo "🚀 Starting SikaRemit Backend..."
+echo "🔥 BUILD TIMESTAMP: $(date)"
+echo "🔥 GIT COMMIT: $(git rev-parse HEAD 2>/dev/null || echo 'unknown')"
+echo "🔥 WORKING DIR: $(pwd)"
 
 # Set Django settings module
 export DJANGO_SETTINGS_MODULE=core.settings
@@ -9,6 +12,10 @@ echo "📋 Environment variables:"
 echo "  DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE"
 echo "  PORT=${PORT:-8000}"
 echo "  ENVIRONMENT=${ENVIRONMENT:-development}"
+
+# CRITICAL: Force disable Prometheus before anything else
+export PROMETHEUS_METRICS_ENABLED=False
+echo "🔥 CRITICAL: PROMETHEUS FORCE DISABLED"
 
 # Skip Django setup test for faster startup
 echo "⚡ Skipping Django setup test for faster deployment..."
@@ -26,9 +33,18 @@ echo "🧪 Testing Django import..."
 python -c "
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
+print('🔥 CRITICAL: About to import Django...')
 import django
+print('🔥 CRITICAL: About to setup Django...')
 django.setup()
 print('✅ Django setup successful')
+print('🔥 CRITICAL: INSTALLED_APPS:')
+from django.conf import settings
+for app in settings.INSTALLED_APPS:
+    if 'prometheus' in app.lower():
+        print(f'🔥🔥🔥 FOUND PROMETHEUS APP: {app}')
+    else:
+        print(f'  - {app}')
 " || echo "❌ Django setup failed"
 
 # Start Gunicorn directly without admin user creation

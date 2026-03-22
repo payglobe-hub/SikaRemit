@@ -19,6 +19,11 @@ load_dotenv(BASE_DIR / '.env')
 if (BASE_DIR / '.env.production').exists() and not (BASE_DIR / '.env').exists():
     load_dotenv(BASE_DIR / '.env.production')
 
+# CRITICAL: Force disable Prometheus at the very beginning
+# This must happen before ANY Django imports
+print("CRITICAL: DISABLING PROMETHEUS AT STARTUP")
+os.environ['PROMETHEUS_METRICS_ENABLED'] = 'False'
+
 # Early environment detection to disable Prometheus before any Django imports
 PORT = os.environ.get('PORT', '8000')
 IS_CLOUD_ENVIRONMENT = any([
@@ -34,11 +39,11 @@ IS_CLOUD_ENVIRONMENT = any([
 # Force disable Prometheus in cloud environments BEFORE any Django imports
 if IS_CLOUD_ENVIRONMENT:
     os.environ['PROMETHEUS_METRICS_ENABLED'] = 'False'
-    print(f"DEBUG: Cloud environment detected (PORT={PORT}), Prometheus disabled")
+    print(f"CRITICAL: Cloud environment detected (PORT={PORT}), Prometheus disabled")
 
 # Completely disable Prometheus for all deployments to prevent DNS issues
 PROMETHEUS_METRICS_ENABLED = False
-print("DEBUG: Prometheus completely disabled for all deployments")
+print("CRITICAL: Prometheus completely disabled for all deployments")
 
 import dj_database_url
 
